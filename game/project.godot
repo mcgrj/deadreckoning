@@ -11,18 +11,20 @@ config_version=5
 [application]
 
 config/name="Dead Reckoning"
+run/main_scene="res://test/PixelArtVerification.tscn"
 config/features=PackedStringArray("4.6", "Mobile")
 config/icon="res://icon.svg"
-run/main_scene="res://test/PixelArtVerification.tscn"
+
+[gui]
+
+theme/custom="res://src/theme/DeadReckoning.tres"
 
 [display]
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
 window/stretch/scale_mode="integer"
-window/handheld/orientation=0
 
 [physics]
 
@@ -30,6 +32,6 @@ window/handheld/orientation=0
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="mobile"
-textures/canvas_textures/default_texture_filter=0

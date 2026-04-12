@@ -1,0 +1,18 @@
+[gd_resource type="Theme" load_steps=4 format=3 uid="uid://theme_deadreckoning"]
+
+[ext_resource type="FontFile" path="res://assets/fonts/Cinzel-Regular.ttf" id="1_cinzel"]
+[ext_resource type="FontFile" path="res://assets/fonts/CrimsonPro-Regular.ttf" id="2_crimson_regular"]
+[ext_resource type="FontFile" path="res://assets/fonts/CrimsonPro-Italic.ttf" id="3_crimson_italic"]
+
+[resource]
+# Default font for all UI — Cinzel for headers and interactive labels.
+# Override per node type below using the Godot Theme editor.
+#
+# Per-type overrides to add in the Theme editor (Project → Open Theme Editor):
+#   Label          → Fonts/font = CrimsonPro-Regular, Font Sizes/font_size = 22
+#   RichTextLabel  → Fonts/normal_font = CrimsonPro-Regular, italic_font = CrimsonPro-Italic, Font Sizes/normal_font_size = 22
+#   Button         → Fonts/font = Cinzel-Regular, Font Sizes/font_size = 20
+#
+# Size constants are in game/src/constants/FontSizes.gd
+default_font = ExtResource("1_cinzel")
+default_font_size = 20
