@@ -31,6 +31,7 @@ func _ready() -> void:
 	_test_crew_background_def()
 	_test_zone_type_def()
 	_test_objective_def()
+	_test_content_validator()
 	_finish()
 
 
@@ -333,6 +334,90 @@ func _test_objective_def() -> void:
 	check(obj.success_condition != null, "ObjectiveDef.success_condition round-trips")
 	check(obj.unlock_on_success_id == "better_charts", "ObjectiveDef.unlock_on_success_id round-trips")
 	check(obj.description == "Survey the uncharted shore.", "ObjectiveDef.description round-trips")
+
+
+func _test_content_validator() -> void:
+	print("-- ContentValidator --")
+
+	# Valid catalog: one supply with a proper id
+	var valid_supply := SupplyDef.new()
+	valid_supply.id = "food"
+	valid_supply.display_name = "Food"
+	var valid_catalog := {"supplies": [valid_supply]}
+	var errors := ContentValidator.validate(valid_catalog)
+	check(errors.is_empty(), "Validator: valid item produces no errors")
+
+	# Missing id
+	var no_id := SupplyDef.new()
+	no_id.id = ""
+	var missing_id_catalog := {"supplies": [no_id]}
+	errors = ContentValidator.validate(missing_id_catalog)
+	check(errors.size() > 0, "Validator: missing id produces an error")
+	check(errors.any(func(e: String): return "missing id" in e.to_lower()), "Validator: missing id error mentions 'missing id'")
+
+	# Duplicate ids
+	var dup1 := SupplyDef.new()
+	dup1.id = "food"
+	var dup2 := SupplyDef.new()
+	dup2.id = "food"
+	var dup_catalog := {"supplies": [dup1, dup2]}
+	errors = ContentValidator.validate(dup_catalog)
+	check(errors.size() > 0, "Validator: duplicate id produces an error")
+	check(errors.any(func(e: String): return "duplicate" in e.to_lower()), "Validator: duplicate id error mentions 'duplicate'")
+
+	# Unknown effect type inside IncidentChoiceDef inside IncidentDef
+	var bad_effect := EffectDef.new()
+	bad_effect.type = "not_a_real_effect_type"
+	var bad_choice := IncidentChoiceDef.new()
+	bad_choice.immediate_effects = [bad_effect]
+	var bad_incident := IncidentDef.new()
+	bad_incident.id = "test_incident"
+	bad_incident.choices = [bad_choice]
+	var effect_catalog := {"incidents": [bad_incident]}
+	errors = ContentValidator.validate(effect_catalog)
+	check(errors.size() > 0, "Validator: unknown effect type produces an error")
+	check(errors.any(func(e: String): return "not_a_real_effect_type" in e), "Validator: unknown effect type error names the bad type")
+
+	# Unknown condition type in IncidentDef.required_conditions
+	var bad_cond := ConditionDef.new()
+	bad_cond.type = "not_a_real_condition_type"
+	var cond_incident := IncidentDef.new()
+	cond_incident.id = "test_cond_incident"
+	cond_incident.required_conditions = [bad_cond]
+	var cond_catalog := {"incidents": [cond_incident]}
+	errors = ContentValidator.validate(cond_catalog)
+	check(errors.size() > 0, "Validator: unknown condition type produces an error")
+	check(errors.any(func(e: String): return "not_a_real_condition_type" in e), "Validator: unknown condition type error names the bad type")
+
+	# Unknown effect type inside StandingOrderDef.tick_effects
+	var bad_so_effect := EffectDef.new()
+	bad_so_effect.type = "typo_burden_change"
+	var bad_so := StandingOrderDef.new()
+	bad_so.id = "test_order"
+	bad_so.tick_effects = [bad_so_effect]
+	var so_catalog := {"standing_orders": [bad_so]}
+	errors = ContentValidator.validate(so_catalog)
+	check(errors.size() > 0, "Validator: unknown effect type in StandingOrderDef produces an error")
+
+	# Unknown effect type inside ShipUpgradeDef.upgrade_effects
+	var bad_up_effect := EffectDef.new()
+	bad_up_effect.type = "invalid_upgrade_effect"
+	var bad_up := ShipUpgradeDef.new()
+	bad_up.id = "test_upgrade"
+	bad_up.upgrade_effects = [bad_up_effect]
+	var up_catalog := {"upgrades": [bad_up]}
+	errors = ContentValidator.validate(up_catalog)
+	check(errors.size() > 0, "Validator: unknown effect type in ShipUpgradeDef produces an error")
+
+	# Unknown condition in ObjectiveDef.success_condition
+	var bad_obj_cond := ConditionDef.new()
+	bad_obj_cond.type = "not_a_real_obj_condition"
+	var bad_obj := ObjectiveDef.new()
+	bad_obj.id = "test_obj"
+	bad_obj.success_condition = bad_obj_cond
+	var obj_catalog := {"objectives": [bad_obj]}
+	errors = ContentValidator.validate(obj_catalog)
+	check(errors.size() > 0, "Validator: unknown condition type in ObjectiveDef produces an error")
 
 
 func _test_content_base() -> void:
