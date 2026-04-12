@@ -3,8 +3,6 @@
 # Run headlessly: godot --headless --path game res://test/ContentFrameworkTest.tscn
 extends Node
 
-var ContentBase = preload("res://src/content/ContentBase.gd")
-
 var _pass := 0
 var _fail := 0
 
