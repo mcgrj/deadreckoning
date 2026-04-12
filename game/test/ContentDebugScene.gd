@@ -32,6 +32,7 @@ func _on_family_pressed(family: String) -> void:
 
 func _show_validate_all() -> void:
 	_output.clear()
+	$VBox/ScrollContainer.scroll_vertical = 0
 	_output.append_text("[b]Content Catalog — Validate All[/b]\n\n")
 	for family: String in ContentRegistry.get_families():
 		var items := ContentRegistry.get_all(family)
@@ -49,6 +50,7 @@ func _show_validate_all() -> void:
 
 func _show_family(family: String) -> void:
 	_output.clear()
+	$VBox/ScrollContainer.scroll_vertical = 0
 	_output.append_text("[b]%s[/b]\n\n" % family)
 	var items := ContentRegistry.get_all(family)
 	if items.is_empty():
