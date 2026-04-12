@@ -440,7 +440,7 @@ This avoids over-generalizing content. The framework should share loading, ids, 
 
 **Build:**
 
-- Typed custom Resource classes for supplies, effects, conditions, standing orders, officers, ship upgrades, doctrines, crew backgrounds, incident choices, incidents, and objectives.
+- Typed custom Resource classes for supplies, effects, conditions, standing orders, officers, ship upgrades, doctrines, crew backgrounds, incident choices, incidents, objectives, and zone types.
 - A small shared Resource base contract for ids, display names, tags, visibility, unlock source, rarity/weighting, and validation support.
 - Type-specific fields for each Resource family rather than one generic mega-schema.
 - A content directory structure under `res://content`.
@@ -465,7 +465,7 @@ This avoids over-generalizing content. The framework should share loading, ids, 
 
 **Build:**
 
-- Expedition state object/model containing Burden, Command, supplies, ship condition, damage tags, crew traits, officers, standing orders, promises, leadership tags, run memory flags, and active objective state (accepted / succeeded / failed).
+- Expedition state object/model containing Burden, Command, supplies, ship condition, damage tags, crew traits, officers, standing orders, promises, leadership tags, run memory flags, active objective state (accepted / succeeded / failed), and stress indicators (peak Burden, minimum Command, crew losses, supply depletions).
 - Effect application system for content-driven changes.
 - Condition evaluation system for content-driven requirements.
 - Supply model covering food, water, medicine, repair materials, comforts, and Rum.
@@ -495,6 +495,9 @@ This avoids over-generalizing content. The framework should share loading, ids, 
 - Hand-authored test route map first, with later generation deferred. The test map uses 7 node categories: Crisis, Landfall, Social, Omen, Boon, Admiralty, Unknown.
 - Route nodes with category, approximate tick distance, weather/hazard hints, and optional supply opportunity hint.
 - Support for a required-node marker so survey and recover objectives can demand a specific node category appears on the route.
+- Route segments carry a `zone_type` field referencing a `ZoneTypeDef`. `ZoneTypeDef` tick modifiers (consumption, ship wear, Burden delta, incident weight) applied during travel. See `docs/superpowers/specs/2026-04-12-difficulty-stack-design.md`.
+- Hand-authored test route uses all four MVP zone types: Coastal, Open Ocean, Lee Shore, Unknown.
+- Ship log entries tagged with `difficulty_signal` category (route_danger, stress_indicator, starting_condition, objective_tier) for Admiralty synthesis.
 - Travel between nodes as discrete ticks.
 - Tick effects for food/water consumption, travel fatigue as a simple numeric expedition-state value, sickness risk as a simple numeric expedition-state value, ship wear, weather exposure, Burden, Command, and incident trigger checks.
 - A forced debug incident hook so a simple crisis can be triggered from travel context before the full incident system exists.
@@ -540,6 +543,7 @@ This avoids over-generalizing content. The framework should share loading, ids, 
 - Incident eligibility selection from Resource definitions.
 - Trigger bands: tick, node, aftermath, threshold crossing.
 - Required conditions and optional amplifiers.
+- Active zone type read during eligibility evaluation: `eligible_incident_tags` and `suppressed_incident_tags` from `ZoneTypeDef` gate which incidents can fire.
 - Cast role resolution from crew/officer/notable state.
 - Incident choices, immediate outcomes, and memory flags.
 - Initial incident set targeting the three design examples: mermaid sighting, drunk purser store error, midshipmen murder.
@@ -567,6 +571,7 @@ This avoids over-generalizing content. The framework should share loading, ids, 
 - Admiralty objective shortlist: 2–3 objectives filtered from available `ObjectiveDef` Resources by unlock state and run history. Player picks one. See `docs/superpowers/specs/2026-04-12-run-objectives-design.md`.
 - Active objective displayed on the HUD alongside promises, Burden, and Command.
 - Objective success/failure resolution at run end: unlock delivery on success, Admiralty report pressure on failure.
+- Basic Admiralty difficulty synthesis: objective tier + route danger signals from ship log. Report framing options shaped by difficulty read. See `docs/superpowers/specs/2026-04-12-difficulty-stack-design.md`.
 - Tradeoff-based content definitions for reinforced hull, expanded spirit locker, better boats, extra marines, veteran bosun, popular surgeon, pressed crew, and pious charter.
 - Initial objective content: 2–3 objectives per type (survey, condition, recover), each with one tradeoff-based unlock attached.
 - Prepared expedition state passed into the next route run.
@@ -591,6 +596,7 @@ This avoids over-generalizing content. The framework should share loading, ids, 
 
 - End-of-run report framing: blame weather, blame crew, emphasize discipline, conceal misconduct, admit command failure, glorify sacrifice, suppress mutiny, accuse a rival officer.
 - Objective outcome feeds report framing: success makes credible claims available; failure requires explanation, concealment, or blame.
+- Full multi-signal Admiralty difficulty synthesis: starting conditions and run stress indicators added to objective tier and route danger. Shortlist weighting by accumulated run difficulty across sessions.
 - Unlock state that expands future options without raw power creep.
 - Political/scandal flags from concealed truth or report distortions.
 - Simple Admiralty bias state that affects one future preparation constraint or unlock, including objective shortlist weighting.
@@ -618,6 +624,7 @@ For the first integrated prototype, keep the content cap deliberately small:
 - 3 crew backgrounds
 - 3 promises
 - 6–9 run objectives (2–3 per type: survey, condition, recover)
+- 4 zone types (Coastal, Open Ocean, Lee Shore, Unknown)
 
 These caps are not final game limits. They are a protection against building a content swamp before the framework proves the loop.
 
