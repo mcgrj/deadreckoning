@@ -403,6 +403,37 @@ This avoids over-generalizing content. The framework should share loading, ids, 
 
 ## Implementation Sequence
 
+### Stage 0: Art Direction and Asset Pipeline
+
+**Goal:** Establish the visual identity and produce the MVP asset set before any game screens are built. Full detail in `docs/superpowers/specs/2026-04-12-art-direction-design.md`.
+
+**Build:**
+
+- Scenario.com account set up and custom generator trained on a curated reference set of ~15–20 properly licensed images.
+- Palette locked (16–32 colours), saved as a Godot colour constant file and as a Scenario palette constraint.
+- Resolution standard and pixel density documented: 320×180 scene backgrounds, 48×64 portraits, 16×16 base tile.
+- Prompt templates documented in `docs/art-production-guide.md`.
+- Full MVP asset set generated and reviewed: 7 event backgrounds, 4 officer portraits, 1 ship view, 1 route map background texture, 1 Admiralty interior.
+- Godot project configured for pixel art rendering: nearest-neighbour filtering, integer scaling, landscape orientation lock.
+- Asset folders created under `res://assets/` with naming conventions documented.
+- Minimum font sizes defined for legibility at landscape mobile scale.
+- Cinzel and Crimson Pro fonts downloaded, OFL licence files saved to `res://assets/fonts/`.
+- Licensing pre-production checklist completed.
+
+**Exclude:**
+
+- Any game logic or content framework work.
+- Polished or final art — MVP asset set is good enough to ship for prototype.
+
+**Playable/Testable Outcome:** The Godot project renders pixel art correctly. The MVP asset set exists and is organised. The art production guide allows new assets to be generated consistently. The licensing pre-production checklist is done.
+
+**Art integration by coding stage:**
+- Stage 1 receives Godot pixel art rendering setup and asset folder structure.
+- Stage 3 integrates map background texture and ship view.
+- Stage 4 integrates officer portraits.
+- Stage 5 integrates event backgrounds.
+- Stage 6A integrates Admiralty interior.
+
 ### Stage 1: Godot Content Framework Vertical Slice
 
 **Goal:** Establish the data-driven foundation for the game.
