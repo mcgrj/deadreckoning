@@ -44,6 +44,12 @@ The captain can solve problems through command, but every method changes how com
 
 The game should not begin as a full colony sim, social graph sim, open-world sailing game, tactical combat game, and deckbuilder at once. The next iteration should center on the route map, travel ticks, Burden, Command, standing orders, officer council choices, and incident generation.
 
+### Framework-Driven Content
+
+The game should be built around a data-driven content framework. Incidents, major events, ship upgrades, supplies, standing orders, officer types, crew traits, Admiralty doctrines, route node categories, and unlocks should be defined in YAML or an equivalent engine-readable data format rather than hard-coded as one-off branches.
+
+This is a core production requirement, not a later convenience. The design depends on being able to add, tune, and recombine content over time without rewriting the underlying game logic.
+
 ### Loss Is Story
 
 Failure should not feel like invalid play. Mutiny, abandonment, shipwreck, scandal, rescue, and compromised arrival should become ship-log material and feed the Admiralty layer.
@@ -125,8 +131,18 @@ Use a compact set of multi-meaning resources:
 - medicine
 - repair materials
 - comforts
+- Rum
 
 Each resource should have more than one use. Medicine is healing, trade leverage, mercy, and theft temptation. Comforts can reduce Burden, reward favorites, or create resentment if distributed unfairly. Repair materials can preserve the ship, patch boats, or buy cooperation.
+
+Rum should be a first-class supply type rather than being folded into generic comforts. It gives the ship a strong maritime pressure valve:
+
+- reduces Burden after hardship when distributed as a ration or reward
+- can preserve Command if shared fairly
+- can damage Command if officers hoard it or the captain breaks expected ration custom
+- creates incidents around theft, drunkenness, spirit-store break-ins, purser negligence, and punishment
+- can become a dependency, where running out raises Burden because the crew expected the ration
+- can become an Admiralty or ship-upgrade tradeoff through larger spirit lockers, stricter locks, or temperance doctrine
 
 Avoid a large inventory taxonomy until the core loop proves it needs one.
 
@@ -269,6 +285,26 @@ Examples:
 - Hold prayer may reduce Burden for a pious crew but damage Command with cynical officers.
 - Tighten rationing preserves food while raising Burden and making future food incidents sharper.
 
+### Decision Feedback
+
+Standing orders and officer council choices should show tradeoffs in a way that is legible, tense, and in-world.
+
+Before a choice, the player should see a forecast rather than a spreadsheet. The forecast can use evocative risk language:
+
+- likely lowers Burden
+- risks fatigue
+- may preserve supplies
+- Command may suffer if discovered
+- the bosun is confident
+- the purser may be concealing something
+- exact risk unknown without better charts or officer expertise
+
+After a choice, the player should receive a short narrated consequence plus clear state changes:
+
+> The men obey, but the lower deck goes quiet. Burden +4. Command -2.
+
+The goal is to keep decisions game-like without turning them into dry optimization. Exact numbers can appear when the fiction supports certainty. Uncertain choices should communicate risk bands or officer confidence instead of exact odds.
+
 ### Officer Council
 
 Officer council is the crisis-resolution layer. During major events, relevant officers or notables propose actions based on their role, personality, loyalty, and state.
@@ -283,6 +319,24 @@ Example during a ration theft:
 
 Officer proposals are not dialogue flavor. They are mechanical options with costs, reliability, and consequences for Burden, Command, supplies, ship condition, leadership pattern, and future incidents.
 
+Officer advice should also carry uncertainty. A surgeon may be accurate about sickness risk but politically naive. A bosun may be reliable about discipline but underestimate moral backlash. A purser may be competent, drunk, corrupt, or frightened. Officer competence, loyalty, worldview, and current state should affect both the advice and the real outcome.
+
+### Promises
+
+Promises are a formal mechanic that turns leadership into future debt.
+
+Examples:
+
+- "We will make landfall within three days."
+- "No man will go without water."
+- "The thief will be judged fairly."
+- "The dead will receive proper burial."
+- "The officers will share the ration cut."
+
+Making a promise can raise Command immediately, reduce Burden temporarily, or prevent a crisis from escalating. Keeping it should reinforce Command and reduce future incident risk. Breaking it should damage Command, increase Burden, and create ship-log memory.
+
+Promises should be data-defined like other content. A promise entry needs conditions, timer or success criteria, immediate effects, kept effects, broken effects, visibility, log hooks, and possible Admiralty report hooks.
+
 ## Incident System
 
 The incident system creates emergent-feeling story moments from controlled authored templates.
@@ -296,6 +350,29 @@ Each incident is built from:
 - leadership choices: grounded captain actions
 - consequences: Burden, Command, supplies, damage, trait changes, future flags
 - narrative memory: ship log entry, rumor, callback, Admiralty report hook
+
+Incident templates must be expandable through YAML or an equivalent data format. The incident system should support new incidents without custom code for each one.
+
+Each incident definition should include:
+
+- id
+- category
+- trigger band
+- required conditions
+- optional amplifiers
+- cast roles
+- route or node context
+- standing order interactions
+- officer council hooks
+- choices
+- immediate outcomes
+- delayed outcomes
+- created memory flags
+- log text
+- callback hooks
+- visibility rules
+
+This does not mean every incident must be generic. It means bespoke writing should sit inside a consistent structure the engine can read and combine with the simulation.
 
 Examples:
 
@@ -374,6 +451,32 @@ Consequences:
 - possible faction seed
 - ship log scar
 
+## Run Memory
+
+The game should retain lightweight memory flags during a run so later incidents can refer back to earlier choices without requiring a full narrative planner.
+
+Examples:
+
+- botched_hanging
+- rum_theft_unresolved
+- burial_denied
+- officers_shared_rations
+- mermaid_rumor_spread
+- surgeon_publicly_overruled
+- purser_exposed
+- promised_landfall_broken
+
+Run memory flags should feed:
+
+- incident eligibility
+- officer council advice
+- Burden and Command changes
+- ship log entries
+- end-of-run summary
+- Admiralty report options
+
+This is the main continuity layer for emergent storytelling.
+
 ## Leadership Pattern
 
 Track recent leadership behavior through hidden tags. Do not present a static class like "Authoritarian Level 3."
@@ -407,8 +510,9 @@ The Admiralty loop:
 1. Review the ship log: what actually happened.
 2. Submit an official report: what the captain claims happened.
 3. Admiralty evaluates the report according to its biases and current politics.
-4. Unlock new doctrines, officers, orders, crew backgrounds, route intel, and starting conditions.
-5. Political events and institutional memory shape the next expedition.
+4. Receive a preparation budget and constraints for the next expedition.
+5. Choose ship upgrades, officers, crew background, supply package, doctrine, and route intel.
+6. Political events and institutional memory shape the next expedition.
 
 ### Report Framing
 
@@ -478,9 +582,120 @@ Examples:
 - mark Admiralty objective routes
 - introduce false confidence from outdated charts
 
+### Expedition Preparation Budget
+
+Before a run, the Admiralty layer should ask the player to prepare an expedition from a limited budget. This is where ship upgrades and crew selection create strategic tension before the route map begins.
+
+Preparation choices should include:
+
+- ship upgrades
+- officer selection
+- notable crew or crew background
+- supply and logistics packages
+- doctrine or standing order access
+- route intelligence
+- Admiralty objective or political constraint
+
+Each preparation option should have a cost, a benefit, and a drawback.
+
+Examples:
+
+- Reinforced hull: less ship wear, slower travel or less cargo room.
+- Expanded spirit locker: more Rum, higher theft and drunkenness risk.
+- Better boats: safer Landfall outcomes, less repair stock.
+- Extra marines: stronger discipline, lower starting Command among pressed crew.
+- Veteran bosun: stronger Command in crises, less tolerance for incompetence.
+- Popular surgeon: better sickness control, larger Command loss if they die or are overruled.
+- Pressed crew: more labor for less budget, lower starting Command.
+- Pious charter: stronger Omen and burial tools, weaker fit for cynical or mixed-faith crews.
+
+Preparation should make the player select future problems, not buy safety.
+
 Rule:
 
 > Every unlock asks: what new problem does this new tool create?
+
+## Content Framework
+
+The game should treat most content as data definitions loaded by the engine. YAML is the preferred authoring format unless the engine later provides a better equivalent.
+
+Content families should include:
+
+- incidents
+- major event nodes
+- standing orders
+- officer roles
+- officer traits
+- crew traits and backgrounds
+- supplies
+- ship upgrades
+- ship damage tags
+- Admiralty doctrines
+- logistics packages
+- route intel modifiers
+- promises
+- unlocks
+
+Each content entry should use a consistent contract where practical:
+
+- id
+- display name
+- category
+- tags
+- requirements
+- cost
+- immediate effects
+- delayed effects
+- visibility rules
+- unlock source
+- incident hooks
+- log hooks
+- Admiralty report hooks
+- weighting or rarity
+- incompatible tags, if needed
+
+The framework should support adding new content without changing core game code in most cases. Core code should evaluate conditions, apply effects, present visibility, write log entries, and select eligible incidents from data.
+
+This is especially important for long-term development. The game lives or dies on a growing library of events, upgrades, officers, route modifiers, and incident callbacks.
+
+## Player Visibility
+
+The design should be explicit about what is visible, partially visible, and hidden.
+
+Visible to the player:
+
+- Burden
+- Command
+- supplies, including Rum
+- ship condition and known damage tags
+- visible route node categories
+- approximate travel tick distance
+- known weather or hazard hints
+- known crew traits and officer traits
+- active standing orders
+- promises made and their deadlines
+- major state changes after decisions
+
+Partially visible:
+
+- incident risks
+- exact consequence ranges
+- future delayed consequences
+- officer reliability
+- hidden route modifiers
+- Admiralty preferences
+- hidden crew tensions
+
+Hidden or inferred:
+
+- exact incident trigger thresholds
+- exact event weights
+- some leadership pattern tags
+- some officer motives
+- some Admiralty political biases
+- concealed memory flags until they surface in fiction
+
+The goal is traction, not total transparency. The player should understand why outcomes happened after the fact, while still feeling uncertainty before the decision.
 
 ## What To Avoid
 
@@ -496,18 +711,34 @@ Avoid generic upgrades. Admiralty progression should expand choices and politica
 
 Avoid opaque social math. Players do not need every formula, but they must understand why Burden rose, why Command faltered, and why a mutiny became plausible.
 
+Avoid hard-coding most content. The simulation rules should be stable, while content should be expandable through YAML definitions and reusable hooks.
+
 ## Minimum Viable Design Target
 
 The smallest version worth prototyping:
 
 1. A branching route map with visible node categories and travel ticks.
 2. Burden and Command as the two central crew-state meters.
-3. A compact supply model: food, water, medicine, repair materials, comforts.
+3. A compact supply model: food, water, medicine, repair materials, comforts, Rum.
 4. One ship condition value plus temporary damage tags.
 5. Standing orders before route segments.
 6. Officer council choices at major events.
 7. A small incident-template library triggered by state.
 8. A ship log that records consequential events and leadership tone.
 9. A simple Admiralty report screen that unlocks tradeoff-based options for later runs.
+10. A preparation budget screen for ship upgrades, officer selection, crew background, supplies, and doctrine.
+11. YAML-defined content for the first vertical slice.
+
+Suggested vertical-slice content cap:
+
+- 7 node categories
+- 6 supplies, including Rum
+- 6 standing orders
+- 4 officer roles
+- 12 incidents
+- 6 ship upgrades
+- 3 Admiralty doctrines
+- 3 crew backgrounds
+- 3 promises
 
 If this prototype produces stories players want to retell, the design is working.
