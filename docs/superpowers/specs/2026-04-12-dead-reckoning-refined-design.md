@@ -46,7 +46,7 @@ The game should not begin as a full colony sim, social graph sim, open-world sai
 
 ### Framework-Driven Content
 
-The game should be built around a data-driven content framework. Incidents, major events, ship upgrades, supplies, standing orders, officer types, crew traits, Admiralty doctrines, route node categories, and unlocks should be defined in YAML or an equivalent engine-readable data format rather than hard-coded as one-off branches.
+The game should be built around a data-driven content framework. Incidents, major events, ship upgrades, supplies, standing orders, officer types, crew traits, Admiralty doctrines, route node categories, and unlocks should be defined as Godot-native custom Resources by default rather than hard-coded as one-off branches.
 
 This is a core production requirement, not a later convenience. The design depends on being able to add, tune, and recombine content over time without rewriting the underlying game logic.
 
@@ -351,7 +351,7 @@ Each incident is built from:
 - consequences: Burden, Command, supplies, damage, trait changes, future flags
 - narrative memory: ship log entry, rumor, callback, Admiralty report hook
 
-Incident templates must be expandable through YAML or an equivalent data format. The incident system should support new incidents without custom code for each one.
+Incident templates must be expandable through Godot-native custom Resources. The incident system should support new incidents without custom code for each one.
 
 Each incident definition should include:
 
@@ -617,7 +617,9 @@ Rule:
 
 ## Content Framework
 
-The game should treat most content as data definitions loaded by the engine. YAML is the preferred authoring format unless the engine later provides a better equivalent.
+The game should treat most content as data definitions loaded by the engine. Because the game is being built in Godot, the default format should be Godot custom Resources saved as text `.tres` files and backed by typed Resource scripts.
+
+JSON can be used for bulk or table-like data where typed editor workflows are less important. YAML should not be a runtime dependency by default because it is not a native Godot format; it can be reconsidered later as an external authoring or import format if hand-authored text content becomes painful enough to justify the extra tooling.
 
 Content families should include:
 
@@ -657,6 +659,30 @@ Each content entry should use a consistent contract where practical:
 The framework should support adding new content without changing core game code in most cases. Core code should evaluate conditions, apply effects, present visibility, write log entries, and select eligible incidents from data.
 
 This is especially important for long-term development. The game lives or dies on a growing library of events, upgrades, officers, route modifiers, and incident callbacks.
+
+Suggested Godot content layout:
+
+- `res://content/incidents/*.tres`
+- `res://content/standing_orders/*.tres`
+- `res://content/officers/*.tres`
+- `res://content/upgrades/*.tres`
+- `res://content/doctrines/*.tres`
+- `res://content/supplies/*.tres`
+- `res://content/crew_backgrounds/*.tres`
+- `res://content/route_modifiers/*.tres`
+
+Example Resource classes:
+
+- `IncidentDef`
+- `IncidentChoiceDef`
+- `StandingOrderDef`
+- `OfficerDef`
+- `ShipUpgradeDef`
+- `SupplyDef`
+- `DoctrineDef`
+- `CrewBackgroundDef`
+- `ConditionDef`
+- `EffectDef`
 
 ## Player Visibility
 
@@ -711,7 +737,7 @@ Avoid generic upgrades. Admiralty progression should expand choices and politica
 
 Avoid opaque social math. Players do not need every formula, but they must understand why Burden rose, why Command faltered, and why a mutiny became plausible.
 
-Avoid hard-coding most content. The simulation rules should be stable, while content should be expandable through YAML definitions and reusable hooks.
+Avoid hard-coding most content. The simulation rules should be stable, while content should be expandable through Godot Resource definitions and reusable hooks.
 
 ## Minimum Viable Design Target
 
@@ -727,7 +753,7 @@ The smallest version worth prototyping:
 8. A ship log that records consequential events and leadership tone.
 9. A simple Admiralty report screen that unlocks tradeoff-based options for later runs.
 10. A preparation budget screen for ship upgrades, officer selection, crew background, supplies, and doctrine.
-11. YAML-defined content for the first vertical slice.
+11. Godot Resource-defined content for the first vertical slice.
 
 Suggested vertical-slice content cap:
 
