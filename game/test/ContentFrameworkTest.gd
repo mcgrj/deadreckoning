@@ -3,6 +3,8 @@
 # Run headlessly: godot --headless --path game res://test/ContentFrameworkTest.tscn
 extends Node
 
+var ContentBase = preload("res://src/content/ContentBase.gd")
+
 var _pass := 0
 var _fail := 0
 
@@ -47,10 +49,12 @@ func _test_content_base() -> void:
 	cb.category = "test"
 	cb.tags = ["a", "b"]
 	cb.unlock_source = "some_unlock"
+	cb.visibility_rules = ["rule_a", "rule_b"]
 	cb.rarity_weight = 0.5
 	check(cb.id == "test_id", "ContentBase.id round-trips")
 	check(cb.display_name == "Test Item", "ContentBase.display_name round-trips")
 	check(cb.category == "test", "ContentBase.category round-trips")
 	check(cb.tags == ["a", "b"], "ContentBase.tags round-trips")
 	check(cb.unlock_source == "some_unlock", "ContentBase.unlock_source round-trips")
+	check(cb.visibility_rules == ["rule_a", "rule_b"], "ContentBase.visibility_rules round-trips")
 	check(is_equal_approx(cb.rarity_weight, 0.5), "ContentBase.rarity_weight round-trips")
