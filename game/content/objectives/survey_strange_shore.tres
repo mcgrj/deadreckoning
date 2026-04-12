@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ObjectiveDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/ObjectiveDef.gd" id="1_jkgye"]
+[ext_resource type="Script" path="res://src/content/resources/ConditionDef.gd" id="2_6upf4"]
+
+[sub_resource type="Resource" id="Resource_4j2nc"]
+script = ExtResource("2_6upf4")
+type = "has_memory_flag"
+flag_key = "strange_shore_surveyed"
+
+[resource]
+script = ExtResource("1_jkgye")
+objective_type = "survey"
+difficulty_tier = 2
+required_node_category = "Landfall"
+success_condition = SubResource("Resource_4j2nc")
+description = "The Admiralty wishes detailed charts of the uncharted landmass. Make landfall and survey it."
+id = "survey_strange_shore"
+display_name = "Survey the Strange Shore"
+category = "survey"
+tags = Array[String](["admiralty", "tier_2"])

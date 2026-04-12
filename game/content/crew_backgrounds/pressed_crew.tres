@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CrewBackgroundDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/CrewBackgroundDef.gd" id="1_twqtc"]
+
+[resource]
+script = ExtResource("1_twqtc")
+starting_traits = Array[String](["pressed", "resentful", "cheap_labor"])
+starting_command_modifier = -5
+starting_burden_modifier = 10
+description = "Impressment fills the lower deck cheaply. Starts with resentment baked in."
+id = "pressed_crew"
+display_name = "Pressed Crew"
+category = "crew"
+tags = Array[String](["volatile", "cheap"])

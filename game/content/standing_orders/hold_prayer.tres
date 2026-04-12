@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="StandingOrderDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/StandingOrderDef.gd" id="1_fm8x5"]
+[ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="2_m2mhy"]
+
+[resource]
+script = ExtResource("1_fm8x5")
+command_cost = 1
+forecast_text = "Likely reduces Burden for a pious crew. May irritate cynical officers."
+incident_interactions = Array[String](["mermaid_sighting"])
+id = "hold_prayer"
+display_name = "Hold Prayer"
+category = "morale"
+tags = Array[String](["morale", "omen"])

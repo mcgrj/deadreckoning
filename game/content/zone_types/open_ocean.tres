@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ZoneTypeDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/ZoneTypeDef.gd" id="1_e184w"]
+
+[resource]
+script = ExtResource("1_e184w")
+consumption_modifier = 1.2
+ship_wear_modifier = 1.5
+burden_delta_per_tick = 1
+incident_weight_modifier = 1.2
+eligible_incident_tags = Array[String](["deep_ocean", "weather"])
+id = "open_ocean"
+display_name = "Open Ocean"
+category = "zone"
+tags = Array[String](["exposed", "demanding"])

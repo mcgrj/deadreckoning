@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DoctrineDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/DoctrineDef.gd" id="1_li2s3"]
+
+[resource]
+script = ExtResource("1_li2s3")
+unlocked_standing_order_ids = Array[String](["share_officer_comforts", "rotate_sick_off_duty"])
+command_culture_modifier = "egalitarian"
+description = "Officers share the crew's privations. Earns loyalty; undermines hierarchy."
+id = "shared_hardship"
+display_name = "Shared Hardship Doctrine"
+category = "doctrine"
+tags = Array[String](["egalitarian"])

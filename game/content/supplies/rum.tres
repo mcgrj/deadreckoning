@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SupplyDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/SupplyDef.gd" id="1_s1584"]
+
+[resource]
+script = ExtResource("1_s1584")
+is_rum = true
+starting_amount = 100
+daily_consumption = 2
+low_threshold = 20
+critical_threshold = 5
+id = "rum"
+display_name = "Rum"
+category = "supply"
+tags = Array[String](["alcohol", "special"])

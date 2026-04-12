@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="StandingOrderDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/StandingOrderDef.gd" id="1_rtimi"]
+[ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="2_4grq6"]
+
+[resource]
+script = ExtResource("1_rtimi")
+command_cost = 2
+forecast_text = "Likely reduces food consumption. Crew may resent it."
+incident_interactions = Array[String](["ration_dispute"])
+id = "tighten_rationing"
+display_name = "Tighten Rationing"
+category = "logistics"
+tags = Array[String](["supply", "morale_risk"])

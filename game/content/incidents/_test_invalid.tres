@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="IncidentDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/ConditionDef.gd" id="1_vf1jg"]
+[ext_resource type="Script" path="res://src/content/resources/IncidentChoiceDef.gd" id="2_bdpns"]
+[ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="3_an2y4"]
+[ext_resource type="Script" path="res://src/content/resources/IncidentDef.gd" id="4_xymre"]
+
+[sub_resource type="Resource" id="Resource_exey3"]
+script = ExtResource("3_an2y4")
+type = "not_a_real_type"
+
+[sub_resource type="Resource" id="Resource_xk7ti"]
+script = ExtResource("2_bdpns")
+choice_text = "Bad choice"
+immediate_effects = Array[ExtResource("3_an2y4")]([SubResource("Resource_exey3")])
+
+[resource]
+script = ExtResource("4_xymre")
+choices = Array[ExtResource("2_bdpns")]([SubResource("Resource_xk7ti")])
+display_name = "Invalid Test Item"

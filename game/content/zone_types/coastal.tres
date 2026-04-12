@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ZoneTypeDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/ZoneTypeDef.gd" id="1_h2k1s"]
+
+[resource]
+script = ExtResource("1_h2k1s")
+ship_wear_modifier = 0.8
+incident_weight_modifier = 0.8
+suppressed_incident_tags = Array[String](["deep_ocean"])
+id = "coastal"
+display_name = "Coastal Waters"
+category = "zone"
+tags = Array[String](["navigable", "safe"])
