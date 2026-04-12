@@ -1,24 +1,24 @@
 # ContentDebugScene.gd
 # Interactive debug scene for Stage 1 content framework.
-# Shows Validate All + per-family buttons. Output in scrollable RichTextLabel.
+# Sidebar of family buttons on the left, scrollable output on the right.
 #
 # Spec: docs/superpowers/specs/2026-04-12-stage-1-content-framework-design.md
-extends Control
+extends HBoxContainer
 
-@onready var _output: RichTextLabel = $VBox/ScrollContainer/Output
+@onready var _output: RichTextLabel = $OutputContainer/Output
 
 
 func _ready() -> void:
-	$VBox/Buttons/ValidateAll.pressed.connect(_on_validate_all_pressed)
-	$VBox/Buttons/Incidents.pressed.connect(_on_family_pressed.bind("incidents"))
-	$VBox/Buttons/Officers.pressed.connect(_on_family_pressed.bind("officers"))
-	$VBox/Buttons/Supplies.pressed.connect(_on_family_pressed.bind("supplies"))
-	$VBox/Buttons/StandingOrders.pressed.connect(_on_family_pressed.bind("standing_orders"))
-	$VBox/Buttons/Upgrades.pressed.connect(_on_family_pressed.bind("upgrades"))
-	$VBox/Buttons/Doctrines.pressed.connect(_on_family_pressed.bind("doctrines"))
-	$VBox/Buttons/CrewBackgrounds.pressed.connect(_on_family_pressed.bind("crew_backgrounds"))
-	$VBox/Buttons/ZoneTypes.pressed.connect(_on_family_pressed.bind("zone_types"))
-	$VBox/Buttons/Objectives.pressed.connect(_on_family_pressed.bind("objectives"))
+	$Sidebar/ValidateAll.pressed.connect(_on_validate_all_pressed)
+	$Sidebar/Incidents.pressed.connect(_on_family_pressed.bind("incidents"))
+	$Sidebar/Officers.pressed.connect(_on_family_pressed.bind("officers"))
+	$Sidebar/Supplies.pressed.connect(_on_family_pressed.bind("supplies"))
+	$Sidebar/StandingOrders.pressed.connect(_on_family_pressed.bind("standing_orders"))
+	$Sidebar/Upgrades.pressed.connect(_on_family_pressed.bind("upgrades"))
+	$Sidebar/Doctrines.pressed.connect(_on_family_pressed.bind("doctrines"))
+	$Sidebar/CrewBackgrounds.pressed.connect(_on_family_pressed.bind("crew_backgrounds"))
+	$Sidebar/ZoneTypes.pressed.connect(_on_family_pressed.bind("zone_types"))
+	$Sidebar/Objectives.pressed.connect(_on_family_pressed.bind("objectives"))
 	_show_validate_all()
 
 
@@ -32,7 +32,7 @@ func _on_family_pressed(family: String) -> void:
 
 func _show_validate_all() -> void:
 	_output.clear()
-	$VBox/ScrollContainer.scroll_vertical = 0
+	$OutputContainer.scroll_vertical = 0
 	_output.append_text("[b]Content Catalog — Validate All[/b]\n\n")
 	for family: String in ContentRegistry.get_families():
 		var items := ContentRegistry.get_all(family)
@@ -50,7 +50,7 @@ func _show_validate_all() -> void:
 
 func _show_family(family: String) -> void:
 	_output.clear()
-	$VBox/ScrollContainer.scroll_vertical = 0
+	$OutputContainer.scroll_vertical = 0
 	_output.append_text("[b]%s[/b]\n\n" % family)
 	var items := ContentRegistry.get_all(family)
 	if items.is_empty():

@@ -2,67 +2,73 @@
 
 [ext_resource type="Script" path="res://test/ContentDebugScene.gd" id="1_debug"]
 
-[node name="ContentDebugScene" type="Control"]
+[node name="ContentDebugScene" type="HBoxContainer"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource("1_debug")
 
-[node name="VBox" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-
-[node name="Buttons" type="HBoxContainer" parent="VBox"]
+[node name="Sidebar" type="VBoxContainer" parent="."]
 layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
 
-[node name="ValidateAll" type="Button" parent="VBox/Buttons"]
+[node name="ValidateAll" type="Button" parent="Sidebar"]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Validate All"
 
-[node name="Incidents" type="Button" parent="VBox/Buttons"]
+[node name="Incidents" type="Button" parent="Sidebar"]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Incidents"
 
-[node name="Officers" type="Button" parent="VBox/Buttons"]
+[node name="Officers" type="Button" parent="Sidebar"]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Officers"
 
-[node name="Supplies" type="Button" parent="VBox/Buttons"]
+[node name="Supplies" type="Button" parent="Sidebar"]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Supplies"
 
-[node name="StandingOrders" type="Button" parent="VBox/Buttons"]
+[node name="StandingOrders" type="Button" parent="Sidebar"]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Standing Orders"
 
-[node name="Upgrades" type="Button" parent="VBox/Buttons"]
+[node name="Upgrades" type="Button" parent="Sidebar"]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Upgrades"
 
-[node name="Doctrines" type="Button" parent="VBox/Buttons"]
+[node name="Doctrines" type="Button" parent="Sidebar"]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Doctrines"
 
-[node name="CrewBackgrounds" type="Button" parent="VBox/Buttons"]
+[node name="CrewBackgrounds" type="Button" parent="Sidebar"]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Crew Backgrounds"
 
-[node name="ZoneTypes" type="Button" parent="VBox/Buttons"]
+[node name="ZoneTypes" type="Button" parent="Sidebar"]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Zone Types"
 
-[node name="Objectives" type="Button" parent="VBox/Buttons"]
+[node name="Objectives" type="Button" parent="Sidebar"]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Objectives"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="VBox"]
+[node name="OutputContainer" type="ScrollContainer" parent="."]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Output" type="RichTextLabel" parent="VBox/ScrollContainer"]
+[node name="Output" type="RichTextLabel" parent="OutputContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 bbcode_enabled = true
