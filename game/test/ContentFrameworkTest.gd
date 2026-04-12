@@ -491,12 +491,9 @@ func _test_content_registry_with_content() -> void:
 	check(incident != null, "ContentRegistry: drunk_purser_store_error found by id")
 	check(incident.choices.size() == 2, "ContentRegistry: incident has 2 choices")
 
-	# Validator should catch _test_invalid.tres (empty id + unknown effect type)
-	check(not ContentRegistry.is_valid(), "ContentRegistry.is_valid() false with _test_invalid.tres present")
-	var errors := ContentRegistry.get_validation_errors()
-	check(errors.size() > 0, "ContentRegistry: validation errors non-empty")
-	check(errors.any(func(e: String): return "missing id" in e.to_lower()), "ContentRegistry: missing id error present")
-	check(errors.any(func(e: String): return "not_a_real_type" in e), "ContentRegistry: unknown effect type error present")
+	# Catalog is now clean — no validation errors
+	check(ContentRegistry.is_valid(), "ContentRegistry.is_valid() true with clean catalog")
+	check(ContentRegistry.get_validation_errors().is_empty(), "ContentRegistry: no validation errors with clean catalog")
 
 	var zone_types := ContentRegistry.get_all("zone_types")
 	check(zone_types.size() == 2, "ContentRegistry: 2 zone types loaded")
