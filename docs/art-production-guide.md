@@ -31,69 +31,129 @@ _[Fill in after Task 6a — list all hex values]_
 | Ship view | `assets/backgrounds/` | `bg_ship_view.png` | |
 | Admiralty interior | `assets/backgrounds/` | `bg_admiralty.png` | |
 
+## Prompt Components
+
+These three strings are the invariant foundation of every prompt. Copy them verbatim — changing any word will shift the output style. Combine them as: `[SHIP] — [STYLE] — [COMP] — [scene-specific details]`.
+
+### [SHIP] — Ship description
+
+```
+60-gun British fourth-rate man-of-war, three masts fully square-rigged, heavy broad hull, two rows of closed gun ports, high ornate stern gallery with small windows, black-tarred hull, single faded ochre stripe along the gun deck, heavy angled bowsprit, 1730s British naval silhouette
+```
+
+Based on HMS Centurion (1732). Use this in every exterior scene that shows the ship. Omit for interior scenes and portrait shots.
+
+### [STYLE] — Style signature
+
+```
+detailed 32-bit pixel art, Sea of Stars pixel fidelity, dark Prussian blue and near-black palette, exactly two light sources: cold blue-white moonlight from above-left and a single amber stern lantern, heavy black vignette at all edges, bioluminescent pale green foam at the waterline, Darkest Dungeon atmosphere, no anti-aliasing, no bright colours, no photorealism
+```
+
+The bioluminescent foam is the visual signature of this game — include it in every exterior sea scene. The two-light-source rule prevents palette drift.
+
+### [COMP] — Composition rule
+
+```
+3/4 view from port bow, ship moving right to left, horizon in the lower third of the frame, vast dark sky dominant
+```
+
+Use for all exterior ship scenes. Interior scenes substitute their own framing.
+
+---
+
 ## Prompt Templates
 
 _[Fill in after Task 7]_
 
 ### Base Style Prompt
 
-_[Fill in]_
+See **Prompt Components** above. All prompts are built from `[SHIP] — [STYLE] — [COMP] — [scene details]`.
+
+### Scene Background — Hero Ship Establishing Shot
+
+> Generate 5–10 of these. Pick the best single output and use it as the IP reference image for all subsequent exterior scenes.
+
+```
+[SHIP] — [STYLE] — [COMP] — moderate chop, full sails straining, no other ships visible, oppressive sky filling the upper two thirds
+```
 
 ### Scene Background — Crisis
 
-_[Fill in]_
+```
+[SHIP] — [STYLE] with cold blue-white lightning strike replacing moonlight — [COMP] — sails torn, ship listing slightly to starboard, massive wave in foreground, lightning as the dominant light source
+```
 
 ### Scene Background — Landfall
 
-_[Fill in]_
+```
+[SHIP] — [STYLE] — viewed from behind and slightly above, jagged rocky coastline in middle distance, rocky cliffs to the right, fog obscuring whether the coast is safe, horizon in the lower third
+```
 
 ### Scene Background — Social
 
-_[Fill in]_
+```
+[STYLE] — HMS Centurion main deck at night, heavy timber planking, rigging and mast base visible, six crew in dark oilskins and knitted caps gathered in a tense semicircle, one figure restrained, officer with raised hand in the centre, no faces clearly visible, cinematic wide shot, amber lantern hanging from rigging as the only light source
+```
 
 ### Scene Background — Omen
 
-_[Fill in]_
+```
+[SHIP] — [STYLE] with bioluminescent pale green foam spreading unnaturally around the entire hull — [COMP] — perfectly flat sea, sails hanging limp, too many stars visible, something is wrong with the stillness, dead calm that feels like a held breath
+```
 
 ### Scene Background — Boon
 
-_[Fill in]_
+```
+[SHIP] — detailed 32-bit pixel art, Sea of Stars pixel fidelity, muted blue-grey and pale ochre palette, soft diffuse daylight from above, no vignette, bioluminescent pale green foam at the waterline, no anti-aliasing — [COMP] — fair weather, full sails, calm sea, pleasant but slightly wrong — sky too uniform, shadows too sharp, a moment of calm that feels borrowed
+```
 
 ### Scene Background — Admiralty
 
-_[Fill in]_
+_[Fill in after Task 7]_
 
 ### Scene Background — Unknown
 
-_[Fill in]_
+```
+[STYLE] — open ocean at night, no ship visible, no horizon line, dense fog from all sides, vast emptiness, faint bioluminescent green glow beneath the surface, nothing to orient by, oppressive and isolating
+```
 
 ### Scene Background — Ship View
 
-_[Fill in]_
+```
+[SHIP] — [STYLE] — [COMP] — no crew visible on deck, sparse and isolating, grey overcast sky replacing moonlight, muted diffuse light, ship alone on a dark sea
+```
 
 ### Scene Background — Admiralty Interior
 
-_[Fill in]_
+_[Fill in after Task 7]_
 
 ### Officer Portrait — First Mate
 
-_[Fill in]_
+```
+[STYLE] — portrait orientation 3:4, close-up face and shoulders, weathered male ship's officer mid-40s, aged naval coat with worn brass buttons, stern expression, amber lantern light from below as key light, cold blue moonlight as rim light from above-left, salt-worn skin, dark near-black background, Darkest Dungeon portrait composition
+```
 
 ### Officer Portrait — Bosun
 
-_[Fill in]_
+```
+[STYLE] — portrait orientation 3:4, close-up face and shoulders, broad-built male bosun late-40s, heavy oilskin coat, suspicious expression, callused hands visible at collar, amber lantern light from below, cold blue rim light from above-left, dark background, Darkest Dungeon portrait composition
+```
 
 ### Officer Portrait — Purser
 
-_[Fill in]_
+```
+[STYLE] — portrait orientation 3:4, close-up face and shoulders, lean male purser 30s, ink-stained fingers visible at collar, calculating expression, small round spectacles, amber lantern light from below, cold blue rim light from above-left, dark background, Darkest Dungeon portrait composition
+```
 
 ### Officer Portrait — Surgeon
 
-_[Fill in]_
+```
+[STYLE] — portrait orientation 3:4, close-up face and shoulders, gaunt surgeon 50s, dark coat with stained cuffs, haunted expression, sunken eyes, amber lantern light from below giving sickly cast to skin, cold blue rim light from above-left, near-black background, Darkest Dungeon portrait composition
+```
 
 ### Route Map Background Texture
 
-_[Fill in]_
+_[Fill in after Task 7]_
 
 ## Asset Checklist
 
