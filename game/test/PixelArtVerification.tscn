@@ -17,3 +17,18 @@ offset_top = 40.0
 offset_right = 640.0
 offset_bottom = 80.0
 text = "Stage 0 Verification: 1280x720 Landscape Nearest-Neighbour"
+
+[node name="CinzelLabel" type="Label" parent="."]
+offset_left = 40.0
+offset_top = 100.0
+offset_right = 800.0
+offset_bottom = 140.0
+text = "Cinzel UI_CHOICE (20px): Make an example of the thief"
+
+[node name="CrimsonLabel" type="Label" parent="."]
+offset_left = 40.0
+offset_top = 160.0
+offset_right = 1000.0
+offset_bottom = 340.0
+text = "Crimson Pro NARRATIVE_BODY (22px): Someone has been at the spirit locker. The bosun found an empty cask hidden beneath the biscuit stores. The lower deck goes quiet."
+autowrap_mode = 3
