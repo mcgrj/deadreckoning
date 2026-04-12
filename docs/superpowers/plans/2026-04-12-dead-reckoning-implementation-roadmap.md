@@ -440,7 +440,7 @@ This avoids over-generalizing content. The framework should share loading, ids, 
 
 **Build:**
 
-- Typed custom Resource classes for supplies, effects, conditions, standing orders, officers, ship upgrades, doctrines, crew backgrounds, incident choices, and incidents.
+- Typed custom Resource classes for supplies, effects, conditions, standing orders, officers, ship upgrades, doctrines, crew backgrounds, incident choices, incidents, and objectives.
 - A small shared Resource base contract for ids, display names, tags, visibility, unlock source, rarity/weighting, and validation support.
 - Type-specific fields for each Resource family rather than one generic mega-schema.
 - A content directory structure under `res://content`.
@@ -465,7 +465,7 @@ This avoids over-generalizing content. The framework should share loading, ids, 
 
 **Build:**
 
-- Expedition state object/model containing Burden, Command, supplies, ship condition, damage tags, crew traits, officers, standing orders, promises, leadership tags, and run memory flags.
+- Expedition state object/model containing Burden, Command, supplies, ship condition, damage tags, crew traits, officers, standing orders, promises, leadership tags, run memory flags, and active objective state (accepted / succeeded / failed).
 - Effect application system for content-driven changes.
 - Condition evaluation system for content-driven requirements.
 - Supply model covering food, water, medicine, repair materials, comforts, and Rum.
@@ -494,6 +494,7 @@ This avoids over-generalizing content. The framework should share loading, ids, 
 
 - Hand-authored test route map first, with later generation deferred. The test map uses 7 node categories: Crisis, Landfall, Social, Omen, Boon, Admiralty, Unknown.
 - Route nodes with category, approximate tick distance, weather/hazard hints, and optional supply opportunity hint.
+- Support for a required-node marker so survey and recover objectives can demand a specific node category appears on the route.
 - Travel between nodes as discrete ticks.
 - Tick effects for food/water consumption, travel fatigue as a simple numeric expedition-state value, sickness risk as a simple numeric expedition-state value, ship wear, weather exposure, Burden, Command, and incident trigger checks.
 - A forced debug incident hook so a simple crisis can be triggered from travel context before the full incident system exists.
@@ -563,7 +564,11 @@ This avoids over-generalizing content. The framework should share loading, ids, 
 
 - Pre-run preparation budget screen.
 - Selection of ship upgrades, officer/crew background, supply/logistics package, doctrine, route intel, and Admiralty objective/constraint.
+- Admiralty objective shortlist: 2–3 objectives filtered from available `ObjectiveDef` Resources by unlock state and run history. Player picks one. See `docs/superpowers/specs/2026-04-12-run-objectives-design.md`.
+- Active objective displayed on the HUD alongside promises, Burden, and Command.
+- Objective success/failure resolution at run end: unlock delivery on success, Admiralty report pressure on failure.
 - Tradeoff-based content definitions for reinforced hull, expanded spirit locker, better boats, extra marines, veteran bosun, popular surgeon, pressed crew, and pious charter.
+- Initial objective content: 2–3 objectives per type (survey, condition, recover), each with one tradeoff-based unlock attached.
 - Prepared expedition state passed into the next route run.
 
 **Exclude:**
@@ -571,11 +576,12 @@ This avoids over-generalizing content. The framework should share loading, ids, 
 - End-of-run report framing.
 - Persistent politics.
 - Scandal/unlock distortion.
+- Admiralty political bias on shortlist weighting (Stage 6B).
 - Full campaign economy.
 - Large unlock tree.
 - Balancing for long-term progression.
 
-**Playable/Testable Outcome:** The player can prepare an expedition from a limited budget and see the selected ship upgrades, officer/crew background, supplies, doctrine, and route intel affect the next short run.
+**Playable/Testable Outcome:** The player can prepare an expedition from a limited budget, accept an Admiralty objective, pursue it during the run, and see a tradeoff-based unlock delivered on success or Admiralty report pressure applied on failure.
 
 ### Stage 6B: Admiralty Reporting And Political Memory
 
@@ -584,9 +590,10 @@ This avoids over-generalizing content. The framework should share loading, ids, 
 **Build:**
 
 - End-of-run report framing: blame weather, blame crew, emphasize discipline, conceal misconduct, admit command failure, glorify sacrifice, suppress mutiny, accuse a rival officer.
+- Objective outcome feeds report framing: success makes credible claims available; failure requires explanation, concealment, or blame.
 - Unlock state that expands future options without raw power creep.
 - Political/scandal flags from concealed truth or report distortions.
-- Simple Admiralty bias state that affects one future preparation constraint or unlock.
+- Simple Admiralty bias state that affects one future preparation constraint or unlock, including objective shortlist weighting.
 
 **Exclude:**
 
@@ -610,6 +617,7 @@ For the first integrated prototype, keep the content cap deliberately small:
 - 3 Admiralty doctrines
 - 3 crew backgrounds
 - 3 promises
+- 6–9 run objectives (2–3 per type: survey, condition, recover)
 
 These caps are not final game limits. They are a protection against building a content swamp before the framework proves the loop.
 
