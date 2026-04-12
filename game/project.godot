@@ -15,9 +15,9 @@ run/main_scene="res://test/PixelArtVerification.tscn"
 config/features=PackedStringArray("4.6", "Mobile")
 config/icon="res://icon.svg"
 
-[gui]
+[autoload]
 
-theme/custom="res://src/theme/DeadReckoning.tres"
+ContentRegistry="*res://src/content/ContentRegistry.gd"
 
 [display]
 
@@ -25,6 +25,10 @@ window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/scale_mode="integer"
+
+[gui]
+
+theme/custom="res://src/theme/DeadReckoning.tres"
 
 [physics]
 

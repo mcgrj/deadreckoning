@@ -32,6 +32,7 @@ func _ready() -> void:
 	_test_zone_type_def()
 	_test_objective_def()
 	_test_content_validator()
+	_test_content_registry_empty()
 	_finish()
 
 
@@ -418,6 +419,25 @@ func _test_content_validator() -> void:
 	var obj_catalog := {"objectives": [bad_obj]}
 	errors = ContentValidator.validate(obj_catalog)
 	check(errors.size() > 0, "Validator: unknown condition type in ObjectiveDef produces an error")
+
+
+func _test_content_registry_empty() -> void:
+	print("-- ContentRegistry (empty catalog) --")
+	check(ContentRegistry != null, "ContentRegistry autoload is available")
+	var families := ContentRegistry.get_families()
+	check(families.size() == 9, "ContentRegistry has 9 registered families")
+	check(families.has("supplies"), "ContentRegistry has supplies family")
+	check(families.has("incidents"), "ContentRegistry has incidents family")
+	check(families.has("zone_types"), "ContentRegistry has zone_types family")
+
+	# Empty families return empty arrays and null lookups — not errors
+	var items := ContentRegistry.get_all("supplies")
+	check(items.is_empty(), "ContentRegistry.get_all returns empty array for empty family")
+	var item := ContentRegistry.get_by_id("supplies", "rum")
+	check(item == null, "ContentRegistry.get_by_id returns null for missing item")
+
+	# No .tres files = no validation errors
+	check(ContentRegistry.is_valid(), "ContentRegistry.is_valid() true with empty catalog")
 
 
 func _test_content_base() -> void:
