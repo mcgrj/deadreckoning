@@ -16,3 +16,8 @@ func _ready() -> void:
 
     print("Stage 0 verification: PASS — viewport %s, orientation %d" \
         % [viewport_size, orientation])
+
+    # Verify palette constants load without error
+    var _void_check := Palette.VOID
+    var _lantern_check := Palette.LANTERN
+    print("Palette load: PASS — VOID=%s LANTERN=%s" % [Palette.VOID, Palette.LANTERN])
