@@ -46,10 +46,10 @@ Based on HMS Centurion (1732). Use this in every exterior scene that shows the s
 ### [STYLE] — Style signature
 
 ```
-detailed 32-bit pixel art, Sea of Stars pixel fidelity, dark Prussian blue and near-black palette, exactly two light sources: cold blue-white moonlight from above-left and a single amber stern lantern, heavy black vignette at all edges, bioluminescent pale green foam at the waterline, Darkest Dungeon atmosphere, no anti-aliasing, no bright colours, no photorealism
+detailed 32-bit pixel art, Sea of Stars pixel fidelity, near-black and dark teal-blue palette, electric blue-white lightning as the sole cold light source, single amber-gold lantern as the only warm accent, diagonal pale blue-grey rain streaks, near-black storm clouds with blue undertones, dark teal choppy sea with pale blue-grey wave crests, ship in near-total silhouette, heavy black vignette at all edges, bioluminescent pale green foam at the waterline, Darkest Dungeon atmosphere, no anti-aliasing, no bright colours, no moonlight, no photorealism
 ```
 
-The bioluminescent foam is the visual signature of this game — include it in every exterior sea scene. The two-light-source rule prevents palette drift.
+The bioluminescent foam is the visual signature of this game — include it in every exterior sea scene. Lightning is the sole cold light source — no moonlight. The amber lantern does all the warmth alone.
 
 ### [COMP] — Composition rule
 
@@ -74,7 +74,7 @@ See **Prompt Components** above. All prompts are built from `[SHIP] — [STYLE] 
 > Generate 5–10 of these. Pick the best single output and use it as the IP reference image for all subsequent exterior scenes.
 
 ```
-[SHIP] — [STYLE] — [COMP] — moderate chop, full sails straining, no other ships visible, oppressive sky filling the upper two thirds
+[SHIP] — [STYLE] — [COMP] — moderate chop, full sails straining, no other ships visible, lightning illuminating the rigging from above-left, oppressive storm sky filling the upper two thirds
 ```
 
 ### Scene Background — Crisis
@@ -98,7 +98,7 @@ See **Prompt Components** above. All prompts are built from `[SHIP] — [STYLE] 
 ### Scene Background — Omen
 
 ```
-[SHIP] — [STYLE] with bioluminescent pale green foam spreading unnaturally around the entire hull — [COMP] — perfectly flat sea, sails hanging limp, too many stars visible, something is wrong with the stillness, dead calm that feels like a held breath
+[SHIP] — detailed 32-bit pixel art, Sea of Stars pixel fidelity, near-black and sickly teal-green palette, no lightning, no lantern visible, bioluminescent pale green foam spreading unnaturally around the entire hull as the only light source, heavy black vignette, Darkest Dungeon atmosphere, no anti-aliasing — [COMP] — perfectly flat sea, sails hanging limp, no rain, no storm, total unnatural stillness, the green glow the only thing visible, something is deeply wrong
 ```
 
 ### Scene Background — Boon
@@ -120,7 +120,7 @@ _[Fill in after Task 7]_
 ### Scene Background — Ship View
 
 ```
-[SHIP] — [STYLE] — [COMP] — no crew visible on deck, sparse and isolating, grey overcast sky replacing moonlight, muted diffuse light, ship alone on a dark sea
+[SHIP] — [STYLE] — [COMP] — no crew visible on deck, sparse and isolating, lightning far in the distance providing faint cold light, no rain, ship alone on a dark teal sea
 ```
 
 ### Scene Background — Admiralty Interior
