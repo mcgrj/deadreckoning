@@ -1,34 +1,38 @@
-[gd_scene load_steps=2 format=3 uid="uid://pixel_art_verify"]
+[gd_scene format=3 uid="uid://d25xcrfe82gyx"]
 
-[ext_resource type="Script" path="res://test/PixelArtVerification.gd" id="1"]
+[ext_resource type="Script" uid="uid://7qg6cb23trtl" path="res://test/PixelArtVerification.gd" id="1"]
+[ext_resource type="FontFile" uid="uid://dsew0miptexk6" path="res://assets/fonts/Cinzel-Regular.ttf" id="2_r5q83"]
+[ext_resource type="FontFile" uid="uid://b6kswnb3jytev" path="res://assets/fonts/CrimsonPro-Regular.ttf" id="3_04dsd"]
 
-[node name="PixelArtVerification" type="Node2D"]
+[node name="PixelArtVerification" type="Node2D" unique_id=665171974]
 script = ExtResource("1")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=1873411816]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0.027, 0.063, 0.106, 1)
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="." unique_id=318242544]
 offset_left = 40.0
 offset_top = 40.0
 offset_right = 640.0
 offset_bottom = 80.0
 text = "Stage 0 Verification: 1280x720 Landscape Nearest-Neighbour"
 
-[node name="CinzelLabel" type="Label" parent="."]
+[node name="CinzelLabel" type="Label" parent="." unique_id=62171480]
 offset_left = 40.0
 offset_top = 100.0
 offset_right = 800.0
 offset_bottom = 140.0
+theme_override_fonts/font = ExtResource("2_r5q83")
 text = "Cinzel UI_CHOICE (20px): Make an example of the thief"
 
-[node name="CrimsonLabel" type="Label" parent="."]
+[node name="CrimsonLabel" type="Label" parent="." unique_id=459755828]
 offset_left = 40.0
 offset_top = 160.0
 offset_right = 1000.0
 offset_bottom = 340.0
+theme_override_fonts/font = ExtResource("3_04dsd")
 text = "Crimson Pro NARRATIVE_BODY (22px): Someone has been at the spirit locker. The bosun found an empty cask hidden beneath the biscuit stores. The lower deck goes quiet."
 autowrap_mode = 3
