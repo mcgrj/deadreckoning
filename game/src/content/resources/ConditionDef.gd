@@ -1,0 +1,22 @@
+# ConditionDef.gd
+# Inline Resource representing one condition check against expedition state.
+# Embedded inside IncidentDef and IncidentChoiceDef — not stored standalone.
+#
+# Valid types: burden_above, burden_below, command_above, command_below, supply_below,
+#              has_damage_tag, has_memory_flag, has_crew_trait, officer_present, zone_type_is
+#
+# Spec: docs/superpowers/specs/2026-04-12-stage-1-content-framework-design.md
+class_name ConditionDef
+extends Resource
+
+## Condition type string. Must be one of the known types validated by ContentValidator.
+@export var type: String = ""
+
+## Numeric threshold for burden_above/below, command_above/below, supply_below.
+@export var threshold: int = 0
+
+## Memory flag key for has_memory_flag conditions.
+@export var flag_key: String = ""
+
+## Tag string for has_damage_tag, has_crew_trait, officer_present, zone_type_is.
+@export var tag: String = ""
