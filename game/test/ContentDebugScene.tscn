@@ -1,0 +1,68 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://test/ContentDebugScene.gd" id="1_debug"]
+
+[node name="ContentDebugScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_debug")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Buttons" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="ValidateAll" type="Button" parent="VBox/Buttons"]
+layout_mode = 2
+text = "Validate All"
+
+[node name="Incidents" type="Button" parent="VBox/Buttons"]
+layout_mode = 2
+text = "Incidents"
+
+[node name="Officers" type="Button" parent="VBox/Buttons"]
+layout_mode = 2
+text = "Officers"
+
+[node name="Supplies" type="Button" parent="VBox/Buttons"]
+layout_mode = 2
+text = "Supplies"
+
+[node name="StandingOrders" type="Button" parent="VBox/Buttons"]
+layout_mode = 2
+text = "Standing Orders"
+
+[node name="Upgrades" type="Button" parent="VBox/Buttons"]
+layout_mode = 2
+text = "Upgrades"
+
+[node name="Doctrines" type="Button" parent="VBox/Buttons"]
+layout_mode = 2
+text = "Doctrines"
+
+[node name="CrewBackgrounds" type="Button" parent="VBox/Buttons"]
+layout_mode = 2
+text = "Crew Backgrounds"
+
+[node name="ZoneTypes" type="Button" parent="VBox/Buttons"]
+layout_mode = 2
+text = "Zone Types"
+
+[node name="Objectives" type="Button" parent="VBox/Buttons"]
+layout_mode = 2
+text = "Objectives"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Output" type="RichTextLabel" parent="VBox/ScrollContainer"]
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
