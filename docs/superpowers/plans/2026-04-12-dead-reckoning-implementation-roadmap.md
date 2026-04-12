@@ -36,6 +36,45 @@ The core promise:
 
 **Elegant Scope:** Do not start as a full colony sim, social graph sim, freeform sailing sim, tactical combat game, and deckbuilder. Build toward the core loop first.
 
+## MVP Core Loop
+
+The first playable version should prove one loop before it proves the whole design:
+
+> Travel creates pressure -> an incident forces judgment -> judgment changes Burden, Command, promises, and memory -> travel resumes.
+
+Everything in the early implementation should serve this loop. Ship log, leadership tags, Admiralty nuance, officer reliability nuance, route visibility, and content framework validation are supporting systems. They matter, but they must not compete with the core judgment loop during the MVP.
+
+## Early Implementation Simplifications
+
+These simplifications apply until the core loop is fun:
+
+- Allow at most one active promise at a time.
+- Track only three leadership axes: harsh/merciful, honest/deceptive, shared-hardship/privilege.
+- Treat fatigue and sickness as simple state values, Burden modifiers, damage tags, or incident triggers; do not build a deep fatigue or medical simulation.
+- Treat Rum as a special supply with custom rules for expected ration, spirit-store access, theft, drunkenness, and ration-withheld fallout.
+- Keep officer council narrow: use a small authored proposal set per incident instead of a deep advisory simulation.
+- Use memory flags as the main narrative glue: flag now, pay off later.
+- Keep the ship log as a simple event list early; later it can become a richer narrative artifact.
+- Keep Admiralty politics and persistent unlock nuance minimal until the in-run loop works.
+- Do not treat leadership axes as morality meters. Harsh, merciful, honest, deceptive, shared-hardship, and privilege choices must each sometimes help and sometimes backfire.
+
+## Deferred Functionality To Preserve
+
+These features are intentionally deferred from the MVP but should remain visible in future planning:
+
+- richer ship log prose and end-of-run narrative summaries
+- broader leadership pattern tracking beyond the three early axes
+- deeper officer reliability, loyalty, worldview, and hidden motive modeling
+- Admiralty hidden politics, scandals, institutional bias, and long-term report distortion
+- larger route generation variety and hidden route modifiers
+- delayed-outcome/callback machinery beyond simple memory flags
+- multiple simultaneous promises
+- deeper fatigue, sickness, injury, and recovery systems
+- richer Rum economy and spirit-store rules beyond first-pass theft/drunkenness hooks
+- larger incident library and rare unique incidents
+- full campaign unlock economy
+- optional card/deck UI representation if testing later shows it improves standing orders or officer proposals
+
 ## Core Design Decisions
 
 ### Burden
@@ -229,7 +268,13 @@ Run memory feeds incident eligibility, officer advice, Burden/Command changes, s
 
 Track recent leadership behavior through hidden tags. Do not show a static class like "Authoritarian Level 3."
 
-Tags can include harsh/merciful, honest/deceptive, fair/favoritist, cautious/reckless, pious/pragmatic, and collective/authoritarian.
+The MVP should track only three axes:
+
+- harsh/merciful
+- honest/deceptive
+- shared-hardship/privilege
+
+Future axes can include fair/favoritist, cautious/reckless, pious/pragmatic, and collective/authoritarian if the core loop needs more nuance.
 
 Leadership tags influence officer proposals, incident text, crew interpretation, ship log tone, Admiralty report options, and future event weighting.
 
@@ -346,17 +391,15 @@ Each content entry should use a consistent contract where practical:
 - display name
 - category
 - tags
-- requirements
-- cost
-- immediate effects
-- delayed effects
 - visibility rules
 - unlock source
-- incident hooks
 - log hooks
-- Admiralty report hooks
 - weighting or rarity
 - incompatible tags, if needed
+
+Use this as a small shared base, not a forced mega-schema. Type-specific Resources should own their own fields. `IncidentDef` needs trigger bands, cast roles, choices, and memory flags. `ShipUpgradeDef` needs preparation budget cost, upgrade effects, and drawbacks. `SupplyDef` needs starting amount rules and display metadata. `StandingOrderDef` needs command cost, forecast text, tick interactions, and risk hooks.
+
+This avoids over-generalizing content. The framework should share loading, ids, tags, visibility, and validation patterns while letting each content family stay readable in the Godot Inspector.
 
 ## Implementation Sequence
 
@@ -367,6 +410,8 @@ Each content entry should use a consistent contract where practical:
 **Build:**
 
 - Typed custom Resource classes for supplies, effects, conditions, standing orders, officers, ship upgrades, doctrines, crew backgrounds, incident choices, and incidents.
+- A small shared Resource base contract for ids, display names, tags, visibility, unlock source, rarity/weighting, and validation support.
+- Type-specific fields for each Resource family rather than one generic mega-schema.
 - A content directory structure under `res://content`.
 - A registry/loader that can load content definitions from Resource paths.
 - A small validation path that catches missing ids, duplicate ids, invalid references, and unsupported effect/condition types.
@@ -393,18 +438,22 @@ Each content entry should use a consistent contract where practical:
 - Effect application system for content-driven changes.
 - Condition evaluation system for content-driven requirements.
 - Supply model covering food, water, medicine, repair materials, comforts, and Rum.
+- Rum special-case state for expected ration, spirit-store locked/unlocked, theft risk, drunkenness risk, and ration-withheld fallout.
 - Burden/Command change rules and clamping.
 - Ship condition and damage tag operations.
-- Promise creation, tracking, kept/broken resolution.
+- One-active-promise creation, tracking, kept/broken resolution.
 - Run memory flag creation and lookup.
+- Debug/explanation log for why effects applied, why conditions passed/failed, why Burden or Command changed, and which memory flags were created.
 
 **Exclude:**
 
 - Route map UI.
 - Major incident UI.
 - Admiralty meta layer.
+- Multiple simultaneous promises.
+- Deep fatigue or medical simulation.
 
-**Playable/Testable Outcome:** A scripted simulation can apply effects from content Resources and produce understandable state changes. Rum, Burden, Command, promises, and memory flags all work in isolation.
+**Playable/Testable Outcome:** A scripted simulation can apply effects from content Resources and produce understandable state changes. Rum, Burden, Command, one active promise, and memory flags all work in isolation. The debug/explanation log can answer "why did this happen?" for state changes.
 
 ### Stage 3: Route Map And Travel Ticks
 
@@ -412,19 +461,21 @@ Each content entry should use a consistent contract where practical:
 
 **Build:**
 
-- Generated or hand-authored test route map with 7 node categories: Crisis, Landfall, Social, Omen, Boon, Admiralty, Unknown.
+- Hand-authored test route map first, with later generation deferred. The test map uses 7 node categories: Crisis, Landfall, Social, Omen, Boon, Admiralty, Unknown.
 - Route nodes with category, approximate tick distance, weather/hazard hints, and optional supply opportunity hint.
 - Travel between nodes as discrete ticks.
 - Tick effects for food/water consumption, travel fatigue as a simple numeric expedition-state value, sickness risk as a simple numeric expedition-state value, ship wear, weather exposure, Burden, Command, and incident trigger checks.
+- A forced debug incident hook so a simple crisis can be triggered from travel context before the full incident system exists.
 - Basic map UI or debug UI for choosing the next route.
 
 **Exclude:**
 
 - Full event/incident resolution.
+- Procedural route generation.
 - Admiralty preparation budget.
 - Polished visuals.
 
-**Playable/Testable Outcome:** The player can choose a path through a small route map, advance through travel ticks, and see supplies, ship condition, Burden, and Command change.
+**Playable/Testable Outcome:** The player can choose a path through a small hand-authored route map, advance through travel ticks, see supplies/ship condition/Burden/Command change, and trigger one forced debug incident from travel pressure.
 
 ### Stage 4: Standing Orders And Officer Council
 
@@ -435,13 +486,14 @@ Each content entry should use a consistent contract where practical:
 - Standing order selection before route segments or major nodes.
 - Standing order effects and liabilities driven by Resource definitions.
 - Officer definitions with role, competence, loyalty, worldview, known traits, and possible advice hooks.
-- Officer council option generation for a small set of test crises.
+- Authored officer proposal sets for a small set of test crises.
 - Decision feedback presentation: in-world forecast before choosing; narrated consequence plus state deltas after choosing.
-- Officer uncertainty: advice confidence can differ from actual result when officer state or reliability warrants it.
+- Light officer uncertainty only: advice confidence can differ from actual result when a clearly defined officer state or reliability flag warrants it.
 
 **Exclude:**
 
 - Large officer roster.
+- Deep advisor simulation.
 - Full incident library.
 - Full Admiralty meta progression.
 
@@ -457,39 +509,62 @@ Each content entry should use a consistent contract where practical:
 - Trigger bands: tick, node, aftermath, threshold crossing.
 - Required conditions and optional amplifiers.
 - Cast role resolution from crew/officer/notable state.
-- Incident choices, immediate outcomes, delayed outcomes, and memory flags.
+- Incident choices, immediate outcomes, and memory flags.
 - Initial incident set targeting the three design examples: mermaid sighting, drunk purser store error, midshipmen murder.
-- Ship log entries for decisions, consequences, leadership tone, and memory flags.
-- Callback hooks so later incidents can refer to previous memory flags.
+- Ship log entries as a simple event list for decisions, consequences, leadership tone, and memory flags.
+- Simple flag-based callbacks so later incidents can refer to previous memory flags.
 
 **Exclude:**
 
 - Large procedural narrative system.
 - Natural-language generation.
 - Full final epilogue.
+- Rich ship-log prose generation.
+- Broad delayed-outcome machinery beyond memory flags.
 
 **Playable/Testable Outcome:** A short run can generate at least one state-driven incident, resolve it through officer/command choices, update memory flags, and write a ship log entry that can be referenced later.
 
-### Stage 6: Admiralty Preparation And Reporting Layer
+### Stage 6A: Admiralty Preparation Layer
 
-**Goal:** Add between-run framing, tradeoff-based preparation, and report distortion.
+**Goal:** Add between-run preparation without persistent political complexity.
 
 **Build:**
 
 - Pre-run preparation budget screen.
 - Selection of ship upgrades, officer/crew background, supply/logistics package, doctrine, route intel, and Admiralty objective/constraint.
 - Tradeoff-based content definitions for reinforced hull, expanded spirit locker, better boats, extra marines, veteran bosun, popular surgeon, pressed crew, and pious charter.
+- Prepared expedition state passed into the next route run.
+
+**Exclude:**
+
+- End-of-run report framing.
+- Persistent politics.
+- Scandal/unlock distortion.
+- Full campaign economy.
+- Large unlock tree.
+- Balancing for long-term progression.
+
+**Playable/Testable Outcome:** The player can prepare an expedition from a limited budget and see the selected ship upgrades, officer/crew background, supplies, doctrine, and route intel affect the next short run.
+
+### Stage 6B: Admiralty Reporting And Political Memory
+
+**Goal:** Add report framing, institutional memory, and first-pass persistent consequences after the preparation loop works.
+
+**Build:**
+
 - End-of-run report framing: blame weather, blame crew, emphasize discipline, conceal misconduct, admit command failure, glorify sacrifice, suppress mutiny, accuse a rival officer.
 - Unlock state that expands future options without raw power creep.
 - Political/scandal flags from concealed truth or report distortions.
+- Simple Admiralty bias state that affects one future preparation constraint or unlock.
 
 **Exclude:**
 
 - Full campaign economy.
 - Large unlock tree.
 - Balancing for long-term progression.
+- Deep hidden politics simulation.
 
-**Playable/Testable Outcome:** The player can prepare an expedition from a limited budget, experience a short run, submit an official report, and see a tradeoff-based option or constraint affect the next run.
+**Playable/Testable Outcome:** After a short run, the player can submit an official report and see one tradeoff-based option, constraint, scandal flag, or political bias affect the next preparation phase.
 
 ## Vertical Slice Content Cap
 
@@ -499,7 +574,7 @@ For the first integrated prototype, keep the content cap deliberately small:
 - 6 supplies, including Rum
 - 6 standing orders
 - 4 officer roles
-- 12 incidents
+- 6 incidents
 - 6 ship upgrades
 - 3 Admiralty doctrines
 - 3 crew backgrounds
