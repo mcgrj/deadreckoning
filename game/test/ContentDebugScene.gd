@@ -404,7 +404,9 @@ func _on_force_incident() -> void:
 
 	# Case 1: pending_incident_id is set — apply first choice of that incident
 	if not _state.pending_incident_id.is_empty():
-		var incident = ContentRegistry.get_by_id("incidents", _state.pending_incident_id) as IncidentDef
+		var incident_id := _state.pending_incident_id
+		_state.pending_incident_id = ""  # always clear, even if lookup fails
+		var incident = ContentRegistry.get_by_id("incidents", incident_id) as IncidentDef
 		if incident != null and not incident.choices.is_empty():
 			var choice: IncidentChoiceDef = incident.choices[0]
 			EffectProcessor.apply_effects(_state, choice.immediate_effects, _log)
@@ -413,7 +415,6 @@ func _on_force_incident() -> void:
 			_log.log_event(_state.tick_count, "ForceIncident",
 				"[%s] %s" % [incident.display_name, choice.log_text],
 				{"incident_id": incident.id})
-			_state.pending_incident_id = ""
 			_output.append_text("[b]Incident resolved: %s[/b]\n[color=#88ccff]%s[/color]\n\n" % [
 				incident.display_name, choice.log_text])
 			_show_state_summary()
