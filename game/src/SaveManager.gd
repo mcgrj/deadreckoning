@@ -50,6 +50,17 @@ func record_objective_complete(objective_id: String, slot_id: String = SLOT_DEFA
 	save_progression(progression, slot_id)
 
 
+func save_run_state(state: ExpeditionState, slot_id: String = SLOT_DEFAULT) -> void:
+	# Stub: full implementation in RunScene (Task 9).
+	# ExpeditionState is RefCounted, not Resource — serialised as JSON.
+	pass
+
+
+func load_run_state(slot_id: String = SLOT_DEFAULT) -> ExpeditionState:
+	# Stub: full implementation in RunScene (Task 9).
+	return null
+
+
 func delete_run_state(slot_id: String = SLOT_DEFAULT) -> void:
 	var path := _get_run_state_path(slot_id)
 	if FileAccess.file_exists(path):
