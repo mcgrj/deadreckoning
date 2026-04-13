@@ -478,7 +478,7 @@ func _test_content_registry_with_content() -> void:
 	check(rum.starting_amount == 100, "ContentRegistry: rum.starting_amount is 100")
 
 	var officers := ContentRegistry.get_all("officers")
-	check(officers.size() == 2, "ContentRegistry: 2 officers loaded")
+	check(officers.size() == 14, "ContentRegistry: 14 officers loaded")
 
 	var bosun: OfficerDef = ContentRegistry.get_by_id("officers", "bosun")
 	check(bosun != null, "ContentRegistry: bosun officer found by id")

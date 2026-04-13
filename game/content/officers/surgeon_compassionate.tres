@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="OfficerDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/OfficerDef.gd" id="1_sc"]
+[ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="2_eff"]
+
+[sub_resource type="Resource" id="Resource_brd"]
+script = ExtResource("2_eff")
+type = "burden_change"
+delta = -4
+
+[resource]
+script = ExtResource("1_sc")
+role = "surgeon"
+competence = 3
+loyalty = 5
+worldview = "humanitarian"
+known_traits = Array[String](["kind", "tireless"])
+starting_effects = Array[EffectDef]([SubResource("Resource_brd")])
+advice_hooks = Array[String]([])
+id = "surgeon_compassionate"
+display_name = "Surgeon (Compassionate)"
+category = "officer"
+tags = Array[String](["surgeon"])

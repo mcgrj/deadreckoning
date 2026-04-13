@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="OfficerDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/OfficerDef.gd" id="1_pg"]
+[ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="2_eff"]
+
+[sub_resource type="Resource" id="Resource_rum"]
+script = ExtResource("2_eff")
+type = "supply_change"
+delta = 5
+target_id = "rum"
+
+[sub_resource type="Resource" id="Resource_brd"]
+script = ExtResource("2_eff")
+type = "burden_change"
+delta = -2
+
+[resource]
+script = ExtResource("1_pg")
+role = "purser"
+competence = 3
+loyalty = 4
+worldview = "humanitarian"
+known_traits = Array[String](["generous", "popular"])
+starting_effects = Array[EffectDef]([SubResource("Resource_rum"), SubResource("Resource_brd")])
+advice_hooks = Array[String]([])
+id = "purser_generous"
+display_name = "Purser (Generous)"
+category = "officer"
+tags = Array[String](["purser"])

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="OfficerDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/OfficerDef.gd" id="1_pf"]
+[ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="2_eff"]
+
+[sub_resource type="Resource" id="Resource_food"]
+script = ExtResource("2_eff")
+type = "supply_change"
+delta = 10
+target_id = "food"
+
+[resource]
+script = ExtResource("1_pf")
+role = "purser"
+competence = 4
+loyalty = 3
+worldview = "pragmatist"
+known_traits = Array[String](["exacting", "careful_with_stores"])
+starting_effects = Array[EffectDef]([SubResource("Resource_food")])
+advice_hooks = Array[String]([])
+id = "purser_frugal"
+display_name = "Purser (Frugal)"
+category = "officer"
+tags = Array[String](["purser"])

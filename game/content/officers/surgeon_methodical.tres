@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="OfficerDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/OfficerDef.gd" id="1_sm"]
+[ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="2_eff"]
+
+[sub_resource type="Resource" id="Resource_cmd"]
+script = ExtResource("2_eff")
+type = "command_change"
+delta = 2
+
+[resource]
+script = ExtResource("1_sm")
+role = "surgeon"
+competence = 4
+loyalty = 3
+worldview = "pragmatist"
+known_traits = Array[String](["precise", "detached"])
+starting_effects = Array[EffectDef]([SubResource("Resource_cmd")])
+advice_hooks = Array[String]([])
+id = "surgeon_methodical"
+display_name = "Surgeon (Methodical)"
+category = "officer"
+tags = Array[String](["surgeon"])

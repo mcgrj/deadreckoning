@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="OfficerDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/OfficerDef.gd" id="1_gr"]
+[ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="2_eff"]
+
+[sub_resource type="Resource" id="Resource_ship"]
+script = ExtResource("2_eff")
+type = "ship_condition_change"
+delta = 5
+
+[resource]
+script = ExtResource("1_gr")
+role = "gunner"
+competence = 4
+loyalty = 4
+worldview = "pragmatist"
+known_traits = Array[String](["careful", "thorough"])
+starting_effects = Array[EffectDef]([SubResource("Resource_ship")])
+advice_hooks = Array[String]([])
+id = "gunner_reliable"
+display_name = "Gunner (Reliable)"
+category = "officer"
+tags = Array[String](["gunner"])
