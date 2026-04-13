@@ -21,6 +21,7 @@ func _ready() -> void:
 	_test_route_node()
 	_test_route_map_factory()
 	_test_route_map_navigation()
+	_test_zone_types()
 	_finish()
 
 
@@ -205,3 +206,38 @@ func _test_route_map_navigation() -> void:
 	# advance_tick is a no-op when not travelling
 	map.advance_tick()
 	check(map.ticks_remaining == 0, "advance_tick no-op when not travelling")
+
+
+# --- Zone types ---
+
+func _test_zone_types() -> void:
+	print("-- Zone types --")
+
+	var lee = ContentRegistry.get_by_id("zone_types", "lee_shore") as ZoneTypeDef
+	check(lee != null, "lee_shore loads from ContentRegistry")
+	check(lee.id == "lee_shore", "lee_shore id correct")
+	check(lee.display_name == "Lee Shore", "lee_shore display_name correct")
+	check(lee.category == "hazard", "lee_shore category is hazard")
+	check(is_equal_approx(lee.consumption_modifier, 1.0), "lee_shore consumption_modifier 1.0")
+	check(is_equal_approx(lee.ship_wear_modifier, 1.8), "lee_shore ship_wear_modifier 1.8")
+	check(lee.burden_delta_per_tick == 1, "lee_shore burden_delta_per_tick 1")
+	check(is_equal_approx(lee.incident_weight_modifier, 1.4), "lee_shore incident_weight_modifier 1.4")
+	check("storm" in lee.eligible_incident_tags, "lee_shore eligible_incident_tags has storm")
+	check("navigation" in lee.eligible_incident_tags, "lee_shore eligible_incident_tags has navigation")
+	check("crisis" in lee.eligible_incident_tags, "lee_shore eligible_incident_tags has crisis")
+
+	var unk = ContentRegistry.get_by_id("zone_types", "unknown_zone") as ZoneTypeDef
+	check(unk != null, "unknown_zone loads from ContentRegistry")
+	check(unk.id == "unknown_zone", "unknown_zone id correct")
+	check(unk.display_name == "Unknown Waters", "unknown_zone display_name correct")
+	check(unk.category == "unknown", "unknown_zone category is unknown")
+	check(is_equal_approx(unk.consumption_modifier, 1.1), "unknown_zone consumption_modifier 1.1")
+	check(is_equal_approx(unk.ship_wear_modifier, 1.3), "unknown_zone ship_wear_modifier 1.3")
+	check(unk.burden_delta_per_tick == 2, "unknown_zone burden_delta_per_tick 2")
+	check(is_equal_approx(unk.incident_weight_modifier, 2.0), "unknown_zone incident_weight_modifier 2.0")
+
+	var water = ContentRegistry.get_by_id("supplies", "water") as SupplyDef
+	check(water != null, "water supply loads from ContentRegistry")
+	check(water.id == "water", "water id correct")
+	check(water.daily_consumption > 0, "water daily_consumption > 0")
+	check(water.critical_threshold > 0, "water critical_threshold > 0")

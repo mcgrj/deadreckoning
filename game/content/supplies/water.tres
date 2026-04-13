@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SupplyDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/SupplyDef.gd" id="1_water"]
+
+[resource]
+script = ExtResource("1_water")
+starting_amount = 150
+daily_consumption = 3
+low_threshold = 30
+critical_threshold = 15
+id = "water"
+display_name = "Water"
+category = "supply"
+tags = Array[String](["essential"])

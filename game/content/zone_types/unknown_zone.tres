@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ZoneTypeDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/ZoneTypeDef.gd" id="1_unkzn"]
+
+[resource]
+script = ExtResource("1_unkzn")
+consumption_modifier = 1.1
+ship_wear_modifier = 1.3
+burden_delta_per_tick = 2
+incident_weight_modifier = 2.0
+eligible_incident_tags = Array[String]([])
+suppressed_incident_tags = Array[String]([])
+id = "unknown_zone"
+display_name = "Unknown Waters"
+category = "unknown"
+tags = Array[String](["unknown", "dangerous"])

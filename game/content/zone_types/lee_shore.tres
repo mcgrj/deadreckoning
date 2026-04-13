@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ZoneTypeDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/ZoneTypeDef.gd" id="1_leesh"]
+
+[resource]
+script = ExtResource("1_leesh")
+consumption_modifier = 1.0
+ship_wear_modifier = 1.8
+burden_delta_per_tick = 1
+incident_weight_modifier = 1.4
+eligible_incident_tags = Array[String](["storm", "navigation", "crisis"])
+id = "lee_shore"
+display_name = "Lee Shore"
+category = "hazard"
+tags = Array[String](["hazard", "coastal"])
