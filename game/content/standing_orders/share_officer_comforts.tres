@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="StandingOrderDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/StandingOrderDef.gd" id="1_soc"]
+[ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="2_eff"]
+
+[sub_resource type="Resource" id="Resource_cmd"]
+script = ExtResource("2_eff")
+type = "command_change"
+delta = -1
+
+[resource]
+script = ExtResource("1_soc")
+command_cost = 1
+forecast_text = "Officers eat and sleep as the crew does. Trust grows; hierarchy softens."
+tick_effects = Array[EffectDef]([SubResource("Resource_cmd")])
+incident_interactions = Array[String]([])
+id = "share_officer_comforts"
+display_name = "Share Officer Comforts"
+category = "morale"
+tags = Array[String](["egalitarian", "command_risk"])

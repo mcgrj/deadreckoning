@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="StandingOrderDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/StandingOrderDef.gd" id="1_sd"]
+[ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="2_eff"]
+
+[sub_resource type="Resource" id="Resource_brd"]
+script = ExtResource("2_eff")
+type = "burden_change"
+delta = 2
+
+[resource]
+script = ExtResource("1_sd")
+command_cost = 2
+forecast_text = "Dissenters are watched and silenced before grievances spread. Mutiny risk falls; Burden rises."
+tick_effects = Array[EffectDef]([SubResource("Resource_brd")])
+incident_interactions = Array[String]([])
+id = "suppress_dissent"
+display_name = "Suppress Dissent"
+category = "discipline"
+tags = Array[String](["control", "mutiny_prevention", "burden_risk"])

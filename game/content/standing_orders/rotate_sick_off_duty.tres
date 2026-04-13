@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="StandingOrderDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/StandingOrderDef.gd" id="1_rsod"]
+[ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="2_eff"]
+
+[sub_resource type="Resource" id="Resource_brd"]
+script = ExtResource("2_eff")
+type = "burden_change"
+delta = -1
+
+[resource]
+script = ExtResource("1_rsod")
+command_cost = 1
+forecast_text = "The sick are pulled from duty when possible. Recovery comes slower, but morale holds."
+tick_effects = Array[EffectDef]([SubResource("Resource_brd")])
+incident_interactions = Array[String]([])
+id = "rotate_sick_off_duty"
+display_name = "Rotate Sick Off Duty"
+category = "welfare"
+tags = Array[String](["egalitarian", "burden_relief"])

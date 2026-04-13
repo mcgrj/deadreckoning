@@ -23,6 +23,7 @@ var _incident_container: VBoxContainer
 
 func _ready() -> void:
 	var config := SaveManager.pending_run_config
+	SaveManager.pending_run_config = {}
 	_state = ExpeditionState.create_from_config(config)
 	_log = SimulationLog.new()
 	_route = RouteMap.generate_default()

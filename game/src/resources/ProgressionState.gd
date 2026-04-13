@@ -38,6 +38,6 @@ static func create_default() -> ProgressionState:
 		# Objectives
 		"survey_strange_shore", "recover_lost_charts",
 		"survey_northern_passage", "condition_return_intact",
-		"condition_low_burden",
+		"condition_low_burden", "survey_abandoned_settlement",
 	]
 	return p
