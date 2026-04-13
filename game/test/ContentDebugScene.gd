@@ -14,6 +14,7 @@ var _log: SimulationLog = null
 var _effect_index: int = 0
 var _condition_index: int = 0
 var _route_map: RouteMap = null
+var _incident_scene: Node = null
 
 
 func _ready() -> void:
@@ -48,6 +49,9 @@ func _ready() -> void:
 	$SidebarScroll/Sidebar/AdvanceDay.pressed.connect(_on_advance_day)
 	$SidebarScroll/Sidebar/ForceIncident.pressed.connect(_on_force_incident)
 	_output.meta_clicked.connect(_on_route_meta_clicked)
+
+	# Stage 4 — incident resolution + standing orders
+	$SidebarScroll/Sidebar/ToggleRationing.pressed.connect(_on_toggle_rationing)
 
 	_show_validate_all()
 
@@ -286,6 +290,24 @@ func _on_show_log() -> void:
 		_output.append_text("[b]Tick %d[/b] [%s] %s\n" % [e.tick, e.source, e.message])
 
 
+# --- Stage 4: Standing orders + incident resolution ---
+
+func _on_toggle_rationing() -> void:
+	if _state == null:
+		_clear_output()
+		_output.append_text("[color=yellow]No expedition active.[/color]\n")
+		return
+	if _state.has_standing_order("tighten_rationing"):
+		_state.standing_orders.erase("tighten_rationing")
+		_clear_output()
+		_output.append_text("[color=#ff9966]Standing order cancelled: Tighten Rationing[/color]\n")
+	else:
+		_state.standing_orders.append("tighten_rationing")
+		_clear_output()
+		_output.append_text("[color=#88ff88]Standing order active: Tighten Rationing[/color]\n")
+	_show_state_summary()
+
+
 # --- Display helpers ---
 
 func _clear_output() -> void:
@@ -401,61 +423,79 @@ func _on_force_incident() -> void:
 		_output.append_text("[color=yellow]No expedition active. Press 'Show Route' first.[/color]\n")
 		return
 
-	_clear_output()
+	# If already showing the resolution scene, do nothing
+	if $IncidentContainer.visible:
+		return
 
-	# Case 1: pending_incident_id is set — apply first choice of that incident
-	if not _state.pending_incident_id.is_empty():
-		var incident_id := _state.pending_incident_id
-		_state.pending_incident_id = ""  # always clear, even if lookup fails
-		var incident = ContentRegistry.get_by_id("incidents", incident_id) as IncidentDef
-		if incident != null and not incident.choices.is_empty():
-			var choice: IncidentChoiceDef = incident.choices[0]
-			EffectProcessor.apply_effects(_state, choice.immediate_effects, _log)
-			for flag: String in choice.memory_flags_set:
-				_state.add_memory_flag(flag)
-			_log.log_event(_state.tick_count, "ForceIncident",
-				"[%s] %s" % [incident.display_name, choice.log_text],
-				{"incident_id": incident.id})
-			_output.append_text("[b]Incident resolved: %s[/b]\n[color=#88ccff]%s[/color]\n\n" % [
-				incident.display_name, choice.log_text])
+	# Ensure a pending incident exists — scan if none
+	if _state.pending_incident_id.is_empty():
+		var incidents := ContentRegistry.get_all("incidents")
+		var eligible: Array = []
+		var weights: Array = []
+		var total_weight: float = 0.0
+		for item: ContentBase in incidents:
+			var incident := item as IncidentDef
+			if incident == null or incident.trigger_band != "tick":
+				continue
+			if not ConditionEvaluator.all_met(_state, incident.required_conditions, _log):
+				continue
+			var w := TravelSimulator.compute_incident_weight(_state, incident, _log)
+			eligible.append(incident)
+			weights.append(w)
+			total_weight += w
+
+		if eligible.is_empty():
+			# Fallback squall
+			var b := EffectDef.new()
+			b.type = "burden_change"
+			b.delta = 5
+			EffectProcessor.apply(_state, b, _log)
+			var d := EffectDef.new()
+			d.type = "add_damage_tag"
+			d.tag = "storm_damage"
+			EffectProcessor.apply(_state, d, _log)
+			_clear_output()
+			_output.append_text("[color=#ff9966]A squall strikes without warning. (Burden +5, storm_damage)[/color]\n")
 			_show_state_summary()
 			return
 
-	# Case 2: scan for any eligible tick-band incident
-	var triggered := false
-	var incidents := ContentRegistry.get_all("incidents")
-	for item: ContentBase in incidents:
-		var incident = item as IncidentDef
-		if incident == null or incident.trigger_band != "tick":
-			continue
-		if ConditionEvaluator.all_met(_state, incident.required_conditions, _log):
-			if not incident.choices.is_empty():
-				var choice: IncidentChoiceDef = incident.choices[0]
-				EffectProcessor.apply_effects(_state, choice.immediate_effects, _log)
-				for flag: String in choice.memory_flags_set:
-					_state.add_memory_flag(flag)
-				_log.log_event(_state.tick_count, "ForceIncident",
-					"[%s] %s" % [incident.display_name, choice.log_text],
-					{"incident_id": incident.id})
-				_output.append_text("[b]Force-triggered: %s[/b]\n[color=#88ccff]%s[/color]\n\n" % [
-					incident.display_name, choice.log_text])
-				triggered = true
+		# Weighted random pick
+		var roll := randf() * total_weight
+		var cumulative: float = 0.0
+		for i: int in range(eligible.size()):
+			cumulative += weights[i]
+			if roll <= cumulative:
+				_state.pending_incident_id = eligible[i].id
 				break
 
-	# Case 3: fallback — hardcoded squall
-	if not triggered:
-		var b = EffectDef.new()
-		b.type = "burden_change"
-		b.delta = 5
-		EffectProcessor.apply(_state, b, _log)
-		var d = EffectDef.new()
-		d.type = "add_damage_tag"
-		d.tag = "storm_damage"
-		EffectProcessor.apply(_state, d, _log)
-		_log.log_event(_state.tick_count, "ForceIncident",
-			"A squall strikes without warning.", {})
-		_output.append_text("[b]Fallback incident:[/b]\n[color=#ff9966]A squall strikes without warning. (Burden +5, storm_damage)[/color]\n\n")
+	# Show the resolution scene
+	_show_incident_resolution()
 
+
+func _show_incident_resolution() -> void:
+	if _incident_scene != null:
+		_incident_scene.queue_free()
+		_incident_scene = null
+
+	var scene_res := preload("res://src/ui/IncidentResolutionScene.tscn")
+	_incident_scene = scene_res.instantiate()
+	_incident_scene.setup(_state, _log)
+	_incident_scene.resolved.connect(_on_incident_resolved)
+	$IncidentContainer.add_child(_incident_scene)
+	_incident_scene.populate()
+
+	$OutputContainer.visible = false
+	$IncidentContainer.visible = true
+
+
+func _on_incident_resolved() -> void:
+	$IncidentContainer.visible = false
+	$OutputContainer.visible = true
+	if _incident_scene != null:
+		_incident_scene.queue_free()
+		_incident_scene = null
+	_clear_output()
+	_output.append_text("[color=#88ff88]Incident resolved.[/color]\n\n")
 	_show_state_summary()
 
 

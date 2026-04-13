@@ -157,6 +157,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Force Incident"
 
+[node name="ToggleRationing" type="Button" parent="SidebarScroll/Sidebar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Toggle Rationing"
+
 [node name="OutputContainer" type="ScrollContainer" parent="."]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -167,3 +172,9 @@ layout_mode = 2
 size_flags_horizontal = 3
 bbcode_enabled = true
 fit_content = true
+
+[node name="IncidentContainer" type="PanelContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+visible = false
