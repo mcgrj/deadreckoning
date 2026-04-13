@@ -3,6 +3,7 @@
 # Call setup(state, log) to populate. Emits resolved when the player confirms.
 #
 # Spec: docs/superpowers/specs/2026-04-13-stage-4-5-standing-orders-incidents-design.md
+class_name IncidentResolutionScene
 extends VBoxContainer
 
 signal resolved
