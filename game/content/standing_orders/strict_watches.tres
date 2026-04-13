@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="StandingOrderDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/StandingOrderDef.gd" id="1_sw"]
+[ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="2_eff"]
+
+[sub_resource type="Resource" id="Resource_brd"]
+script = ExtResource("2_eff")
+type = "burden_change"
+delta = 1
+
+[resource]
+script = ExtResource("1_sw")
+command_cost = 1
+forecast_text = "Officers stay vigilant. Crew resentment simmers under close scrutiny."
+tick_effects = Array[EffectDef]([SubResource("Resource_brd")])
+incident_interactions = Array[String]([])
+id = "strict_watches"
+display_name = "Strict Watches"
+category = "discipline"
+tags = Array[String](["control", "morale_risk"])
