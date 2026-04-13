@@ -13,6 +13,7 @@ var _state: ExpeditionState = null
 var _log: SimulationLog = null
 var _effect_index: int = 0
 var _condition_index: int = 0
+var _route_map: RouteMap = null
 
 
 func _ready() -> void:
@@ -41,6 +42,12 @@ func _ready() -> void:
 	$Sidebar/SetMemoryFlag.pressed.connect(_on_set_memory_flag)
 	$Sidebar/ToggleSpiritStore.pressed.connect(_on_toggle_spirit_store)
 	$Sidebar/ShowLog.pressed.connect(_on_show_log)
+
+	# Stage 3 — route map controls
+	$Sidebar/ShowRoute.pressed.connect(_on_show_route)
+	$Sidebar/AdvanceDay.pressed.connect(_on_advance_day)
+	$Sidebar/ForceIncident.pressed.connect(_on_force_incident)
+	_output.meta_clicked.connect(_on_route_meta_clicked)
 
 	_show_validate_all()
 
@@ -336,3 +343,157 @@ func _show_last_log_entry() -> void:
 		return
 	var e: Dictionary = entries[entries.size() - 1]
 	_output.append_text("[b]Log:[/b] [%s] %s\n" % [e.source, e.message])
+
+
+# --- Stage 3: Route Map ---
+
+func _on_show_route() -> void:
+	if _route_map == null:
+		_route_map = RouteMap.create_test_map()
+	if _state == null:
+		_state = ExpeditionState.create_default()
+		_log = SimulationLog.new()
+	_clear_output()
+	_render_route_map()
+
+
+func _on_advance_day() -> void:
+	if _route_map == null or _state == null:
+		_clear_output()
+		_output.append_text("[color=yellow]Press 'Show Route' first.[/color]\n")
+		return
+	if not _route_map.is_travelling():
+		_clear_output()
+		_output.append_text("[color=yellow]Not travelling — select a node from the route map first.[/color]\n")
+		_render_route_map()
+		return
+	var zone = _route_map.get_active_zone()
+	if zone == null:
+		_clear_output()
+		_output.append_text("[color=red]Error: active zone not found.[/color]\n")
+		return
+	_state.tick_count += 1
+	TravelSimulator.process_tick(_state, zone, _log)
+	_route_map.advance_tick()
+	_clear_output()
+	_render_route_map()
+
+
+func _on_route_meta_clicked(meta: String) -> void:
+	if not meta.begins_with("take_"):
+		return
+	var node_id := meta.substr(5)
+	var stage := _route_map.get_current_stage()
+	for node: RouteNode in stage:
+		if node.id == node_id:
+			_route_map.select_node(node)
+			_clear_output()
+			_render_route_map()
+			return
+
+
+func _on_force_incident() -> void:
+	# Implemented in Task 10
+	pass
+
+
+func _render_route_map() -> void:
+	# Category colour map
+	var cat_colors := {
+		"crisis":    "#ff9966",
+		"landfall":  "#88ff88",
+		"social":    "#ffdd66",
+		"omen":      "#cc88ff",
+		"boon":      "#aaffaa",
+		"admiralty": "#ffccaa",
+		"unknown":   "#88ccff",
+	}
+
+	# Header block
+	var zone = _route_map.get_active_zone()
+	var zone_name: String = zone.display_name if zone != null else "(at choice)"
+	var wear_str: String = "%.1f× wear" % zone.ship_wear_modifier if zone != null else ""
+	_output.append_text("[b]SHIP'S LOG[/b]\nDay %d\n\n" % _state.tick_count)
+	_output.append_text("ZONE              STATE\n")
+	_output.append_text("%-18s[color=#ff9966]Burden[/color] %d   [color=#88ccff]Command[/color] %d\n" % [
+		zone_name, _state.burden, _state.command])
+	if wear_str != "":
+		_output.append_text("%-18s[color=#88ff88]Food[/color] %d     [color=#88ccff]Water[/color] %d\n" % [
+			wear_str, _state.get_supply("food"), _state.get_supply("water")])
+	else:
+		_output.append_text("%-18s[color=#88ff88]Food[/color] %d     [color=#88ccff]Water[/color] %d\n" % [
+			"", _state.get_supply("food"), _state.get_supply("water")])
+	_output.append_text("\n")
+
+	if _route_map.is_complete():
+		_output.append_text("[color=#ffaaff][b]ARRIVED[/b][/color]\n\nThe expedition is complete.\n")
+		return
+
+	# Travelling progress indicator
+	if _route_map.is_travelling():
+		var an: RouteNode = _route_map.active_node
+		var cat_color: String = cat_colors.get(an.category, "#ffffff")
+		var progress := an.tick_distance - _route_map.ticks_remaining
+		var bar := "█".repeat(progress) + "░".repeat(_route_map.ticks_remaining)
+		var arrival_str := "arrival tomorrow" if _route_map.ticks_remaining == 1 else "%d days remaining" % _route_map.ticks_remaining
+		_output.append_text("Travelling to [color=%s][b]%s[/b][/color] (%s)\n" % [
+			cat_color, an.category.to_upper(), zone_name])
+		_output.append_text("Day %d of %d  %s  %s\n\n" % [
+			progress + 1, an.tick_distance, bar, arrival_str])
+
+	# Route diagram
+	_render_route_diagram(cat_colors)
+
+
+func _render_route_diagram(cat_colors: Dictionary) -> void:
+	var current_idx := _route_map.current_stage_index
+
+	for s_idx in range(_route_map.stages.size()):
+		var stage: Array = _route_map.stages[s_idx]
+		var is_current := s_idx == current_idx
+		var is_past := s_idx < current_idx
+
+		if is_past:
+			var done_node: RouteNode = _route_map.selected_path[s_idx]
+			var col: String = cat_colors.get(done_node.category, "#555555")
+			_output.append_text("[color=#333333]  ✓ [b]%s[/b] (%d days)[/color]\n" % [
+				done_node.category.to_upper(), done_node.tick_distance])
+		elif is_current and not _route_map.is_travelling():
+			_output.append_text("[b]CHOOSE:[/b]\n")
+			for node: RouteNode in stage:
+				var col: String = cat_colors.get(node.category, "#ffffff")
+				var bar := "█".repeat(node.tick_distance)
+				_output.append_text("  [color=%s][b]%s[/b][/color]  %s  %d days\n" % [
+					col, node.category.to_upper(), bar, node.tick_distance])
+				if not node.hints.is_empty():
+					_output.append_text("    [color=#888888]%s[/color]\n" % node.hints[0])
+		else:
+			_output.append_text("[color=#333333]  Stage %d: " % (s_idx + 1))
+			var labels: Array[String] = []
+			for node: RouteNode in stage:
+				labels.append("%s(%d)" % [node.category.to_upper(), node.tick_distance])
+			_output.append_text(", ".join(labels) + "[/color]\n")
+
+		# Arrow spacer between stages
+		if s_idx < _route_map.stages.size() - 1:
+			var next_stage: Array = _route_map.stages[s_idx + 1]
+			var min_dist := 9999
+			for node: RouteNode in next_stage:
+				if node.tick_distance < min_dist:
+					min_dist = node.tick_distance
+			var arrows := clampi(min_dist / 2, 1, 4)
+			var arrow_color := "#555555" if s_idx >= current_idx else "#222222"
+			for _a in range(arrows):
+				_output.append_text("[color=%s]  ↓[/color]\n" % arrow_color)
+
+	# Arrival
+	_output.append_text("[color=#1a1a1a]  ARRIVAL[/color]\n")
+
+	# Selection buttons (meta links) if at a choice point
+	if not _route_map.is_travelling() and not _route_map.is_complete():
+		_output.append_text("\n")
+		var stage: Array = _route_map.get_current_stage()
+		for node: RouteNode in stage:
+			_output.append_text('[url="take_%s"][color=#88aaff][ Take %s — %d days ][/color][/url]   ' % [
+				node.id, node.category.to_upper(), node.tick_distance])
+		_output.append_text("\n")

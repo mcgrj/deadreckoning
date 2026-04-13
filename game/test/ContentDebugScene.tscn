@@ -130,6 +130,28 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Show Log"
 
+[node name="RouteSeparator" type="HSeparator" parent="Sidebar"]
+layout_mode = 2
+
+[node name="RouteLabel" type="Label" parent="Sidebar"]
+layout_mode = 2
+text = "Route Map"
+
+[node name="ShowRoute" type="Button" parent="Sidebar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Show Route"
+
+[node name="AdvanceDay" type="Button" parent="Sidebar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Advance Day"
+
+[node name="ForceIncident" type="Button" parent="Sidebar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Force Incident"
+
 [node name="OutputContainer" type="ScrollContainer" parent="."]
 layout_mode = 2
 size_flags_horizontal = 3
