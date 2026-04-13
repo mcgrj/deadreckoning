@@ -22,6 +22,9 @@ func _ready() -> void:
 	_test_officer_def_starting_effects()
 	_test_expedition_state_new_fields()
 	_test_create_from_config()
+	_test_breakdown_trigger()
+	_test_mutiny_trigger()
+	_test_no_run_end_healthy_state()
 	_finish()
 
 
@@ -79,3 +82,52 @@ func _test_create_from_config() -> void:
 	check(state.active_objective_id == "survey_strange_shore", "objective_id stored on state")
 	check(state.burden >= 0, "burden is non-negative after config")
 	check(state.command > 0, "command is positive after config")
+
+
+func _test_breakdown_trigger() -> void:
+	print("-- TravelSimulator breakdown --")
+	var state := ExpeditionState.new()
+	state.burden = 100  # At threshold
+	var zone := ContentRegistry.get_all("zone_types")[0] as ZoneTypeDef
+	if zone == null:
+		check(false, "need at least one zone_type content file")
+		return
+	var log := SimulationLog.new()
+	TravelSimulator.process_tick(state, zone, log)
+	check(state.run_end_reason == "breakdown", "burden 100 triggers breakdown")
+
+
+func _test_mutiny_trigger() -> void:
+	print("-- TravelSimulator mutiny (command=0, burden=100) --")
+	var state := ExpeditionState.new()
+	state.command = 0
+	state.burden = 100
+	var zone := ContentRegistry.get_all("zone_types")[0] as ZoneTypeDef
+	if zone == null:
+		check(false, "need at least one zone_type content file")
+		return
+	var log := SimulationLog.new()
+	# burden=100 triggers breakdown immediately (checked before mutiny), so
+	# we use burden=50, command=0: chance = (50/100)*0.4 = 0.2 per tick.
+	# Run 30 ticks to get near-certain mutiny.
+	state.burden = 50
+	for i in 30:
+		if state.run_end_reason != "":
+			break
+		TravelSimulator.process_tick(state, zone, log)
+	check(state.run_end_reason == "mutiny" or state.run_end_reason == "breakdown",
+		"command=0 burden=50 eventually triggers run end")
+
+
+func _test_no_run_end_healthy_state() -> void:
+	print("-- TravelSimulator: no run-end at healthy state --")
+	var state := ExpeditionState.new()
+	state.burden = 20
+	state.command = 70
+	var zone := ContentRegistry.get_all("zone_types")[0] as ZoneTypeDef
+	if zone == null:
+		check(false, "need at least one zone_type content file")
+		return
+	var log := SimulationLog.new()
+	TravelSimulator.process_tick(state, zone, log)
+	check(state.run_end_reason == "", "healthy state does not trigger run end")

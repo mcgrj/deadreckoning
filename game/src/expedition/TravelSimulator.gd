@@ -7,7 +7,38 @@
 class_name TravelSimulator
 
 
+## Check mutiny and breakdown conditions. Sets state.run_end_reason and returns
+## true if the run has ended. Called at the top of process_tick.
+static func _check_run_end(state: ExpeditionState, log: SimulationLog) -> bool:
+	# Breakdown: burden at maximum — crew is ungovernable.
+	if state.burden >= GameConstants.BREAKDOWN_BURDEN_THRESHOLD:
+		state.run_end_reason = "breakdown"
+		log.log_event(state.tick_count, "RunEnd",
+			"Expedition ended: breakdown (burden at maximum).",
+			{"reason": "breakdown", "burden": state.burden})
+		return true
+
+	# Mutiny: probabilistic when command is critically low.
+	if state.command <= GameConstants.MUTINY_COMMAND_THRESHOLD:
+		var mutiny_chance: float = (float(state.burden) / 100.0) * GameConstants.MUTINY_BASE_RATE
+		if state.has_standing_order("suppress_dissent"):
+			mutiny_chance *= 0.5
+		if randf() < mutiny_chance:
+			state.run_end_reason = "mutiny"
+			log.log_event(state.tick_count, "RunEnd",
+				"Expedition ended: mutiny (command critically low, chance was %.2f)." % mutiny_chance,
+				{"reason": "mutiny", "command": state.command, "burden": state.burden,
+				 "chance": mutiny_chance})
+			return true
+
+	return false
+
+
 static func process_tick(state: ExpeditionState, zone: ZoneTypeDef, log: SimulationLog) -> void:
+	# Check run-end conditions before any simulation steps.
+	if _check_run_end(state, log):
+		return
+
 	# Step 1: Food consumption
 	var food_def = ContentRegistry.get_by_id("supplies", "food") as SupplyDef
 	if food_def != null:
