@@ -18,7 +18,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 ContentRegistry="*res://src/content/ContentRegistry.gd"
-GameConstants="*res://src/constants/GameConstants.gd"
+SaveManager="*res://src/SaveManager.gd"
 
 [display]
 
