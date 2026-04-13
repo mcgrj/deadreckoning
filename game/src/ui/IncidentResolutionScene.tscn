@@ -1,0 +1,64 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/ui/IncidentResolutionScene.gd" id="1_irscene"]
+
+[node name="IncidentResolutionScene" type="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_irscene")
+
+[node name="IncidentHeader" type="PanelContainer" parent="."]
+layout_mode = 2
+
+[node name="HeaderContent" type="VBoxContainer" parent="IncidentHeader"]
+layout_mode = 2
+
+[node name="CategoryLabel" type="Label" parent="IncidentHeader/HeaderContent"]
+layout_mode = 2
+text = "INCIDENT"
+
+[node name="TitleLabel" type="Label" parent="IncidentHeader/HeaderContent"]
+layout_mode = 2
+text = "Title"
+
+[node name="FlavourLabel" type="Label" parent="IncidentHeader/HeaderContent"]
+layout_mode = 2
+text = "Flavour"
+autowrap_mode = 3
+
+[node name="StateLabel" type="Label" parent="IncidentHeader/HeaderContent"]
+layout_mode = 2
+text = "State"
+
+[node name="MainArea" type="HBoxContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ArtPanel" type="ColorRect" parent="MainArea"]
+layout_mode = 2
+size_flags_horizontal = 2
+size_flags_stretch_ratio = 2.0
+color = Color(0.08, 0.08, 0.1, 1)
+
+[node name="CouncilPanel" type="VBoxContainer" parent="MainArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CouncilLabel" type="Label" parent="MainArea/CouncilPanel"]
+layout_mode = 2
+text = "OFFICER COUNCIL"
+
+[node name="ProposalList" type="VBoxContainer" parent="MainArea/CouncilPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ConfirmButton" type="Button" parent="MainArea/CouncilPanel"]
+layout_mode = 2
+text = "CONFIRM"
+visible = false
+
+[node name="SilenceFooter" type="Label" parent="MainArea/CouncilPanel"]
+layout_mode = 2
+text = ""
+autowrap_mode = 3
