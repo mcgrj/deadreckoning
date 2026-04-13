@@ -227,5 +227,13 @@ func _test_route_map_full_traversal() -> void:
 	check(route.is_complete(), "route reports complete after all nodes")
 	check(tick_count > 0, "at least one tick was processed")
 	check(tick_count < max_ticks, "traversal completed within tick budget")
-	# Healthy state should not end in mutiny/breakdown
 	check(state.run_end_reason == "", "healthy state survives full route without run end")
+
+	# Verify node must be selected before advance_tick does anything meaningful
+	var route2 := RouteMap.create_test_map()
+	check(not route2.is_travelling(), "fresh route is not travelling")
+	check(route2.get_active_zone() == null, "get_active_zone returns null when no node selected")
+	var stage: Array = route2.get_current_stage()
+	route2.select_node(stage[0] as RouteNode)
+	check(route2.is_travelling(), "is_travelling after select_node")
+	check(route2.get_active_zone() != null, "get_active_zone returns zone after select_node")
