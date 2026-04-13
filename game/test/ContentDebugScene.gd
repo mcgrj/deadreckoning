@@ -395,8 +395,66 @@ func _on_route_meta_clicked(meta: String) -> void:
 
 
 func _on_force_incident() -> void:
-	# Implemented in Task 10
-	pass
+	if _state == null:
+		_clear_output()
+		_output.append_text("[color=yellow]No expedition active. Press 'Show Route' first.[/color]\n")
+		return
+
+	_clear_output()
+
+	# Case 1: pending_incident_id is set — apply first choice of that incident
+	if not _state.pending_incident_id.is_empty():
+		var incident = ContentRegistry.get_by_id("incidents", _state.pending_incident_id) as IncidentDef
+		if incident != null and not incident.choices.is_empty():
+			var choice: IncidentChoiceDef = incident.choices[0]
+			EffectProcessor.apply_effects(_state, choice.immediate_effects, _log)
+			for flag: String in choice.memory_flags_set:
+				_state.add_memory_flag(flag)
+			_log.log_event(_state.tick_count, "ForceIncident",
+				"[%s] %s" % [incident.display_name, choice.log_text],
+				{"incident_id": incident.id})
+			_state.pending_incident_id = ""
+			_output.append_text("[b]Incident resolved: %s[/b]\n[color=#88ccff]%s[/color]\n\n" % [
+				incident.display_name, choice.log_text])
+			_show_state_summary()
+			return
+
+	# Case 2: scan for any eligible tick-band incident
+	var triggered := false
+	var incidents := ContentRegistry.get_all("incidents")
+	for item: ContentBase in incidents:
+		var incident = item as IncidentDef
+		if incident == null or incident.trigger_band != "tick":
+			continue
+		if ConditionEvaluator.all_met(_state, incident.required_conditions, _log):
+			if not incident.choices.is_empty():
+				var choice: IncidentChoiceDef = incident.choices[0]
+				EffectProcessor.apply_effects(_state, choice.immediate_effects, _log)
+				for flag: String in choice.memory_flags_set:
+					_state.add_memory_flag(flag)
+				_log.log_event(_state.tick_count, "ForceIncident",
+					"[%s] %s" % [incident.display_name, choice.log_text],
+					{"incident_id": incident.id})
+				_output.append_text("[b]Force-triggered: %s[/b]\n[color=#88ccff]%s[/color]\n\n" % [
+					incident.display_name, choice.log_text])
+				triggered = true
+				break
+
+	# Case 3: fallback — hardcoded squall
+	if not triggered:
+		var b = EffectDef.new()
+		b.type = "burden_change"
+		b.delta = 5
+		EffectProcessor.apply(_state, b, _log)
+		var d = EffectDef.new()
+		d.type = "add_damage_tag"
+		d.tag = "storm_damage"
+		EffectProcessor.apply(_state, d, _log)
+		_log.log_event(_state.tick_count, "ForceIncident",
+			"A squall strikes without warning.", {})
+		_output.append_text("[b]Fallback incident:[/b]\n[color=#ff9966]A squall strikes without warning. (Burden +5, storm_damage)[/color]\n\n")
+
+	_show_state_summary()
 
 
 func _render_route_map() -> void:
