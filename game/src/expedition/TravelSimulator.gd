@@ -10,6 +10,10 @@ class_name TravelSimulator
 ## Check mutiny and breakdown conditions. Sets state.run_end_reason and returns
 ## true if the run has ended. Called at the top of process_tick.
 static func _check_run_end(state: ExpeditionState, log: SimulationLog) -> bool:
+	# Already ended — don't overwrite the reason.
+	if state.run_end_reason != "":
+		return false
+
 	# Breakdown: burden at maximum — crew is ungovernable.
 	if state.burden >= GameConstants.BREAKDOWN_BURDEN_THRESHOLD:
 		state.run_end_reason = "breakdown"

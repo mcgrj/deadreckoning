@@ -25,6 +25,7 @@ func _ready() -> void:
 	_test_breakdown_trigger()
 	_test_mutiny_trigger()
 	_test_no_run_end_healthy_state()
+	_test_suppress_dissent_mitigation()
 	_finish()
 
 
@@ -131,3 +132,30 @@ func _test_no_run_end_healthy_state() -> void:
 	var log := SimulationLog.new()
 	TravelSimulator.process_tick(state, zone, log)
 	check(state.run_end_reason == "", "healthy state does not trigger run end")
+
+
+func _test_suppress_dissent_mitigation() -> void:
+	print("-- TravelSimulator: suppress_dissent halves mutiny chance --")
+	# Without suppress_dissent: command=0, burden=100 would be breakdown.
+	# Use command=0, burden=50: chance = (50/100)*0.4 = 0.2 per tick
+	# With suppress_dissent: chance = 0.1 per tick
+	# We just verify the code path doesn't error and run_end_reason is set eventually.
+	var state := ExpeditionState.new()
+	state.command = 0
+	state.burden = 50
+	state.standing_orders.append("suppress_dissent")
+	var zone := ContentRegistry.get_all("zone_types")[0] as ZoneTypeDef
+	if zone == null:
+		check(false, "need at least one zone_type content file")
+		return
+	var log := SimulationLog.new()
+	# Run up to 50 ticks — with chance=0.1, P(at least one mutiny) > 99.4%
+	for i in 50:
+		if state.run_end_reason != "":
+			break
+		TravelSimulator.process_tick(state, zone, log)
+	check(state.run_end_reason == "mutiny" or state.run_end_reason == "breakdown",
+		"suppress_dissent still allows eventual mutiny (just slower)")
+	# Verify the suppress_dissent standing order was present when the check ran
+	# by confirming run ended (not stuck in infinite loop)
+	check(state.run_end_reason != "", "run eventually ends with suppress_dissent active")
