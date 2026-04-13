@@ -379,12 +379,13 @@ func _on_advance_day() -> void:
 	_render_route_map()
 
 
-func _on_route_meta_clicked(meta: String) -> void:
-	if not meta.begins_with("take_"):
+func _on_route_meta_clicked(meta: Variant) -> void:
+	var meta_str := str(meta)
+	if not meta_str.begins_with("take_"):
 		return
 	if _route_map == null:
 		return
-	var node_id := meta.substr(5)
+	var node_id := meta_str.substr(5)
 	var stage := _route_map.get_current_stage()
 	for node: RouteNode in stage:
 		if node.id == node_id:
@@ -499,8 +500,9 @@ func _render_route_map() -> void:
 		var arrival_str := "arrival tomorrow" if _route_map.ticks_remaining == 1 else "%d days remaining" % _route_map.ticks_remaining
 		_output.append_text("Travelling to [color=%s][b]%s[/b][/color] (%s)\n" % [
 			cat_color, an.category.to_upper(), zone_name])
-		_output.append_text("Day %d of %d  %s  %s\n\n" % [
+		_output.append_text("Day %d of %d  %s  %s\n" % [
 			progress + 1, an.tick_distance, bar, arrival_str])
+		_output.append_text("[color=#aaaaaa]  ↑ Press Advance Day to travel.[/color]\n\n")
 
 	# Route diagram
 	_render_route_diagram(cat_colors)
@@ -516,23 +518,25 @@ func _render_route_diagram(cat_colors: Dictionary) -> void:
 
 		if is_past:
 			var done_node: RouteNode = _route_map.selected_path[s_idx]
-			_output.append_text("[color=#333333]  ✓ [b]%s[/b] (%d days)[/color]\n" % [
+			_output.append_text("[color=#777777]  ✓ %s  %d days[/color]\n" % [
 				done_node.category.to_upper(), done_node.tick_distance])
 		elif is_current and not _route_map.is_travelling():
-			_output.append_text("[b]CHOOSE:[/b]\n")
+			_output.append_text("[b]─ Choose your route ─[/b]\n\n")
 			for node: RouteNode in stage:
 				var col: String = cat_colors.get(node.category, "#ffffff")
-				var bar := "█".repeat(node.tick_distance)
-				_output.append_text("  [color=%s][b]%s[/b][/color]  %s  %d days\n" % [
-					col, node.category.to_upper(), bar, node.tick_distance])
+				var bar := "█".repeat(node.tick_distance) + "░".repeat(maxi(0, 5 - node.tick_distance))
+				_output.append_text("  [color=%s]▶ [b]%s[/b][/color]\n" % [col, node.category.to_upper()])
+				_output.append_text("    %s  [color=#dddddd]%d days[/color]\n" % [bar, node.tick_distance])
 				if not node.hints.is_empty():
-					_output.append_text("    [color=#888888]%s[/color]\n" % node.hints[0])
+					_output.append_text("    [color=#aaaaaa]%s[/color]\n" % node.hints[0])
+				_output.append_text("\n")
 		else:
-			_output.append_text("[color=#333333]  Stage %d: " % (s_idx + 1))
+			# Future stage — show each node with its days
+			_output.append_text("[color=#aaaaaa]  Stage %d:  " % (s_idx + 1))
 			var labels: Array[String] = []
 			for node: RouteNode in stage:
-				labels.append("%s(%d)" % [node.category.to_upper(), node.tick_distance])
-			_output.append_text(", ".join(labels) + "[/color]\n")
+				labels.append("%s %d d" % [node.category.to_upper(), node.tick_distance])
+			_output.append_text("  |  ".join(labels) + "[/color]\n")
 
 		# Arrow spacer between stages
 		if s_idx < _route_map.stages.size() - 1:
@@ -542,18 +546,19 @@ func _render_route_diagram(cat_colors: Dictionary) -> void:
 				if node.tick_distance < min_dist:
 					min_dist = node.tick_distance
 			var arrows := clampi(min_dist / 2, 1, 4)
-			var arrow_color := "#222222" if s_idx < current_idx else "#555555"
+			var arrow_color := "#555555" if s_idx < current_idx else "#aaaaaa"
 			for _a in range(arrows):
 				_output.append_text("[color=%s]  ↓[/color]\n" % arrow_color)
 
 	# Arrival
-	_output.append_text("[color=#1a1a1a]  ARRIVAL[/color]\n")
+	_output.append_text("[color=#777777]  ARRIVAL[/color]\n")
 
 	# Selection buttons (meta links) if at a choice point
 	if not _route_map.is_travelling() and not _route_map.is_complete():
 		_output.append_text("\n")
 		var stage: Array = _route_map.get_current_stage()
 		for node: RouteNode in stage:
-			_output.append_text('[url="take_%s"][color=#88aaff][ Take %s — %d days ][/color][/url]   ' % [
-				node.id, node.category.to_upper(), node.tick_distance])
+			var col: String = cat_colors.get(node.category, "#ffffff")
+			_output.append_text('[url="take_%s"][[color=%s]Take %s — %d days[/color]][/url]   ' % [
+				node.id, col, node.category.to_upper(), node.tick_distance])
 		_output.append_text("\n")
