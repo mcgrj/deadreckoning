@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DoctrineDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/DoctrineDef.gd" id="1_id"]
+
+[resource]
+script = ExtResource("1_id")
+unlocked_standing_order_ids = Array[String](["strict_watches", "tighten_rationing"])
+command_culture_modifier = "authoritarian"
+description = "Discipline is maintained through fear and clear hierarchy. Command is easier to keep; Burden rises faster."
+id = "iron_discipline"
+display_name = "Iron Discipline Doctrine"
+category = "doctrine"
+tags = Array[String](["authoritarian"])

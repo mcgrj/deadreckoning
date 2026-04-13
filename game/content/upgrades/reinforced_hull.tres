@@ -1,11 +1,17 @@
 [gd_resource type="Resource" script_class="ShipUpgradeDef" format=3]
 
 [ext_resource type="Script" path="res://src/content/resources/ShipUpgradeDef.gd" id="1_4jboc"]
-[ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="2_paigx"]
+[ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="2_eff"]
+
+[sub_resource type="Resource" id="Resource_ship"]
+script = ExtResource("2_eff")
+type = "ship_condition_change"
+delta = 10
 
 [resource]
 script = ExtResource("1_4jboc")
 preparation_cost = 3
+upgrade_effects = Array[EffectDef]([SubResource("Resource_ship")])
 drawback_text = "Heavier — travel ticks consume slightly more food."
 id = "reinforced_hull"
 display_name = "Reinforced Hull"

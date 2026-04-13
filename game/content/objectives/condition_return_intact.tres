@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ObjectiveDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/ObjectiveDef.gd" id="1_cri"]
+[ext_resource type="Script" path="res://src/content/resources/ConditionDef.gd" id="2_cond"]
+
+[sub_resource type="Resource" id="Resource_cond"]
+script = ExtResource("2_cond")
+type = "ship_condition_gte"
+threshold = 50
+
+[resource]
+script = ExtResource("1_cri")
+objective_type = "condition"
+difficulty_tier = 2
+success_condition = SubResource("Resource_cond")
+description = "The Admiralty requires the vessel returned in serviceable condition. Ship must be above 50% at journey's end."
+unlock_on_success_id = "iron_discipline"
+id = "condition_return_intact"
+display_name = "Return the Ship Intact"
+category = "condition"
+tags = Array[String](["admiralty", "tier_2"])

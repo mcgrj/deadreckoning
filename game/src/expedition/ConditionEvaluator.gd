@@ -70,6 +70,11 @@ static func evaluate(state: ExpeditionState, condition: ConditionDef, log: Simul
 			details["tag"] = condition.tag
 			message = "Has standing order '%s'? %s" % [condition.tag, "PASS" if result else "FAIL"]
 
+		"ship_condition_gte":
+			result = state.ship_condition >= condition.threshold
+			details["actual"] = state.ship_condition
+			message = "Ship condition %d >= %d? %s" % [state.ship_condition, condition.threshold, "PASS" if result else "FAIL"]
+
 		_:
 			push_warning("ConditionEvaluator: unknown condition type '%s'" % condition.type)
 			result = false

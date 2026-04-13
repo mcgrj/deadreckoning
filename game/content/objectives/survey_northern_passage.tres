@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="ObjectiveDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/ObjectiveDef.gd" id="1_snp"]
+[ext_resource type="Script" path="res://src/content/resources/ConditionDef.gd" id="2_cond"]
+
+[sub_resource type="Resource" id="Resource_cond"]
+script = ExtResource("2_cond")
+type = "has_memory_flag"
+flag_key = "northern_passage_surveyed"
+
+[resource]
+script = ExtResource("1_snp")
+objective_type = "survey"
+difficulty_tier = 3
+required_node_category = "Landfall"
+success_condition = SubResource("Resource_cond")
+description = "The Admiralty believes a northern passage may exist. Chart it before the ice closes."
+unlock_on_success_id = "powder_magazine"
+id = "survey_northern_passage"
+display_name = "Survey the Northern Passage"
+category = "survey"
+tags = Array[String](["admiralty", "tier_3"])
