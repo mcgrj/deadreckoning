@@ -1,6 +1,7 @@
 # GameConstants.gd
 # Centralised balance tuning constants. All magic numbers used in simulation
 # code live here. Accessed as autoload singleton: GameConstants.CONST_NAME
+class_name GameConstants
 
 # Run-end thresholds
 const MUTINY_COMMAND_THRESHOLD: int = 20
