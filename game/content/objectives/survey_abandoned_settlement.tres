@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="ObjectiveDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/ObjectiveDef.gd" id="1_sas"]
+[ext_resource type="Script" path="res://src/content/resources/ConditionDef.gd" id="2_cond"]
+
+[sub_resource type="Resource" id="Resource_cond"]
+script = ExtResource("2_cond")
+type = "has_memory_flag"
+flag_key = "settlement_surveyed"
+
+[resource]
+script = ExtResource("1_sas")
+objective_type = "survey"
+difficulty_tier = 2
+required_node_category = "Landfall"
+success_condition = SubResource("Resource_cond")
+description = "Reports describe a settlement abandoned under unknown circumstances. Chart it and note any signs of what befell the inhabitants."
+unlock_on_success_id = ""
+id = "survey_abandoned_settlement"
+display_name = "Survey the Abandoned Settlement"
+category = "survey"
+tags = Array[String](["admiralty", "tier_2"])
