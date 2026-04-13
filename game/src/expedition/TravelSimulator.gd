@@ -82,16 +82,53 @@ static func process_tick(state: ExpeditionState, zone: ZoneTypeDef, log: Simulat
 	# Step 7: Rum tick
 	RumRules.update_on_tick(state, log)
 
-	# Step 8: Incident trigger check
+	# Step 8: Incident trigger check — weighted random selection from eligible pool
 	if state.pending_incident_id.is_empty():
 		var incidents := ContentRegistry.get_all("incidents")
+		var eligible: Array = []
+		var weights: Array = []
+		var total_weight: float = 0.0
+
 		for item: ContentBase in incidents:
-			var incident = item as IncidentDef
+			var incident := item as IncidentDef
 			if incident == null or incident.trigger_band != "tick":
 				continue
-			if ConditionEvaluator.all_met(state, incident.required_conditions, log):
-				state.pending_incident_id = incident.id
-				log.log_event(state.tick_count, "TravelSimulator",
-					"Incident triggered: %s" % incident.id,
-					{"incident_id": incident.id})
-				break
+			if not ConditionEvaluator.all_met(state, incident.required_conditions, log):
+				continue
+			var w := compute_incident_weight(state, incident, log)
+			eligible.append(incident)
+			weights.append(w)
+			total_weight += w
+
+		if not eligible.is_empty():
+			var roll := randf() * total_weight
+			var cumulative: float = 0.0
+			for i: int in range(eligible.size()):
+				cumulative += weights[i]
+				if roll <= cumulative:
+					state.pending_incident_id = eligible[i].id
+					log.log_event(state.tick_count, "TravelSimulator",
+						"Incident triggered: %s (weight %.2f)" % [eligible[i].id, weights[i]],
+						{"incident_id": eligible[i].id, "weight": weights[i]})
+					break
+
+
+## Compute the selection weight for an incident given current state.
+## Applies all weight_modifiers; returns 1.0 if none match.
+static func compute_incident_weight(
+	state: ExpeditionState,
+	incident: IncidentDef,
+	log: SimulationLog
+) -> float:
+	var weight: float = 1.0
+	for mod: WeightModifierDef in incident.weight_modifiers:
+		var condition_met: bool = false
+		match mod.condition_type:
+			"has_standing_order":
+				condition_met = state.has_standing_order(mod.condition_value)
+		if condition_met:
+			weight *= mod.multiplier
+			log.log_event(state.tick_count, "TravelSimulator",
+				"Weight modifier applied to %s: x%.2f (total %.2f)" % [incident.id, mod.multiplier, weight],
+				{"incident_id": incident.id, "modifier": mod.multiplier, "weight": weight})
+	return weight

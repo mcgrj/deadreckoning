@@ -24,6 +24,7 @@ func _ready() -> void:
 	_test_incident_def_new_fields()
 	_test_incident_choice_def_new_fields()
 	_test_officer_council_proposals()
+	_test_incident_weight_calculation()
 	_finish()
 
 
@@ -143,3 +144,44 @@ func _test_officer_council_proposals() -> void:
 	check(silence2.size() == 1, "silence proposal for surgeon who has no hook for this incident")
 	check(silence2[0]["officer_id"] == "surgeon", "silence proposal is for surgeon")
 	check(silence2[0]["silence_line"] != "", "silence line is not empty")
+
+
+func _test_incident_weight_calculation() -> void:
+	print("-- TravelSimulator incident weight calculation --")
+	var state := ExpeditionState.new()
+
+	# Build two incidents with weight modifiers
+	var fight := IncidentDef.new()
+	fight.id = "crew_fight"
+	fight.trigger_band = "tick"
+	fight.required_conditions = []
+	var fight_mod := WeightModifierDef.new()
+	fight_mod.condition_type = "has_standing_order"
+	fight_mod.condition_value = "tighten_rationing"
+	fight_mod.multiplier = 2.0
+	fight.weight_modifiers = [fight_mod]
+
+	var food := IncidentDef.new()
+	food.id = "food_dispute"
+	food.trigger_band = "tick"
+	food.required_conditions = []
+	var food_mod := WeightModifierDef.new()
+	food_mod.condition_type = "has_standing_order"
+	food_mod.condition_value = "tighten_rationing"
+	food_mod.multiplier = 0.3
+	food.weight_modifiers = [food_mod]
+
+	var log := SimulationLog.new()
+
+	# Without tighten_rationing: both incidents weight 1.0
+	var weight_fight_no_order := TravelSimulator.compute_incident_weight(state, fight, log)
+	var weight_food_no_order := TravelSimulator.compute_incident_weight(state, food, log)
+	check(absf(weight_fight_no_order - 1.0) < 0.001, "crew_fight weight is 1.0 without order")
+	check(absf(weight_food_no_order - 1.0) < 0.001, "food_dispute weight is 1.0 without order")
+
+	# With tighten_rationing active
+	state.standing_orders.append("tighten_rationing")
+	var weight_fight_with_order := TravelSimulator.compute_incident_weight(state, fight, log)
+	var weight_food_with_order := TravelSimulator.compute_incident_weight(state, food, log)
+	check(absf(weight_fight_with_order - 2.0) < 0.001, "crew_fight weight is 2.0 with tighten_rationing")
+	check(absf(weight_food_with_order - 0.3) < 0.001, "food_dispute weight is 0.3 with tighten_rationing")
