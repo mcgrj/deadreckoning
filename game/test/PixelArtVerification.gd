@@ -7,7 +7,7 @@ extends Node2D
 func _ready() -> void:
     var viewport_size := get_viewport().get_visible_rect().size
     assert(viewport_size == Vector2(1280, 720), \
-        "Viewport must be 1280x720, got %s" % viewport_size)
+        "SubViewport must be 1280x720, got %s" % viewport_size)
 
     var orientation := DisplayServer.screen_get_orientation()
     assert(orientation == DisplayServer.SCREEN_LANDSCAPE or \

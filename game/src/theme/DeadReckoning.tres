@@ -1,8 +1,6 @@
-[gd_resource type="Theme" load_steps=4 format=3 uid="uid://theme_deadreckoning"]
+[gd_resource type="Theme" format=3 uid="uid://ypw1q7gk5jd1"]
 
-[ext_resource type="FontFile" path="res://assets/fonts/Cinzel-Regular.ttf" id="1_cinzel"]
-[ext_resource type="FontFile" path="res://assets/fonts/CrimsonPro-Regular.ttf" id="2_crimson_regular"]
-[ext_resource type="FontFile" path="res://assets/fonts/CrimsonPro-Italic.ttf" id="3_crimson_italic"]
+[ext_resource type="FontFile" uid="uid://dsew0miptexk6" path="res://assets/fonts/Cinzel-Regular.ttf" id="1_cinzel"]
 
 [resource]
 default_font = ExtResource("1_cinzel")
