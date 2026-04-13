@@ -1,6 +1,6 @@
 # EffectDef.gd
 # Inline Resource representing one discrete effect applied to expedition state.
-# Embedded inside IncidentChoiceDef, StandingOrderDef, ShipUpgradeDef — not stored standalone.
+# Embedded inside IncidentChoiceDef, StandingOrderDef, ShipUpgradeDef, OfficerDef — not stored standalone.
 #
 # Valid types: burden_change, command_change, supply_change, ship_condition_change,
 #              add_damage_tag, remove_damage_tag, set_memory_flag,

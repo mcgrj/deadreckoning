@@ -83,6 +83,10 @@ static func _check_embedded(item: ContentBase, family: String, errors: Array[Str
 		if item.success_condition != null:
 			_check_condition(item.success_condition, family, item.id, errors)
 
+	elif item is OfficerDef:
+		for effect: EffectDef in item.starting_effects:
+			_check_effect(effect, family, item.id, errors)
+
 
 static func _check_effect(
 	effect: EffectDef,
