@@ -18,141 +18,141 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ValidateAll" type="Button" parent="Sidebar"]
+[node name="ValidateAll" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Validate All"
 
-[node name="Incidents" type="Button" parent="Sidebar"]
+[node name="Incidents" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Incidents"
 
-[node name="Officers" type="Button" parent="Sidebar"]
+[node name="Officers" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Officers"
 
-[node name="Supplies" type="Button" parent="Sidebar"]
+[node name="Supplies" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Supplies"
 
-[node name="StandingOrders" type="Button" parent="Sidebar"]
+[node name="StandingOrders" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Standing Orders"
 
-[node name="Upgrades" type="Button" parent="Sidebar"]
+[node name="Upgrades" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Upgrades"
 
-[node name="Doctrines" type="Button" parent="Sidebar"]
+[node name="Doctrines" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Doctrines"
 
-[node name="CrewBackgrounds" type="Button" parent="Sidebar"]
+[node name="CrewBackgrounds" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Crew Backgrounds"
 
-[node name="ZoneTypes" type="Button" parent="Sidebar"]
+[node name="ZoneTypes" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Zone Types"
 
-[node name="Objectives" type="Button" parent="Sidebar"]
+[node name="Objectives" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Objectives"
 
-[node name="SimSeparator" type="HSeparator" parent="Sidebar"]
+[node name="SimSeparator" type="HSeparator" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 
-[node name="SimLabel" type="Label" parent="Sidebar"]
+[node name="SimLabel" type="Label" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 text = "Expedition Sim"
 
-[node name="NewExpedition" type="Button" parent="Sidebar"]
+[node name="NewExpedition" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "New Expedition"
 
-[node name="ShowState" type="Button" parent="Sidebar"]
+[node name="ShowState" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Show State"
 
-[node name="ApplyEffect" type="Button" parent="Sidebar"]
+[node name="ApplyEffect" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Apply Effect"
 
-[node name="CheckCondition" type="Button" parent="Sidebar"]
+[node name="CheckCondition" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Check Condition"
 
-[node name="Tick" type="Button" parent="Sidebar"]
+[node name="Tick" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Tick"
 
-[node name="MakePromise" type="Button" parent="Sidebar"]
+[node name="MakePromise" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Make Promise"
 
-[node name="KeepPromise" type="Button" parent="Sidebar"]
+[node name="KeepPromise" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Keep Promise"
 
-[node name="BreakPromise" type="Button" parent="Sidebar"]
+[node name="BreakPromise" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Break Promise"
 
-[node name="ToggleDamageTag" type="Button" parent="Sidebar"]
+[node name="ToggleDamageTag" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Toggle Damage Tag"
 
-[node name="SetMemoryFlag" type="Button" parent="Sidebar"]
+[node name="SetMemoryFlag" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Set Memory Flag"
 
-[node name="ToggleSpiritStore" type="Button" parent="Sidebar"]
+[node name="ToggleSpiritStore" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Toggle Spirit Store"
 
-[node name="ShowLog" type="Button" parent="Sidebar"]
+[node name="ShowLog" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Show Log"
 
-[node name="RouteSeparator" type="HSeparator" parent="Sidebar"]
+[node name="RouteSeparator" type="HSeparator" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 
-[node name="RouteLabel" type="Label" parent="Sidebar"]
+[node name="RouteLabel" type="Label" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 text = "Route Map"
 
-[node name="ShowRoute" type="Button" parent="Sidebar"]
+[node name="ShowRoute" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Show Route"
 
-[node name="AdvanceDay" type="Button" parent="Sidebar"]
+[node name="AdvanceDay" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Advance Day"
 
-[node name="ForceIncident" type="Button" parent="Sidebar"]
+[node name="ForceIncident" type="Button" parent="SidebarScroll/Sidebar"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Force Incident"
