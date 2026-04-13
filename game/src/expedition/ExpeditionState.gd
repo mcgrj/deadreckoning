@@ -30,6 +30,7 @@ var tick_count: int = 0
 var travel_fatigue: int = 0      # 0–100. Accumulates each travel tick. Feeds incident conditions (Stage 5).
 var sickness_risk: int = 0       # 0–100. Rises when food or water critically low. Feeds incident conditions (Stage 5).
 var pending_incident_id: String = ""  # Set by TravelSimulator when a tick-band incident becomes eligible.
+var incident_last_fired: Dictionary = {}  # incident_id -> tick_count when last triggered
 var stress_indicators: Dictionary = {
 	"peak_burden": 20,
 	"min_command": 70,

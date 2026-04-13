@@ -128,6 +128,10 @@ static func process_tick(state: ExpeditionState, zone: ZoneTypeDef, log: Simulat
 			var incident := item as IncidentDef
 			if incident == null or incident.trigger_band != "tick":
 				continue
+			# Skip incidents still within their cooldown window
+			var last_fired: int = state.incident_last_fired.get(incident.id, -GameConstants.INCIDENT_COOLDOWN_TICKS)
+			if state.tick_count - last_fired < GameConstants.INCIDENT_COOLDOWN_TICKS:
+				continue
 			if not ConditionEvaluator.all_met(state, incident.required_conditions, log):
 				continue
 			var w := compute_incident_weight(state, incident, log)
@@ -142,6 +146,7 @@ static func process_tick(state: ExpeditionState, zone: ZoneTypeDef, log: Simulat
 				cumulative += weights[i]
 				if roll <= cumulative:
 					state.pending_incident_id = eligible[i].id
+					state.incident_last_fired[eligible[i].id] = state.tick_count
 					log.log_event(state.tick_count, "TravelSimulator",
 						"Incident triggered: %s (weight %.2f)" % [eligible[i].id, weights[i]],
 						{"incident_id": eligible[i].id, "weight": weights[i]})

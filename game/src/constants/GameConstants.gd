@@ -22,6 +22,9 @@ const OBJECTIVE_SHORTLIST_SIZE: int = 3
 # Save paths
 const SAVE_DIR: String = "user://saves/"
 
+# Incident cooldown (ticks an incident must wait before re-triggering)
+const INCIDENT_COOLDOWN_TICKS: int = 5
+
 # Difficulty synthesis weights
 const DIFFICULTY_BURDEN_WEIGHT: float = 0.3
 const DIFFICULTY_COMMAND_WEIGHT: float = 0.3

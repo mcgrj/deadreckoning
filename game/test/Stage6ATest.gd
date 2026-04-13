@@ -29,6 +29,7 @@ func _ready() -> void:
 	_test_run_end_scene_difficulty_formula()
 	_test_progression_objective_complete()
 	_test_route_map_full_traversal()
+	_test_incident_cooldown()
 	_finish()
 
 
@@ -237,3 +238,37 @@ func _test_route_map_full_traversal() -> void:
 	route2.select_node(stage[0] as RouteNode)
 	check(route2.is_travelling(), "is_travelling after select_node")
 	check(route2.get_active_zone() != null, "get_active_zone returns zone after select_node")
+
+
+func _test_incident_cooldown() -> void:
+	print("-- Incident cooldown --")
+	var state := ExpeditionState.new()
+	state.burden = 20
+	state.command = 70
+	var zone := ContentRegistry.get_all("zone_types")[0] as ZoneTypeDef
+	var log := SimulationLog.new()
+
+	# Record a fake firing of crew_fight at tick 1
+	state.tick_count = 1
+	state.incident_last_fired["crew_fight"] = 1
+
+	# Advance to tick 2 — still within INCIDENT_COOLDOWN_TICKS window
+	state.tick_count = 2
+	TravelSimulator.process_tick(state, zone, log)
+	check(state.pending_incident_id != "crew_fight",
+		"crew_fight cannot re-trigger within cooldown window")
+
+	# Advance past the cooldown
+	state.incident_last_fired["crew_fight"] = 1
+	state.tick_count = 1 + GameConstants.INCIDENT_COOLDOWN_TICKS
+	state.pending_incident_id = ""
+	# Run up to 20 ticks from here to give the incident a chance to fire
+	var fired := false
+	for i in 20:
+		state.pending_incident_id = ""
+		TravelSimulator.process_tick(state, zone, log)
+		state.tick_count += 1
+		if state.pending_incident_id == "crew_fight":
+			fired = true
+			break
+	check(fired, "crew_fight can trigger again after cooldown expires")
