@@ -49,6 +49,7 @@ static func create_default() -> ExpeditionState:
 			state.supplies[supply_def.id] = supply_def.starting_amount
 			if supply_def.is_rum and supply_def.starting_amount > 0:
 				state.rum_ration_expected = true
+				state.add_crew_trait("rum_aboard")
 
 	# Populate officers from OfficerDefs
 	var officer_defs := ContentRegistry.get_all("officers")
