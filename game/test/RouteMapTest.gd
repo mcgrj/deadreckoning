@@ -24,6 +24,8 @@ func _ready() -> void:
 	_test_zone_types()
 	_test_expedition_state_additions()
 	_test_travel_simulator_food_water()
+	_test_travel_simulator_ship_wear()
+	_test_travel_simulator_burden_fatigue()
 	_finish()
 
 
@@ -297,3 +299,69 @@ func _test_travel_simulator_food_water() -> void:
 	check(state2.get_supply("food") == food2_before - 6, "food decreases by 6 with 1.2 modifier")
 	# water: ceil(3*1.2) = ceil(3.6) = 4
 	check(state2.get_supply("water") == water2_before - 4, "water decreases by 4 with 1.2 modifier")
+
+
+# --- TravelSimulator: ship wear ---
+
+func _test_travel_simulator_ship_wear() -> void:
+	print("-- TravelSimulator ship wear --")
+
+	# wear_modifier=1.0 → floor(-1*1.0)=-1
+	var state = _make_state()
+	var log = _make_log()
+	TravelSimulator.process_tick(state, _make_zone(1.0, 1.0), log)
+	check(state.ship_condition == 99, "ship condition -1 with 1.0 wear modifier")
+
+	# wear_modifier=1.8 → floor(-1*1.8)=floor(-1.8)=-2
+	var state2 = _make_state()
+	var log2 = _make_log()
+	TravelSimulator.process_tick(state2, _make_zone(1.0, 1.8), log2)
+	check(state2.ship_condition == 98, "ship condition -2 with 1.8 wear modifier")
+
+	# wear_modifier=0.5 → floor(-0.5)=-1 (minimum -1 applies)
+	var state3 = _make_state()
+	var log3 = _make_log()
+	TravelSimulator.process_tick(state3, _make_zone(1.0, 0.5), log3)
+	check(state3.ship_condition == 99, "ship condition -1 with 0.5 wear modifier (minimum)")
+
+	# wear_modifier=0.0 → floor(0)=0, but minimum -1 applies
+	var state4 = _make_state()
+	var log4 = _make_log()
+	TravelSimulator.process_tick(state4, _make_zone(1.0, 0.0), log4)
+	check(state4.ship_condition == 99, "ship condition -1 with 0.0 wear modifier (minimum enforced)")
+
+
+# --- TravelSimulator: burden delta + travel fatigue ---
+
+func _test_travel_simulator_burden_fatigue() -> void:
+	print("-- TravelSimulator burden delta + fatigue --")
+
+	# burden_delta_per_tick=2 → burden increases by 2
+	var state = _make_state()
+	var log = _make_log()
+	var burden_before: int = state.burden  # 20
+	TravelSimulator.process_tick(state, _make_zone(1.0, 1.0, 2), log)
+	check(state.burden == burden_before + 2, "burden increases by zone burden_delta_per_tick")
+
+	# burden_delta_per_tick=0 → burden unchanged by zone
+	var state2 = _make_state()
+	var log2 = _make_log()
+	var burden2_before: int = state2.burden
+	TravelSimulator.process_tick(state2, _make_zone(1.0, 1.0, 0), log2)
+	check(state2.burden == burden2_before, "burden unchanged when burden_delta_per_tick is 0")
+
+	# travel_fatigue increments each tick, clamped to 100
+	var state3 = _make_state()
+	var log3 = _make_log()
+	check(state3.travel_fatigue == 0, "fatigue starts at 0")
+	TravelSimulator.process_tick(state3, _make_zone(), log3)
+	check(state3.travel_fatigue == 1, "fatigue increments to 1 after first tick")
+	TravelSimulator.process_tick(state3, _make_zone(), log3)
+	check(state3.travel_fatigue == 2, "fatigue increments to 2 after second tick")
+
+	# Fatigue clamped at 100
+	state3.travel_fatigue = 99
+	TravelSimulator.process_tick(state3, _make_zone(), log3)
+	check(state3.travel_fatigue == 100, "fatigue reaches 100")
+	TravelSimulator.process_tick(state3, _make_zone(), log3)
+	check(state3.travel_fatigue == 100, "fatigue stays at 100 (clamped)")

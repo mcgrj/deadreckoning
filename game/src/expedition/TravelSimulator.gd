@@ -46,4 +46,24 @@ static func process_tick(state: ExpeditionState, zone: ZoneTypeDef, log: Simulat
 			f.flag_key = "water_exhausted"
 			EffectProcessor.apply(state, f, log)
 
-	# Steps 3–8 added in Tasks 6–8
+	# Step 3: Ship wear
+	var wear_delta := mini(floori(-1.0 * zone.ship_wear_modifier), -1)
+	var wear_effect = EffectDef.new()
+	wear_effect.type = "ship_condition_change"
+	wear_effect.delta = wear_delta
+	EffectProcessor.apply(state, wear_effect, log)
+
+	# Step 4: Zone Burden delta
+	if zone.burden_delta_per_tick != 0:
+		var zone_burden = EffectDef.new()
+		zone_burden.type = "burden_change"
+		zone_burden.delta = zone.burden_delta_per_tick
+		EffectProcessor.apply(state, zone_burden, log)
+
+	# Step 5: Travel fatigue
+	state.travel_fatigue = clampi(state.travel_fatigue + 1, 0, 100)
+	log.log_event(state.tick_count, "TravelSimulator",
+		"Travel fatigue: %d" % state.travel_fatigue,
+		{"travel_fatigue": state.travel_fatigue})
+
+	# Steps 6–8 added in Tasks 7–8
