@@ -8,37 +8,42 @@ extends Control
 
 var final_state: ExpeditionState = null
 
+# Computed once in _ready, used by both _process_run_end and _build_ui.
+var _objective_def: ObjectiveDef = null
+var _objective_success: bool = false
+var _difficulty_score: int = 0
+
 
 func _ready() -> void:
 	if final_state == null:
 		# Fallback: create a dummy state for direct scene preview
 		final_state = ExpeditionState.new()
 		final_state.run_end_reason = "completed"
+	_evaluate_outcome()
 	_process_run_end()
 	_build_ui()
 
 
-func _process_run_end() -> void:
-	# Evaluate objective
-	var objective_success := false
-	var objective_def: ObjectiveDef = null
+func _evaluate_outcome() -> void:
 	if final_state.active_objective_id != "":
-		objective_def = ContentRegistry.get_by_id("objectives", final_state.active_objective_id) as ObjectiveDef
-		if objective_def:
+		_objective_def = ContentRegistry.get_by_id("objectives", final_state.active_objective_id) as ObjectiveDef
+		if _objective_def:
 			var dummy_log := SimulationLog.new()
-			if objective_def.success_condition == null:
-				objective_success = true
+			if _objective_def.success_condition == null:
+				_objective_success = true
 			else:
-				objective_success = ConditionEvaluator.evaluate(final_state, objective_def.success_condition, dummy_log)
+				_objective_success = ConditionEvaluator.evaluate(final_state, _objective_def.success_condition, dummy_log)
+	_difficulty_score = _compute_difficulty_score()
 
+
+func _process_run_end() -> void:
 	# Record unlock if objective succeeded
-	if objective_success and objective_def != null:
+	if _objective_success and _objective_def != null:
 		SaveManager.record_objective_complete(final_state.active_objective_id)
 
 	# Save difficulty score
-	var score := _compute_difficulty_score()
 	var progression := SaveManager.load_progression()
-	progression.last_run_difficulty_score = score
+	progression.last_run_difficulty_score = _difficulty_score
 	SaveManager.save_progression(progression)
 
 	SaveManager.delete_run_state()
@@ -79,20 +84,11 @@ func _build_ui() -> void:
 
 	vbox.add_child(HSeparator.new())
 
-	# Objective result
-	var objective_def: ObjectiveDef = null
-	var objective_success := false
-	if final_state.active_objective_id != "":
-		objective_def = ContentRegistry.get_by_id("objectives", final_state.active_objective_id) as ObjectiveDef
-		if objective_def:
-			var dummy_log := SimulationLog.new()
-			objective_success = (objective_def.success_condition == null or
-				ConditionEvaluator.evaluate(final_state, objective_def.success_condition, dummy_log))
-
+	# Objective result (uses pre-computed _objective_def / _objective_success)
 	var obj_label := Label.new()
-	if objective_def:
-		var result_str := "SUCCESS" if objective_success else "FAILED"
-		obj_label.text = "Objective: %s — %s\n%s" % [objective_def.display_name, result_str, objective_def.description]
+	if _objective_def:
+		var result_str := "SUCCESS" if _objective_success else "FAILED"
+		obj_label.text = "Objective: %s — %s\n%s" % [_objective_def.display_name, result_str, _objective_def.description]
 	else:
 		obj_label.text = "No objective set."
 	obj_label.autowrap_mode = TextServer.AUTOWRAP_WORD
@@ -118,10 +114,9 @@ func _build_ui() -> void:
 
 	vbox.add_child(HSeparator.new())
 
-	# Difficulty score
-	var score := _compute_difficulty_score()
+	# Difficulty score (pre-computed in _evaluate_outcome)
 	var score_label := Label.new()
-	score_label.text = "Admiralty Assessment: %d / 100" % score
+	score_label.text = "Admiralty Assessment: %d / 100" % _difficulty_score
 	score_label.add_theme_font_size_override("font_size", 18)
 	vbox.add_child(score_label)
 
@@ -136,6 +131,7 @@ func _build_ui() -> void:
 
 func _on_return() -> void:
 	var prep_scene := load("res://src/ui/PreparationScene.tscn").instantiate()
+	var old_scene := get_tree().current_scene
 	get_tree().root.add_child(prep_scene)
-	get_tree().root.remove_child(get_tree().current_scene)
 	get_tree().current_scene = prep_scene
+	old_scene.queue_free()

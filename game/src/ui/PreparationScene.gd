@@ -19,7 +19,8 @@ var _status_label: Label
 var _upgrade_buttons: Dictionary = {}  # upgrade_id -> Button
 var _doctrine_buttons: Dictionary = {}  # doctrine_id -> Button
 var _objective_buttons: Dictionary = {}  # objective_id -> Button
-var _officer_buttons: Dictionary = {}   # officer_id -> Button
+var _officer_buttons: Dictionary = {}          # officer_id -> Button
+var _officer_buttons_by_role: Dictionary = {}  # role -> Array[Button] (for deselection)
 
 
 func _ready() -> void:
@@ -88,7 +89,6 @@ func _build_section(parent: VBoxContainer, title: String, build_fn: Callable) ->
 
 
 func _build_objective_slots(parent: VBoxContainer) -> void:
-	var progression := SaveManager.load_progression()
 	var all_objectives: Array = ContentRegistry.get_all("objectives")
 	var hbox := HBoxContainer.new()
 	parent.add_child(hbox)
@@ -158,6 +158,8 @@ func _build_officer_slots(parent: VBoxContainer) -> void:
 		var hbox := HBoxContainer.new()
 		parent.add_child(hbox)
 		var variants: Array = by_role.get(role, [])
+		if not _officer_buttons_by_role.has(role):
+			_officer_buttons_by_role[role] = []
 		for def: OfficerDef in variants:
 			var btn := Button.new()
 			btn.text = "%s\n%s" % [def.display_name, _format_effects(def.starting_effects)]
@@ -165,6 +167,7 @@ func _build_officer_slots(parent: VBoxContainer) -> void:
 			btn.toggle_mode = true
 			btn.pressed.connect(_on_officer_selected.bind(role, def.id, btn))
 			_officer_buttons[def.id] = btn
+			_officer_buttons_by_role[role].append(btn)
 			hbox.add_child(btn)
 			if not _selected_officers.has(role):
 				_selected_officers[role] = def.id
@@ -222,12 +225,8 @@ func _on_doctrine_selected(doctrine_id: String, btn: Button) -> void:
 
 
 func _on_officer_selected(role: String, officer_id: String, btn: Button) -> void:
-	# Deselect all buttons for this role
-	var all_officers: Array = ContentRegistry.get_all("officers")
-	for off: ContentBase in all_officers:
-		var def: OfficerDef = off as OfficerDef
-		if def != null and def.role == role and _officer_buttons.has(def.id):
-			_officer_buttons[def.id].button_pressed = false
+	for role_btn: Button in _officer_buttons_by_role.get(role, []):
+		role_btn.button_pressed = false
 	_selected_officers[role] = officer_id
 	btn.button_pressed = true
 
@@ -265,6 +264,7 @@ func _on_set_sail() -> void:
 	SaveManager.pending_run_config = config
 
 	var run_scene := load("res://src/ui/RunScene.tscn").instantiate()
+	var old_scene := get_tree().current_scene
 	get_tree().root.add_child(run_scene)
-	get_tree().root.remove_child(get_tree().current_scene)
 	get_tree().current_scene = run_scene
+	old_scene.queue_free()

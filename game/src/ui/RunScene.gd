@@ -133,11 +133,14 @@ func _transition_to_run_end() -> void:
 	_status_label.text = "Expedition ended: " + _state.run_end_reason
 	# Brief pause then transition
 	await get_tree().create_timer(1.5).timeout
+	if not is_instance_valid(self):
+		return
 	var run_end_scene := load("res://src/ui/RunEndScene.tscn").instantiate() as RunEndScene
 	run_end_scene.final_state = _state
+	var old_scene := get_tree().current_scene
 	get_tree().root.add_child(run_end_scene)
-	get_tree().root.remove_child(get_tree().current_scene)
 	get_tree().current_scene = run_end_scene
+	old_scene.queue_free()
 
 
 func _refresh_display() -> void:
