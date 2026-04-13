@@ -5,7 +5,7 @@
 # Valid types: burden_above, burden_below, command_above, command_below, supply_below,
 #              has_damage_tag, has_memory_flag, has_crew_trait, officer_present, zone_type_is
 #
-# Spec: docs/superpowers/specs/2026-04-12-stage-1-content-framework-design.md
+# Spec: docs/superpowers/specs/2026-04-13-stage-2-expedition-state-design.md
 class_name ConditionDef
 extends Resource
 
@@ -20,3 +20,6 @@ extends Resource
 
 ## Tag string for has_damage_tag, has_crew_trait, officer_present, zone_type_is.
 @export var tag: String = ""
+
+## Target id for supply_below (supply id), officer_present (officer id), etc.
+@export var target_id: String = ""

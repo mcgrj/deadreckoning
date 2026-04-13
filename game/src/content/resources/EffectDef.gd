@@ -6,7 +6,7 @@
 #              add_damage_tag, remove_damage_tag, set_memory_flag,
 #              add_crew_trait, remove_crew_trait
 #
-# Spec: docs/superpowers/specs/2026-04-12-stage-1-content-framework-design.md
+# Spec: docs/superpowers/specs/2026-04-13-stage-2-expedition-state-design.md
 class_name EffectDef
 extends Resource
 
@@ -21,3 +21,6 @@ extends Resource
 
 ## Damage or crew trait tag for add/remove_damage_tag and add/remove_crew_trait effects.
 @export var tag: String = ""
+
+## Target id for supply_change (supply id), officer-targeting effects, etc.
+@export var target_id: String = ""
