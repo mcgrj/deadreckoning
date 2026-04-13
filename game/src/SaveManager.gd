@@ -37,7 +37,10 @@ func load_progression(slot_id: String = SLOT_DEFAULT) -> ProgressionState:
 func save_progression(state: ProgressionState, slot_id: String = SLOT_DEFAULT) -> void:
 	var dir := _get_slot_dir(slot_id)
 	DirAccess.make_dir_recursive_absolute(dir)
-	ResourceSaver.save(state, _get_progression_path(slot_id))
+	state.resource_path = ""  # force write to explicit path, not cached resource_path
+	var err := ResourceSaver.save(state, _get_progression_path(slot_id))
+	if err != OK:
+		push_error("SaveManager: failed to save progression to %s (err %d)" % [_get_progression_path(slot_id), err])
 
 
 func record_objective_complete(objective_id: String, slot_id: String = SLOT_DEFAULT) -> void:
