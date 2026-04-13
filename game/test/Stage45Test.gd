@@ -25,6 +25,8 @@ func _ready() -> void:
 	_test_incident_choice_def_new_fields()
 	_test_officer_council_proposals()
 	_test_incident_weight_calculation()
+	_test_officer_council_with_registry()
+	_test_leadership_tag_nudge_via_choice()
 	_finish()
 
 
@@ -185,3 +187,49 @@ func _test_incident_weight_calculation() -> void:
 	var weight_food_with_order := TravelSimulator.compute_incident_weight(state, food, log)
 	check(absf(weight_fight_with_order - 2.0) < 0.001, "crew_fight weight is 2.0 with tighten_rationing")
 	check(absf(weight_food_with_order - 0.3) < 0.001, "food_dispute weight is 0.3 with tighten_rationing")
+
+
+func _test_officer_council_with_registry() -> void:
+	print("-- OfficerCouncil with ContentRegistry --")
+	var state := ExpeditionState.new()
+	# Both bosun and surgeon are loaded by ContentRegistry autoload
+	var officer_defs: Array = []
+	for item: ContentBase in ContentRegistry.get_all("officers"):
+		var def := item as OfficerDef
+		if def != null:
+			officer_defs.append(def)
+
+	var incident := ContentRegistry.get_by_id("incidents", "drunk_purser_store_error") as IncidentDef
+	check(incident != null, "drunk_purser_store_error loads from registry")
+
+	state.officers = ["bosun", "surgeon"]
+	var proposals := OfficerCouncil.get_proposals(state, incident, officer_defs)
+
+	var officer_proposals := proposals.filter(func(p): return p["type"] == "officer")
+	var direct_orders := proposals.filter(func(p): return p["type"] == "direct_order")
+
+	check(officer_proposals.size() == 2, "bosun and surgeon both generate proposals")
+	check(direct_orders.size() == 1, "always one direct order")
+
+	var bosun_prop := officer_proposals.filter(func(p): return p["officer_id"] == "bosun")
+	var surgeon_prop := officer_proposals.filter(func(p): return p["officer_id"] == "surgeon")
+	check(bosun_prop.size() == 1, "bosun has a proposal for drunk_purser_store_error")
+	check(surgeon_prop.size() == 1, "surgeon has a proposal for drunk_purser_store_error")
+
+	var bosun_choice: IncidentChoiceDef = bosun_prop[0]["choice"]
+	var surgeon_choice: IncidentChoiceDef = surgeon_prop[0]["choice"]
+	check(bosun_choice.leadership_tag == "harsh", "bosun choice has harsh leadership_tag")
+	check(surgeon_choice.leadership_tag == "merciful", "surgeon choice has merciful leadership_tag")
+
+
+func _test_leadership_tag_nudge_via_choice() -> void:
+	print("-- leadership_tag nudge via choice --")
+	var state := ExpeditionState.new()
+	check(state.leadership_tags.get("harsh", 0) == 0, "harsh starts at 0")
+	check(state.leadership_tags.get("authoritarian", 0) == 0, "authoritarian starts at 0")
+
+	state.nudge_leadership_tag("harsh")
+	check(state.leadership_tags.get("harsh", 0) == 1, "harsh increments to 1 after bosun choice")
+
+	state.nudge_leadership_tag("authoritarian")
+	check(state.leadership_tags.get("authoritarian", 0) == 1, "authoritarian increments after direct order")
