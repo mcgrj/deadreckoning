@@ -26,6 +26,8 @@ func _ready() -> void:
 	_test_travel_simulator_food_water()
 	_test_travel_simulator_ship_wear()
 	_test_travel_simulator_burden_fatigue()
+	_test_travel_simulator_sickness_risk()
+	_test_travel_simulator_exhaustion()
 	_finish()
 
 
@@ -365,3 +367,78 @@ func _test_travel_simulator_burden_fatigue() -> void:
 	check(state3.travel_fatigue == 100, "fatigue reaches 100")
 	TravelSimulator.process_tick(state3, _make_zone(), log3)
 	check(state3.travel_fatigue == 100, "fatigue stays at 100 (clamped)")
+
+
+# --- TravelSimulator: sickness risk ---
+
+func _test_travel_simulator_sickness_risk() -> void:
+	print("-- TravelSimulator sickness risk --")
+
+	# Supplies above critical → sickness_risk decays (0 stays 0)
+	var state = _make_state()  # food=200 (>15 critical), water=150 (>15 critical)
+	var log = _make_log()
+	check(state.sickness_risk == 0, "sickness_risk starts 0")
+	TravelSimulator.process_tick(state, _make_zone(), log)
+	check(state.sickness_risk == 0, "sickness_risk stays 0 when supplies healthy")
+
+	# Set sickness_risk to 5, decay by 1 when supplies healthy
+	state.sickness_risk = 5
+	TravelSimulator.process_tick(state, _make_zone(), log)
+	check(state.sickness_risk == 4, "sickness_risk decays by 1 when supplies healthy")
+
+	# Set food below critical_threshold (15) → sickness rises
+	var state2 = _make_state()
+	var log2 = _make_log()
+	state2.set_supply("food", 5)  # below critical_threshold=15
+	TravelSimulator.process_tick(state2, _make_zone(), log2)
+	check(state2.sickness_risk == 3, "sickness_risk rises by 3 when food below critical")
+
+	# Set water below critical_threshold (15) → sickness rises
+	var state3 = _make_state()
+	var log3 = _make_log()
+	state3.set_supply("water", 5)  # below critical_threshold=15
+	TravelSimulator.process_tick(state3, _make_zone(), log3)
+	check(state3.sickness_risk == 3, "sickness_risk rises by 3 when water below critical")
+
+	# Sickness risk clamped at 100
+	var state4 = _make_state()
+	var log4 = _make_log()
+	state4.sickness_risk = 99
+	state4.set_supply("food", 5)
+	TravelSimulator.process_tick(state4, _make_zone(), log4)
+	check(state4.sickness_risk == 100, "sickness_risk clamped to 100")
+
+
+# --- TravelSimulator: supply exhaustion ---
+
+func _test_travel_simulator_exhaustion() -> void:
+	print("-- TravelSimulator supply exhaustion --")
+
+	# Food hits 0 → Burden +6, memory flag food_exhausted
+	var state = _make_state()
+	var log = _make_log()
+	state.set_supply("food", 1)  # ceil(5 * 1.0) = 5 consumed, so 1 → clamped to 0
+	var burden_before: int = state.burden
+	TravelSimulator.process_tick(state, _make_zone(1.0), log)
+	check(state.get_supply("food") == 0, "food hits 0")
+	check(state.burden == burden_before + 6, "food exhaustion adds Burden +6")
+	check(state.has_memory_flag("food_exhausted"), "food_exhausted memory flag set")
+
+	# Food already at 0 before tick → no extra exhaustion spike
+	var state2 = _make_state()
+	var log2 = _make_log()
+	state2.set_supply("food", 0)
+	var burden2_before: int = state2.burden
+	TravelSimulator.process_tick(state2, _make_zone(1.0), log2)
+	check(not state2.has_memory_flag("food_exhausted"), "no exhaustion flag when food was already 0")
+	check(state2.burden == burden2_before, "no Burden spike when food was already 0")
+
+	# Water hits 0 → Burden +8, memory flag water_exhausted
+	var state3 = _make_state()
+	var log3 = _make_log()
+	state3.set_supply("water", 1)  # ceil(3 * 1.0) = 3 consumed, 1 → 0
+	var burden3_before: int = state3.burden
+	TravelSimulator.process_tick(state3, _make_zone(1.0), log3)
+	check(state3.get_supply("water") == 0, "water hits 0")
+	check(state3.burden == burden3_before + 8, "water exhaustion adds Burden +8")
+	check(state3.has_memory_flag("water_exhausted"), "water_exhausted memory flag set")

@@ -66,4 +66,17 @@ static func process_tick(state: ExpeditionState, zone: ZoneTypeDef, log: Simulat
 		"Travel fatigue: %d" % state.travel_fatigue,
 		{"travel_fatigue": state.travel_fatigue})
 
-	# Steps 6–8 added in Tasks 7–8
+	# Step 6: Sickness risk
+	var food_amount := state.get_supply("food")
+	var water_amount := state.get_supply("water")
+	var food_critical := food_def.critical_threshold if food_def != null else 0
+	var water_critical := water_def.critical_threshold if water_def != null else 0
+	if food_amount < food_critical or water_amount < water_critical:
+		state.sickness_risk = clampi(state.sickness_risk + 3, 0, 100)
+	else:
+		state.sickness_risk = clampi(state.sickness_risk - 1, 0, 100)
+	log.log_event(state.tick_count, "TravelSimulator",
+		"Sickness risk: %d" % state.sickness_risk,
+		{"sickness_risk": state.sickness_risk})
+
+	# Steps 7–8 added in Task 8
