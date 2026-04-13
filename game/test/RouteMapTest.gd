@@ -23,6 +23,7 @@ func _ready() -> void:
 	_test_route_map_navigation()
 	_test_zone_types()
 	_test_expedition_state_additions()
+	_test_travel_simulator_food_water()
 	_finish()
 
 
@@ -262,3 +263,37 @@ func _test_expedition_state_additions() -> void:
 	state.sickness_risk = -5
 	state.sickness_risk = clampi(state.sickness_risk, 0, 100)
 	check(state.sickness_risk == 0, "sickness_risk clamped to 0")
+
+
+# --- TravelSimulator: food/water consumption ---
+
+func _test_travel_simulator_food_water() -> void:
+	print("-- TravelSimulator food/water consumption --")
+
+	var state = _make_state()
+	var log = _make_log()
+	var zone = _make_zone(1.0)  # consumption_modifier = 1.0
+
+	var food_before := state.get_supply("food")   # 200
+	var water_before := state.get_supply("water")  # 150
+
+	TravelSimulator.process_tick(state, zone, log)
+
+	# food: daily_consumption=5, modifier=1.0 → -ceil(5*1.0)=-5
+	check(state.get_supply("food") == food_before - 5, "food decreases by 5 with 1.0 modifier")
+	# water: daily_consumption=3, modifier=1.0 → -ceil(3*1.0)=-3
+	check(state.get_supply("water") == water_before - 3, "water decreases by 3 with 1.0 modifier")
+
+	# Test with consumption_modifier = 1.2 (open_ocean style)
+	var state2 = _make_state()
+	var log2 = _make_log()
+	var zone2 = _make_zone(1.2)  # open_ocean
+
+	var food2_before := state2.get_supply("food")
+	var water2_before := state2.get_supply("water")
+	TravelSimulator.process_tick(state2, zone2, log2)
+
+	# food: ceil(5*1.2) = ceil(6.0) = 6
+	check(state2.get_supply("food") == food2_before - 6, "food decreases by 6 with 1.2 modifier")
+	# water: ceil(3*1.2) = ceil(3.6) = 4
+	check(state2.get_supply("water") == water2_before - 4, "water decreases by 4 with 1.2 modifier")
