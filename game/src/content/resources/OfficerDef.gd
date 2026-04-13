@@ -26,3 +26,6 @@ extends ContentBase
 
 ## Incident ids for which this officer has authored proposal choices.
 @export var advice_hooks: Array[String] = []
+
+## Effects applied to ExpeditionState when this officer is selected at preparation.
+@export var starting_effects: Array[EffectDef] = []

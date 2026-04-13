@@ -19,6 +19,7 @@ func check(condition: bool, label: String) -> void:
 func _ready() -> void:
 	print("=== Stage6ATest ===\n")
 	_test_game_constants()
+	_test_officer_def_starting_effects()
 	_finish()
 
 
@@ -46,3 +47,10 @@ func _test_game_constants() -> void:
 	check(GameConstants.DIFFICULTY_COMMAND_WEIGHT == 0.3, "difficulty command weight is 0.3")
 	check(GameConstants.DIFFICULTY_CREW_LOSS_WEIGHT == 5, "difficulty crew loss weight is 5")
 	check(GameConstants.DIFFICULTY_SUPPLY_DEPLETION_WEIGHT == 3, "difficulty supply depletion weight is 3")
+
+
+func _test_officer_def_starting_effects() -> void:
+	print("-- OfficerDef.starting_effects --")
+	var officer := OfficerDef.new()
+	check(officer.starting_effects is Array, "starting_effects is an Array")
+	check(officer.starting_effects.size() == 0, "starting_effects defaults to empty")
