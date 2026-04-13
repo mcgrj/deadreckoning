@@ -130,7 +130,7 @@ func _build_ui() -> void:
 
 
 func _on_return() -> void:
-	var prep_scene := load("res://src/ui/PreparationScene.tscn").instantiate()
+	var prep_scene: Node = load("res://src/ui/PreparationScene.tscn").instantiate()
 	var old_scene := get_tree().current_scene
 	get_tree().root.add_child(prep_scene)
 	get_tree().current_scene = prep_scene

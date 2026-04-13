@@ -263,7 +263,7 @@ func _on_set_sail() -> void:
 	}
 	SaveManager.pending_run_config = config
 
-	var run_scene := load("res://src/ui/RunScene.tscn").instantiate()
+	var run_scene: Node = load("res://src/ui/RunScene.tscn").instantiate()
 	var old_scene := get_tree().current_scene
 	get_tree().root.add_child(run_scene)
 	get_tree().current_scene = run_scene

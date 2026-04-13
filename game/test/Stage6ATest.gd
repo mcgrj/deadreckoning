@@ -26,6 +26,8 @@ func _ready() -> void:
 	_test_mutiny_trigger()
 	_test_no_run_end_healthy_state()
 	_test_suppress_dissent_mitigation()
+	_test_run_end_scene_difficulty_formula()
+	_test_progression_objective_complete()
 	_finish()
 
 
@@ -159,3 +161,35 @@ func _test_suppress_dissent_mitigation() -> void:
 	# Verify the suppress_dissent standing order was present when the check ran
 	# by confirming run ended (not stuck in infinite loop)
 	check(state.run_end_reason != "", "run eventually ends with suppress_dissent active")
+
+
+func _test_run_end_scene_difficulty_formula() -> void:
+	print("-- RunEndScene difficulty formula --")
+	var state := ExpeditionState.new()
+	state.stress_indicators = {
+		"peak_burden": 60,
+		"min_command": 40,
+		"crew_losses": 2,
+		"supply_depletions": 1,
+	}
+	# score = (60*0.3) + ((100-40)*0.3) + (2*5) + (1*3)
+	#       = 18 + 18 + 10 + 3 = 49
+	state.run_end_reason = "completed"
+	state.active_objective_id = ""
+	var RunEndSceneClass: GDScript = load("res://src/ui/RunEndScene.gd")
+	var scene: Node = RunEndSceneClass.new()
+	scene.set("final_state", state)
+	# Call _compute_difficulty_score directly
+	var score: int = scene.call("_compute_difficulty_score")
+	check(score == 49, "difficulty formula: expected 49 got %d" % score)
+	scene.free()
+
+
+func _test_progression_objective_complete() -> void:
+	print("-- record_objective_complete --")
+	SaveManager.record_objective_complete("survey_strange_shore", "test_slot2")
+	var p := SaveManager.load_progression("test_slot2")
+	check("survey_strange_shore" in p.completed_objective_ids,
+		"completed_objective_ids contains survey_strange_shore")
+	# Clean up
+	DirAccess.remove_absolute(GameConstants.SAVE_DIR + "test_slot2/progression.tres")
