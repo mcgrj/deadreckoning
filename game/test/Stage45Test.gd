@@ -21,6 +21,8 @@ func _ready() -> void:
 	_test_expedition_state_standing_orders()
 	_test_expedition_state_leadership_tags()
 	_test_condition_evaluator_has_standing_order()
+	_test_incident_def_new_fields()
+	_test_incident_choice_def_new_fields()
 	_finish()
 
 
@@ -66,3 +68,18 @@ func _test_condition_evaluator_has_standing_order() -> void:
 
 	state.standing_orders.append("tighten_rationing")
 	check(ConditionEvaluator.evaluate(state, cond, log), "has_standing_order true when order active")
+
+
+func _test_incident_def_new_fields() -> void:
+	print("-- IncidentDef new fields --")
+	var def := IncidentDef.new()
+	check(def.weight_modifiers.is_empty(), "weight_modifiers defaults to empty array")
+	check(def.art_path == "", "art_path defaults to empty string")
+
+
+func _test_incident_choice_def_new_fields() -> void:
+	print("-- IncidentChoiceDef new fields --")
+	var choice := IncidentChoiceDef.new()
+	check(choice.leadership_tag == "", "leadership_tag defaults to empty string")
+	check(choice.effects_preview == "", "effects_preview defaults to empty string")
+	check(choice.risk_text == "", "risk_text defaults to empty string")

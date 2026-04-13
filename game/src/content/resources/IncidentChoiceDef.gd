@@ -23,3 +23,13 @@ extends Resource
 
 ## Ship log entry written when this choice is selected.
 @export var log_text: String = ""
+
+## Leadership tag nudged when player follows this officer's advice.
+## One of: harsh, merciful, honest, deceptive, shared_hardship, privilege, authoritarian, patient.
+@export var leadership_tag: String = ""
+
+## Short mechanical summary shown to the player before confirming. E.g. "Burden −4, Command +2".
+@export var effects_preview: String = ""
+
+## Downside or risk text. Clarity is scaled by officer competence in the UI.
+@export var risk_text: String = ""

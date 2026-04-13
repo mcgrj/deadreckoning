@@ -30,5 +30,12 @@ extends ContentBase
 ## Player-facing options for resolving this incident.
 @export var choices: Array[IncidentChoiceDef] = []
 
+## Probability weight modifiers applied during incident selection. Each entry is a
+## WeightModifierDef. Default weight is 1.0; modifiers multiply it.
+@export var weight_modifiers: Array[WeightModifierDef] = []
+
+## Path to scene art texture for this incident. Empty = placeholder colour panel.
+@export var art_path: String = ""
+
 ## Ship log entry template written when this incident fires.
 @export var log_text_template: String = ""
