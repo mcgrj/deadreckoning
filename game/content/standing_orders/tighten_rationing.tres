@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("1_rtimi")
 command_cost = 2
-forecast_text = "Likely reduces food consumption. Crew may resent it."
+forecast_text = "Food disputes become less likely. Tempers run shorter — fights more so."
 incident_interactions = Array[String](["ration_dispute"])
 id = "tighten_rationing"
 display_name = "Tighten Rationing"

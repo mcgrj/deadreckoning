@@ -5,35 +5,55 @@
 [ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="3_o1431"]
 [ext_resource type="Script" path="res://src/content/resources/IncidentDef.gd" id="4_fm3pj"]
 
-[sub_resource type="Resource" id="Resource_3r08o"]
+[sub_resource type="Resource" id="Resource_cmd3"]
 script = ExtResource("3_o1431")
 type = "command_change"
 delta = 3
 
-[sub_resource type="Resource" id="Resource_b2b24"]
+[sub_resource type="Resource" id="Resource_brd2"]
 script = ExtResource("3_o1431")
 type = "burden_change"
 delta = -2
 
-[sub_resource type="Resource" id="Resource_ry1cg"]
+[sub_resource type="Resource" id="Resource_bosun_choice"]
 script = ExtResource("2_b38pm")
 choice_text = "Hold the purser accountable. Order a public audit."
 officer_id = "bosun"
-immediate_effects = Array[ExtResource("3_o1431")]([SubResource("Resource_3r08o"), SubResource("Resource_b2b24")])
+immediate_effects = Array[ExtResource("3_o1431")]([SubResource("Resource_cmd3"), SubResource("Resource_brd2")])
 memory_flags_set = Array[String](["purser_exposed"])
 log_text = "The purser's error is announced. Command steadies, but the humiliation will not be forgotten."
+leadership_tag = "harsh"
+effects_preview = "Command +3, Burden −2"
+risk_text = "Purser resentment if innocent. Public humiliation is hard to undo."
 
-[sub_resource type="Resource" id="Resource_ogjag"]
+[sub_resource type="Resource" id="Resource_brd1"]
+script = ExtResource("3_o1431")
+type = "burden_change"
+delta = -1
+
+[sub_resource type="Resource" id="Resource_surgeon_choice"]
+script = ExtResource("2_b38pm")
+choice_text = "Hear the purser privately. A quiet restitution is possible."
+officer_id = "surgeon"
+immediate_effects = Array[ExtResource("3_o1431")]([SubResource("Resource_brd1")])
+memory_flags_set = Array[String](["purser_error_concealed"])
+log_text = "The captain hears the purser privately. The crew suspects nothing — for now."
+leadership_tag = "merciful"
+effects_preview = "Burden −1"
+risk_text = "Theft may continue if this was not an error."
+
+[sub_resource type="Resource" id="Resource_flag"]
 script = ExtResource("3_o1431")
 type = "set_memory_flag"
-flag_key = "purser_error_concealed"
+flag_key = "purser_incident_ignored"
 
-[sub_resource type="Resource" id="Resource_2kh4s"]
+[sub_resource type="Resource" id="Resource_direct_placeholder"]
 script = ExtResource("2_b38pm")
-choice_text = "Cover the shortfall quietly. Adjust the records."
-immediate_effects = Array[ExtResource("3_o1431")]([SubResource("Resource_ogjag")])
-memory_flags_set = Array[String](["purser_error_concealed"])
-log_text = "The captain adjusts the ledger. The crew suspects nothing — for now."
+choice_text = "It is noted."
+officer_id = ""
+immediate_effects = Array[ExtResource("3_o1431")]([SubResource("Resource_flag")])
+memory_flags_set = Array[String](["purser_incident_ignored"])
+log_text = "The captain closes the matter without comment."
 
 [sub_resource type="Resource" id="Resource_3nyub"]
 script = ExtResource("1_coyvt")
@@ -46,7 +66,7 @@ trigger_band = "tick"
 required_conditions = Array[ExtResource("1_coyvt")]([SubResource("Resource_3nyub")])
 cast_roles = Array[String](["purser", "bosun"])
 standing_order_interactions = Array[String](["audit_stores"])
-choices = Array[ExtResource("2_b38pm")]([SubResource("Resource_ry1cg"), SubResource("Resource_2kh4s")])
+choices = Array[ExtResource("2_b38pm")]([SubResource("Resource_bosun_choice"), SubResource("Resource_surgeon_choice"), SubResource("Resource_direct_placeholder")])
 log_text_template = "The purser's count is short. Rum has gone missing from the spirit locker."
 id = "drunk_purser_store_error"
 display_name = "The Purser's Error"

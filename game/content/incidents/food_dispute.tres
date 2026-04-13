@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="IncidentDef" format=3]
+
+[ext_resource type="Script" path="res://src/content/resources/IncidentDef.gd" id="1_incident"]
+[ext_resource type="Script" path="res://src/content/resources/IncidentChoiceDef.gd" id="2_choice"]
+[ext_resource type="Script" path="res://src/content/resources/EffectDef.gd" id="3_effect"]
+[ext_resource type="Script" path="res://src/content/resources/WeightModifierDef.gd" id="4_wmod"]
+
+[sub_resource type="Resource" id="Resource_brd3"]
+script = ExtResource("3_effect")
+type = "burden_change"
+delta = -3
+
+[sub_resource type="Resource" id="Resource_choice1"]
+script = ExtResource("2_choice")
+choice_text = "Hear the complaints. Adjust the ration distribution."
+officer_id = ""
+immediate_effects = Array[ExtResource("3_effect")]([SubResource("Resource_brd3")])
+memory_flags_set = Array[String]([])
+log_text = "The captain hears the men out. Rations are redistributed fairly."
+
+[sub_resource type="Resource" id="Resource_wmod1"]
+script = ExtResource("4_wmod")
+condition_type = "has_standing_order"
+condition_value = "tighten_rationing"
+multiplier = 0.3
+
+[resource]
+script = ExtResource("1_incident")
+trigger_band = "tick"
+choices = Array[ExtResource("2_choice")]([SubResource("Resource_choice1")])
+weight_modifiers = Array[ExtResource("4_wmod")]([SubResource("Resource_wmod1")])
+log_text_template = "The men are grumbling about the rations. A dispute breaks out at the stores."
+id = "food_dispute"
+display_name = "Food Dispute"
+category = "social"
+tags = Array[String](["crew", "supply", "morale"])

@@ -489,7 +489,7 @@ func _test_content_registry_with_content() -> void:
 
 	var incident: IncidentDef = ContentRegistry.get_by_id("incidents", "drunk_purser_store_error")
 	check(incident != null, "ContentRegistry: drunk_purser_store_error found by id")
-	check(incident.choices.size() == 2, "ContentRegistry: incident has 2 choices")
+	check(incident.choices.size() == 3, "ContentRegistry: incident has 3 choices")
 
 	# Catalog is now clean — no validation errors
 	check(ContentRegistry.is_valid(), "ContentRegistry.is_valid() true with clean catalog")
