@@ -23,6 +23,7 @@ func _ready() -> void:
 	_test_condition_evaluator_has_standing_order()
 	_test_incident_def_new_fields()
 	_test_incident_choice_def_new_fields()
+	_test_officer_council_proposals()
 	_finish()
 
 
@@ -83,3 +84,62 @@ func _test_incident_choice_def_new_fields() -> void:
 	check(choice.leadership_tag == "", "leadership_tag defaults to empty string")
 	check(choice.effects_preview == "", "effects_preview defaults to empty string")
 	check(choice.risk_text == "", "risk_text defaults to empty string")
+
+
+func _test_officer_council_proposals() -> void:
+	print("-- OfficerCouncil.get_proposals --")
+
+	# Build a minimal incident with one officer choice and one captain choice
+	var incident := IncidentDef.new()
+	incident.id = "test_incident"
+
+	var bosun_choice := IncidentChoiceDef.new()
+	bosun_choice.officer_id = "bosun"
+	bosun_choice.choice_text = "Confine the purser."
+	bosun_choice.leadership_tag = "harsh"
+
+	var captain_choice := IncidentChoiceDef.new()
+	captain_choice.officer_id = ""
+	captain_choice.choice_text = "Cover it up."
+
+	incident.choices = [bosun_choice, captain_choice]
+
+	# State with bosun present but no surgeon
+	var state := ExpeditionState.new()
+	state.officers = ["bosun"]
+
+	# Build officer defs manually (not via ContentRegistry)
+	var bosun_def := OfficerDef.new()
+	bosun_def.id = "bosun"
+	bosun_def.worldview = "disciplinarian"
+	bosun_def.competence = 4
+	bosun_def.advice_hooks = ["test_incident"]
+
+	var surgeon_def := OfficerDef.new()
+	surgeon_def.id = "surgeon"
+	surgeon_def.worldview = "humanitarian"
+	surgeon_def.competence = 3
+	surgeon_def.advice_hooks = []
+
+	var officer_defs := [bosun_def, surgeon_def]
+
+	var proposals := OfficerCouncil.get_proposals(state, incident, officer_defs)
+
+	# Should have: bosun proposal + direct order (surgeon not present, so no silence needed)
+	var officer_proposals := proposals.filter(func(p): return p["type"] == "officer")
+	var silence_proposals := proposals.filter(func(p): return p["type"] == "silence")
+	var direct_order := proposals.filter(func(p): return p["type"] == "direct_order")
+
+	check(officer_proposals.size() == 1, "one officer proposal for present bosun")
+	check(officer_proposals[0]["officer_id"] == "bosun", "bosun proposal has correct officer_id")
+	check(officer_proposals[0]["choice"] == bosun_choice, "bosun proposal links to correct choice")
+	check(silence_proposals.size() == 0, "no silence proposals when surgeon not present")
+	check(direct_order.size() == 1, "always one direct order proposal")
+
+	# Now add surgeon to state (no matching hook for test_incident)
+	state.officers = ["bosun", "surgeon"]
+	var proposals2 := OfficerCouncil.get_proposals(state, incident, officer_defs)
+	var silence2 := proposals2.filter(func(p): return p["type"] == "silence")
+	check(silence2.size() == 1, "silence proposal for surgeon who has no hook for this incident")
+	check(silence2[0]["officer_id"] == "surgeon", "silence proposal is for surgeon")
+	check(silence2[0]["silence_line"] != "", "silence line is not empty")
