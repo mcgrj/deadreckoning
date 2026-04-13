@@ -119,6 +119,20 @@ func has_officer(officer_id: String) -> bool:
 	return officer_id in officers
 
 
+# --- Standing order accessor ---
+
+func has_standing_order(order_id: String) -> bool:
+	return order_id in standing_orders
+
+
+# --- Leadership tag nudge ---
+
+func nudge_leadership_tag(tag: String) -> void:
+	if not leadership_tags.has(tag):
+		leadership_tags[tag] = 0
+	leadership_tags[tag] += 1
+
+
 # --- Promise methods ---
 
 func make_promise(id: String, text: String, deadline_ticks: int, log: SimulationLog) -> bool:
