@@ -20,6 +20,8 @@ func _ready() -> void:
 	print("=== Stage6ATest ===\n")
 	_test_game_constants()
 	_test_officer_def_starting_effects()
+	_test_expedition_state_new_fields()
+	_test_create_from_config()
 	_finish()
 
 
@@ -54,3 +56,26 @@ func _test_officer_def_starting_effects() -> void:
 	var officer := OfficerDef.new()
 	check(officer.starting_effects is Array, "starting_effects is an Array")
 	check(officer.starting_effects.size() == 0, "starting_effects defaults to empty")
+
+
+func _test_expedition_state_new_fields() -> void:
+	print("-- ExpeditionState new fields --")
+	var state := ExpeditionState.new()
+	check(state.run_end_reason == "", "run_end_reason defaults to empty string")
+	check(state.command_culture == "", "command_culture defaults to empty string")
+	check(state.active_objective_id == "", "active_objective_id defaults to empty string")
+
+
+func _test_create_from_config() -> void:
+	print("-- ExpeditionState.create_from_config --")
+	var config := {
+		"objective_id": "survey_strange_shore",
+		"doctrine_id": "",
+		"officer_ids": [],
+		"upgrade_ids": [],
+	}
+	var state := ExpeditionState.create_from_config(config)
+	check(state != null, "create_from_config returns a state")
+	check(state.active_objective_id == "survey_strange_shore", "objective_id stored on state")
+	check(state.burden >= 0, "burden is non-negative after config")
+	check(state.command > 0, "command is positive after config")

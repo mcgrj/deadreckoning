@@ -36,6 +36,9 @@ var stress_indicators: Dictionary = {
 	"crew_losses": 0,
 	"supply_depletions": 0,
 }
+var run_end_reason: String = ""        # "completed" | "mutiny" | "breakdown" | ""
+var command_culture: String = ""       # Set from doctrine's command_culture_modifier
+var active_objective_id: String = ""   # The objective selected at preparation
 
 
 static func create_default() -> ExpeditionState:
@@ -57,6 +60,55 @@ static func create_default() -> ExpeditionState:
 		var officer_def: OfficerDef = def as OfficerDef
 		if officer_def:
 			state.officers.append(officer_def.id)
+
+	return state
+
+
+static func create_from_config(config: Dictionary) -> ExpeditionState:
+	var state := ExpeditionState.new()
+	var log := SimulationLog.new()
+
+	# Base supplies from SupplyDefs (same as create_default)
+	var supply_defs := ContentRegistry.get_all("supplies")
+	for def: ContentBase in supply_defs:
+		var supply_def: SupplyDef = def as SupplyDef
+		if supply_def:
+			state.supplies[supply_def.id] = supply_def.starting_amount
+			if supply_def.is_rum and supply_def.starting_amount > 0:
+				state.rum_ration_expected = true
+				state.add_crew_trait("rum_aboard")
+
+	# Apply selected officers
+	var officer_ids: Array = config.get("officer_ids", [])
+	for officer_id: String in officer_ids:
+		var officer_def: OfficerDef = ContentRegistry.get_by_id("officers", officer_id) as OfficerDef
+		if officer_def:
+			state.officers.append(officer_def.id)
+			EffectProcessor.apply_effects(state, officer_def.starting_effects, log)
+
+	# Apply selected upgrades
+	var upgrade_ids: Array = config.get("upgrade_ids", [])
+	for upgrade_id: String in upgrade_ids:
+		var upgrade_def: ShipUpgradeDef = ContentRegistry.get_by_id("upgrades", upgrade_id) as ShipUpgradeDef
+		if upgrade_def:
+			EffectProcessor.apply_effects(state, upgrade_def.upgrade_effects, log)
+
+	# Apply doctrine
+	var doctrine_id: String = config.get("doctrine_id", "")
+	if doctrine_id != "":
+		var doctrine_def: DoctrineDef = ContentRegistry.get_by_id("doctrines", doctrine_id) as DoctrineDef
+		if doctrine_def:
+			for order_id: String in doctrine_def.unlocked_standing_order_ids:
+				if not state.has_standing_order(order_id):
+					state.standing_orders.append(order_id)
+			state.command_culture = doctrine_def.command_culture_modifier
+
+	# Store objective
+	state.active_objective_id = config.get("objective_id", "")
+
+	# Baseline stress indicators
+	state.stress_indicators.peak_burden = state.burden
+	state.stress_indicators.min_command = state.command
 
 	return state
 
