@@ -28,6 +28,7 @@ const VALID_CONDITION_TYPES: Array[String] = [
 	"has_crew_trait",
 	"officer_present",
 	"zone_type_is",
+	"has_standing_order",
 ]
 
 

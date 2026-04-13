@@ -3,7 +3,8 @@
 # Embedded inside IncidentDef and IncidentChoiceDef — not stored standalone.
 #
 # Valid types: burden_above, burden_below, command_above, command_below, supply_below,
-#              has_damage_tag, has_memory_flag, has_crew_trait, officer_present, zone_type_is
+#              has_damage_tag, has_memory_flag, has_crew_trait, officer_present, zone_type_is,
+#              has_standing_order
 #
 # Spec: docs/superpowers/specs/2026-04-13-stage-2-expedition-state-design.md
 class_name ConditionDef

@@ -65,6 +65,11 @@ static func evaluate(state: ExpeditionState, condition: ConditionDef, log: Simul
 			details["tag"] = condition.tag
 			message = "Zone type is '%s'? PASS (deferred — always true)" % condition.tag
 
+		"has_standing_order":
+			result = state.has_standing_order(condition.tag)
+			details["tag"] = condition.tag
+			message = "Has standing order '%s'? %s" % [condition.tag, "PASS" if result else "FAIL"]
+
 		_:
 			push_warning("ConditionEvaluator: unknown condition type '%s'" % condition.type)
 			result = false

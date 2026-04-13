@@ -20,6 +20,7 @@ func _ready() -> void:
 	print("=== Stage45Test ===\n")
 	_test_expedition_state_standing_orders()
 	_test_expedition_state_leadership_tags()
+	_test_condition_evaluator_has_standing_order()
 	_finish()
 
 
@@ -50,3 +51,18 @@ func _test_expedition_state_leadership_tags() -> void:
 	check(state.leadership_tags.get("harsh", 0) == 2, "harsh tag increments to 2")
 	state.nudge_leadership_tag("authoritarian")
 	check(state.leadership_tags.get("authoritarian", 0) == 1, "authoritarian tag works even if not pre-initialized")
+
+
+func _test_condition_evaluator_has_standing_order() -> void:
+	print("-- ConditionEvaluator has_standing_order --")
+	var log := SimulationLog.new()
+	var state := ExpeditionState.new()
+
+	var cond := ConditionDef.new()
+	cond.type = "has_standing_order"
+	cond.tag = "tighten_rationing"
+
+	check(not ConditionEvaluator.evaluate(state, cond, log), "has_standing_order false when order not active")
+
+	state.standing_orders.append("tighten_rationing")
+	check(ConditionEvaluator.evaluate(state, cond, log), "has_standing_order true when order active")
