@@ -476,15 +476,24 @@ func _render_route_map() -> void:
 	var zone_name: String = zone.display_name if zone != null else "(at choice)"
 	var wear_str: String = "%.1f× wear" % zone.ship_wear_modifier if zone != null else ""
 	_output.append_text("[b]SHIP'S LOG[/b]\nDay %d\n\n" % _state.tick_count)
-	_output.append_text("ZONE              STATE\n")
-	_output.append_text("%-18s[color=#ff9966]Burden[/color] %d   [color=#88ccff]Command[/color] %d\n" % [
-		zone_name, _state.burden, _state.command])
-	if wear_str != "":
-		_output.append_text("%-18s[color=#88ff88]Food[/color] %d     [color=#88ccff]Water[/color] %d\n" % [
-			wear_str, _state.get_supply("food"), _state.get_supply("water")])
-	else:
-		_output.append_text("%-18s[color=#88ff88]Food[/color] %d     [color=#88ccff]Water[/color] %d\n" % [
-			"", _state.get_supply("food"), _state.get_supply("water")])
+	_output.append_text("[color=#aaaaaa]ZONE              BURDEN  COMMAND  SHIP[/color]\n")
+	_output.append_text("%-18s[color=#ff9966]%d[/color]       [color=#88ccff]%d[/color]       [color=#ffdd88]%d[/color]\n" % [
+		zone_name, _state.burden, _state.command, _state.ship_condition])
+	_output.append_text("[color=#aaaaaa]%-18sFOOD    WATER    RUM[/color]\n" % wear_str)
+	_output.append_text("%-18s[color=#88ff88]%d[/color]      [color=#88ccff]%d[/color]      [color=#ffaaaa]%d[/color]\n" % [
+		"", _state.get_supply("food"), _state.get_supply("water"), _state.get_supply("rum")])
+	# Last tick's log entries
+	if _log != null:
+		var entries := _log.get_entries()
+		var last_tick := _state.tick_count - 1
+		var tick_entries: Array[String] = []
+		for e: Dictionary in entries:
+			if e.tick == last_tick:
+				tick_entries.append(e.message)
+		if not tick_entries.is_empty():
+			_output.append_text("\n[color=#888888]Last tick:[/color]\n")
+			for msg: String in tick_entries:
+				_output.append_text("[color=#888888]  %s[/color]\n" % msg)
 	_output.append_text("\n")
 
 	if _route_map.is_complete():
