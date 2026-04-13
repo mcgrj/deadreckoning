@@ -22,6 +22,7 @@ func _ready() -> void:
 	_test_route_map_factory()
 	_test_route_map_navigation()
 	_test_zone_types()
+	_test_expedition_state_additions()
 	_finish()
 
 
@@ -241,3 +242,23 @@ func _test_zone_types() -> void:
 	check(water.id == "water", "water id correct")
 	check(water.daily_consumption > 0, "water daily_consumption > 0")
 	check(water.critical_threshold > 0, "water critical_threshold > 0")
+
+
+# --- ExpeditionState additions ---
+
+func _test_expedition_state_additions() -> void:
+	print("-- ExpeditionState additions --")
+
+	var state = _make_state()
+	check(state.travel_fatigue == 0, "travel_fatigue default 0")
+	check(state.sickness_risk == 0, "sickness_risk default 0")
+	check(state.pending_incident_id == "", "pending_incident_id default empty")
+
+	# Clamping
+	state.travel_fatigue = 200
+	state.travel_fatigue = clampi(state.travel_fatigue, 0, 100)
+	check(state.travel_fatigue == 100, "travel_fatigue clamped to 100")
+
+	state.sickness_risk = -5
+	state.sickness_risk = clampi(state.sickness_risk, 0, 100)
+	check(state.sickness_risk == 0, "sickness_risk clamped to 0")
