@@ -28,6 +28,7 @@ func _ready() -> void:
 	_test_travel_simulator_burden_fatigue()
 	_test_travel_simulator_sickness_risk()
 	_test_travel_simulator_exhaustion()
+	_test_travel_simulator_incident_trigger()
 	_finish()
 
 
@@ -338,19 +339,19 @@ func _test_travel_simulator_ship_wear() -> void:
 func _test_travel_simulator_burden_fatigue() -> void:
 	print("-- TravelSimulator burden delta + fatigue --")
 
-	# burden_delta_per_tick=2 → burden increases by 2
+	# burden_delta_per_tick=2 → burden increases by 2 (net: +2 zone, -1 rum ration = +1)
 	var state = _make_state()
 	var log = _make_log()
 	var burden_before: int = state.burden  # 20
 	TravelSimulator.process_tick(state, _make_zone(1.0, 1.0, 2), log)
-	check(state.burden == burden_before + 2, "burden increases by zone burden_delta_per_tick")
+	check(state.burden == burden_before + 1, "burden net +1 (zone +2, rum ration -1)")
 
-	# burden_delta_per_tick=0 → burden unchanged by zone
+	# burden_delta_per_tick=0 → burden unchanged by zone (net: -1 rum ration)
 	var state2 = _make_state()
 	var log2 = _make_log()
 	var burden2_before: int = state2.burden
 	TravelSimulator.process_tick(state2, _make_zone(1.0, 1.0, 0), log2)
-	check(state2.burden == burden2_before, "burden unchanged when burden_delta_per_tick is 0")
+	check(state2.burden == burden2_before - 1, "burden net -1 (zone 0, rum ration -1)")
 
 	# travel_fatigue increments each tick, clamped to 100
 	var state3 = _make_state()
@@ -414,31 +415,63 @@ func _test_travel_simulator_sickness_risk() -> void:
 func _test_travel_simulator_exhaustion() -> void:
 	print("-- TravelSimulator supply exhaustion --")
 
-	# Food hits 0 → Burden +6, memory flag food_exhausted
+	# Food hits 0 → Burden +6, memory flag food_exhausted (net: +6 exhaustion, -1 rum ration = +5)
 	var state = _make_state()
 	var log = _make_log()
 	state.set_supply("food", 1)  # ceil(5 * 1.0) = 5 consumed, so 1 → clamped to 0
 	var burden_before: int = state.burden
 	TravelSimulator.process_tick(state, _make_zone(1.0), log)
 	check(state.get_supply("food") == 0, "food hits 0")
-	check(state.burden == burden_before + 6, "food exhaustion adds Burden +6")
+	check(state.burden == burden_before + 5, "food exhaustion net +5 (exhaustion +6, rum ration -1)")
 	check(state.has_memory_flag("food_exhausted"), "food_exhausted memory flag set")
 
-	# Food already at 0 before tick → no extra exhaustion spike
+	# Food already at 0 before tick → no extra exhaustion spike (net: -1 rum ration)
 	var state2 = _make_state()
 	var log2 = _make_log()
 	state2.set_supply("food", 0)
 	var burden2_before: int = state2.burden
 	TravelSimulator.process_tick(state2, _make_zone(1.0), log2)
 	check(not state2.has_memory_flag("food_exhausted"), "no exhaustion flag when food was already 0")
-	check(state2.burden == burden2_before, "no Burden spike when food was already 0")
+	check(state2.burden == burden2_before - 1, "burden net -1 (rum ration only, no food spike)")
 
-	# Water hits 0 → Burden +8, memory flag water_exhausted
+	# Water hits 0 → Burden +8, memory flag water_exhausted (net: +8 exhaustion, -1 rum ration = +7)
 	var state3 = _make_state()
 	var log3 = _make_log()
 	state3.set_supply("water", 1)  # ceil(3 * 1.0) = 3 consumed, 1 → 0
 	var burden3_before: int = state3.burden
 	TravelSimulator.process_tick(state3, _make_zone(1.0), log3)
 	check(state3.get_supply("water") == 0, "water hits 0")
-	check(state3.burden == burden3_before + 8, "water exhaustion adds Burden +8")
+	check(state3.burden == burden3_before + 7, "water exhaustion net +7 (exhaustion +8, rum ration -1)")
 	check(state3.has_memory_flag("water_exhausted"), "water_exhausted memory flag set")
+
+
+# --- TravelSimulator: incident trigger ---
+
+func _test_travel_simulator_incident_trigger() -> void:
+	print("-- TravelSimulator incident trigger --")
+
+	# No incident triggers when conditions not met (fresh default state)
+	var state = _make_state()
+	var log = _make_log()
+	TravelSimulator.process_tick(state, _make_zone(), log)
+	check(state.pending_incident_id == "", "no incident triggered on clean state")
+
+	# drunk_purser_store_error requires has_crew_trait "rum_aboard"
+	# Add trait and verify incident triggers
+	var state2 = _make_state()
+	var log2 = _make_log()
+	state2.add_crew_trait("rum_aboard")
+	TravelSimulator.process_tick(state2, _make_zone(), log2)
+	check(state2.pending_incident_id == "drunk_purser_store_error",
+		"drunk_purser_store_error triggered when rum_aboard trait present")
+
+	# Second tick does NOT overwrite pending_incident_id
+	TravelSimulator.process_tick(state2, _make_zone(), log2)
+	check(state2.pending_incident_id == "drunk_purser_store_error",
+		"pending_incident_id not overwritten on second tick")
+
+	# Clear pending_incident_id and verify trigger works again
+	state2.pending_incident_id = ""
+	TravelSimulator.process_tick(state2, _make_zone(), log2)
+	check(state2.pending_incident_id == "drunk_purser_store_error",
+		"incident triggers again after pending_incident_id cleared")

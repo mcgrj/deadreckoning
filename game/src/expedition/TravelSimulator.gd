@@ -69,8 +69,8 @@ static func process_tick(state: ExpeditionState, zone: ZoneTypeDef, log: Simulat
 	# Step 6: Sickness risk
 	var food_amount := state.get_supply("food")
 	var water_amount := state.get_supply("water")
-	var food_critical := food_def.critical_threshold if food_def != null else 0
-	var water_critical := water_def.critical_threshold if water_def != null else 0
+	var food_critical: int = food_def.critical_threshold if food_def != null else 0
+	var water_critical: int = water_def.critical_threshold if water_def != null else 0
 	if food_amount < food_critical or water_amount < water_critical:
 		state.sickness_risk = clampi(state.sickness_risk + 3, 0, 100)
 	else:
@@ -79,4 +79,19 @@ static func process_tick(state: ExpeditionState, zone: ZoneTypeDef, log: Simulat
 		"Sickness risk: %d" % state.sickness_risk,
 		{"sickness_risk": state.sickness_risk})
 
-	# Steps 7–8 added in Task 8
+	# Step 7: Rum tick
+	RumRules.update_on_tick(state, log)
+
+	# Step 8: Incident trigger check
+	if state.pending_incident_id.is_empty():
+		var incidents := ContentRegistry.get_all("incidents")
+		for item: ContentBase in incidents:
+			var incident = item as IncidentDef
+			if incident == null or incident.trigger_band != "tick":
+				continue
+			if ConditionEvaluator.all_met(state, incident.required_conditions, log):
+				state.pending_incident_id = incident.id
+				log.log_event(state.tick_count, "TravelSimulator",
+					"Incident triggered: %s" % incident.id,
+					{"incident_id": incident.id})
+				break
