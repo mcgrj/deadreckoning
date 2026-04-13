@@ -12,7 +12,6 @@ extends Control
 var _state: ExpeditionState
 var _log: SimulationLog
 var _route: RouteMap
-var _current_node_index: int = 0
 
 var _status_label: Label
 var _stats_label: Label
@@ -80,20 +79,27 @@ func _on_advance() -> void:
 		return
 
 	# Advance route
-	var nodes := _route.get_nodes()
-	if _current_node_index < nodes.size():
-		var node: RouteNode = nodes[_current_node_index]
-		var zone: ZoneTypeDef = ContentRegistry.get_by_id("zone_types", node.zone_type_id) as ZoneTypeDef
-		if zone == null:
-			_status_label.text = "ERROR: zone type not found: " + node.zone_type_id
-			return
-		_state.tick_count += 1
-		TravelSimulator.process_tick(_state, zone, _log)
-		_current_node_index += 1
-	else:
-		# Final node reached
+	if _route.is_complete():
 		_state.run_end_reason = "completed"
 		_log.log_event(_state.tick_count, "RunScene", "Expedition complete — all route nodes traversed.", {})
+	else:
+		# Auto-select first node of current stage when not already travelling
+		if not _route.is_travelling():
+			var stage: Array = _route.get_current_stage()
+			if stage.is_empty():
+				_state.run_end_reason = "completed"
+				_log.log_event(_state.tick_count, "RunScene", "Expedition complete — all route nodes traversed.", {})
+			else:
+				_route.select_node(stage[0] as RouteNode)
+
+		if _state.run_end_reason == "":
+			var zone: ZoneTypeDef = _route.get_active_zone()
+			if zone == null:
+				_status_label.text = "ERROR: zone type not found for active node"
+				return
+			_state.tick_count += 1
+			TravelSimulator.process_tick(_state, zone, _log)
+			_route.advance_tick()
 
 	_refresh_display()
 

@@ -28,6 +28,7 @@ func _ready() -> void:
 	_test_suppress_dissent_mitigation()
 	_test_run_end_scene_difficulty_formula()
 	_test_progression_objective_complete()
+	_test_route_map_full_traversal()
 	_finish()
 
 
@@ -193,3 +194,38 @@ func _test_progression_objective_complete() -> void:
 		"completed_objective_ids contains survey_strange_shore")
 	# Clean up
 	DirAccess.remove_absolute(GameConstants.SAVE_DIR + "test_slot2/progression.tres")
+
+
+func _test_route_map_full_traversal() -> void:
+	print("-- RouteMap + TravelSimulator full traversal --")
+	var route := RouteMap.create_test_map()
+	var state := ExpeditionState.new()
+	state.burden = 10
+	state.command = 80
+	var log := SimulationLog.new()
+
+	check(not route.is_complete(), "route not complete at start")
+	check(not route.is_travelling(), "not travelling at start")
+
+	# Walk the route: select first node per stage, advance one tick at a time.
+	var max_ticks := 50  # safety cap — test map has ~9 ticks total
+	var tick_count := 0
+	while not route.is_complete() and state.run_end_reason == "" and tick_count < max_ticks:
+		if not route.is_travelling():
+			var stage: Array = route.get_current_stage()
+			if stage.is_empty():
+				break
+			route.select_node(stage[0] as RouteNode)
+		var zone: ZoneTypeDef = route.get_active_zone()
+		if zone == null:
+			check(false, "get_active_zone returned null during travel")
+			return
+		TravelSimulator.process_tick(state, zone, log)
+		route.advance_tick()
+		tick_count += 1
+
+	check(route.is_complete(), "route reports complete after all nodes")
+	check(tick_count > 0, "at least one tick was processed")
+	check(tick_count < max_ticks, "traversal completed within tick budget")
+	# Healthy state should not end in mutiny/breakdown
+	check(state.run_end_reason == "", "healthy state survives full route without run end")
