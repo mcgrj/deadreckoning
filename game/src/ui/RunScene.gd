@@ -26,7 +26,7 @@ func _ready() -> void:
 	SaveManager.pending_run_config = {}
 	_state = ExpeditionState.create_from_config(config)
 	_log = SimulationLog.new()
-	_route = RouteMap.generate_default()
+	_route = RouteMap.create_test_map()
 	_build_ui()
 	_refresh_display()
 
