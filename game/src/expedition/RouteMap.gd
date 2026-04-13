@@ -59,6 +59,7 @@ func get_current_stage() -> Array:
 	return stages[current_stage_index]
 
 
+# Precondition: must not be called while is_travelling() is true.
 func select_node(node: RouteNode) -> void:
 	active_node = node
 	ticks_remaining = node.tick_distance
