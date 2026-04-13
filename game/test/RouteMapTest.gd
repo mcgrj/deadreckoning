@@ -19,6 +19,8 @@ func check(condition: bool, label: String) -> void:
 func _ready() -> void:
 	print("=== RouteMapTest ===\n")
 	_test_route_node()
+	_test_route_map_factory()
+	_test_route_map_navigation()
 	_finish()
 
 
@@ -79,3 +81,127 @@ func _test_route_node() -> void:
 	check(node2.hints[0] == "Survey coordinates confirmed.", "make() hint content correct")
 	check(node2.is_objective_node == true, "make() is_objective_node set")
 	check(node2.required_node_category == "admiralty", "make() required_node_category set")
+
+
+# --- RouteMap factory ---
+
+func _test_route_map_factory() -> void:
+	print("-- RouteMap factory --")
+
+	var map = RouteMap.create_test_map()
+	check(map.stages.size() == 4, "test map has 4 stages")
+	check(map.current_stage_index == 0, "starts at stage 0")
+	check(map.selected_path.is_empty(), "selected_path starts empty")
+	check(map.active_node == null, "active_node starts null")
+	check(map.ticks_remaining == 0, "ticks_remaining starts 0")
+
+	# Stage 1 — 3 nodes, all coastal
+	var s1: Array = map.stages[0]
+	check(s1.size() == 3, "stage 1 has 3 nodes")
+	check(s1[0].id == "stage1_crisis",   "stage1 node 0 id")
+	check(s1[0].category == "crisis",    "stage1 node 0 category")
+	check(s1[0].tick_distance == 3,      "stage1 node 0 tick_distance")
+	check(s1[0].zone_type_id == "coastal", "stage1 node 0 zone")
+	check(s1[1].id == "stage1_landfall", "stage1 node 1 id")
+	check(s1[2].id == "stage1_omen",     "stage1 node 2 id")
+
+	# Stage 2 — 2 nodes, open_ocean
+	var s2: Array = map.stages[1]
+	check(s2.size() == 2, "stage 2 has 2 nodes")
+	check(s2[0].zone_type_id == "open_ocean", "stage2 node 0 zone")
+	check(s2[1].zone_type_id == "open_ocean", "stage2 node 1 zone")
+
+	# Stage 3 — boon (lee_shore) + admiralty (open_ocean), admiralty is objective
+	var s3: Array = map.stages[2]
+	check(s3.size() == 2, "stage 3 has 2 nodes")
+	check(s3[0].zone_type_id == "lee_shore",  "stage3 boon zone is lee_shore")
+	check(s3[1].zone_type_id == "open_ocean", "stage3 admiralty zone is open_ocean")
+	check(s3[1].is_objective_node == true,     "stage3 admiralty is objective node")
+
+	# Stage 4 — 2 nodes, unknown_zone
+	var s4: Array = map.stages[3]
+	check(s4.size() == 2, "stage 4 has 2 nodes")
+	check(s4[0].zone_type_id == "unknown_zone", "stage4 node 0 zone")
+	check(s4[1].zone_type_id == "unknown_zone", "stage4 node 1 zone")
+
+	# All 7 categories present
+	var all_categories: Array = []
+	for stage in map.stages:
+		for node in stage:
+			if node.category not in all_categories:
+				all_categories.append(node.category)
+	for cat in ["crisis", "landfall", "omen", "social", "unknown", "boon", "admiralty"]:
+		check(cat in all_categories, "category present: %s" % cat)
+
+	# All 4 zone types present
+	var all_zones: Array = []
+	for stage in map.stages:
+		for node in stage:
+			if node.zone_type_id not in all_zones:
+				all_zones.append(node.zone_type_id)
+	for zone in ["coastal", "open_ocean", "lee_shore", "unknown_zone"]:
+		check(zone in all_zones, "zone type present: %s" % zone)
+
+
+# --- RouteMap navigation ---
+
+func _test_route_map_navigation() -> void:
+	print("-- RouteMap navigation --")
+
+	var map = RouteMap.create_test_map()
+
+	# get_current_stage returns stage 0 nodes
+	var stage = map.get_current_stage()
+	check(stage.size() == 3, "get_current_stage returns 3 nodes at start")
+
+	# Not travelling, not complete at start
+	check(map.is_travelling() == false, "not travelling at start")
+	check(map.is_complete() == false, "not complete at start")
+
+	# select_node sets active_node and ticks_remaining
+	var node = stage[0]  # stage1_crisis, 3 days
+	map.select_node(node)
+	check(map.active_node == node, "select_node sets active_node")
+	check(map.ticks_remaining == 3, "select_node sets ticks_remaining to 3")
+	check(map.is_travelling() == true, "is_travelling true after select_node")
+
+	# advance_tick decrements ticks_remaining
+	map.advance_tick()
+	check(map.ticks_remaining == 2, "advance_tick decrements to 2")
+	check(map.is_travelling() == true, "still travelling at 2")
+
+	map.advance_tick()
+	check(map.ticks_remaining == 1, "advance_tick decrements to 1")
+
+	# Final tick: arrive
+	map.advance_tick()
+	check(map.ticks_remaining == 0, "ticks_remaining 0 after arrival")
+	check(map.active_node == null, "active_node null after arrival")
+	check(map.selected_path.size() == 1, "selected_path has 1 entry after first arrival")
+	check(map.selected_path[0].id == "stage1_crisis", "selected_path[0] is stage1_crisis")
+	check(map.current_stage_index == 1, "current_stage_index advanced to 1")
+	check(map.is_travelling() == false, "not travelling after arrival")
+	check(map.is_complete() == false, "not complete after stage 1")
+
+	# get_current_stage now returns stage 1 (index 1)
+	var stage2 = map.get_current_stage()
+	check(stage2.size() == 2, "stage 2 has 2 nodes")
+
+	# get_active_zone returns null when not travelling
+	var zone = map.get_active_zone()
+	check(zone == null, "get_active_zone null when not travelling")
+
+	# Travel through all remaining stages to reach completion
+	for i in range(3):
+		var s = map.get_current_stage()
+		map.select_node(s[0])
+		for _t in range(s[0].tick_distance):
+			map.advance_tick()
+
+	check(map.is_complete() == true, "is_complete after all 4 stages")
+	check(map.selected_path.size() == 4, "selected_path has 4 entries")
+	check(map.get_current_stage().is_empty(), "get_current_stage empty when complete")
+
+	# advance_tick is a no-op when not travelling
+	map.advance_tick()
+	check(map.ticks_remaining == 0, "advance_tick no-op when not travelling")
