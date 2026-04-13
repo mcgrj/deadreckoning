@@ -382,6 +382,8 @@ func _on_advance_day() -> void:
 func _on_route_meta_clicked(meta: String) -> void:
 	if not meta.begins_with("take_"):
 		return
+	if _route_map == null:
+		return
 	var node_id := meta.substr(5)
 	var stage := _route_map.get_current_stage()
 	for node: RouteNode in stage:
@@ -455,7 +457,6 @@ func _render_route_diagram(cat_colors: Dictionary) -> void:
 
 		if is_past:
 			var done_node: RouteNode = _route_map.selected_path[s_idx]
-			var col: String = cat_colors.get(done_node.category, "#555555")
 			_output.append_text("[color=#333333]  ✓ [b]%s[/b] (%d days)[/color]\n" % [
 				done_node.category.to_upper(), done_node.tick_distance])
 		elif is_current and not _route_map.is_travelling():
@@ -482,7 +483,7 @@ func _render_route_diagram(cat_colors: Dictionary) -> void:
 				if node.tick_distance < min_dist:
 					min_dist = node.tick_distance
 			var arrows := clampi(min_dist / 2, 1, 4)
-			var arrow_color := "#555555" if s_idx >= current_idx else "#222222"
+			var arrow_color := "#222222" if s_idx < current_idx else "#555555"
 			for _a in range(arrows):
 				_output.append_text("[color=%s]  ↓[/color]\n" % arrow_color)
 
