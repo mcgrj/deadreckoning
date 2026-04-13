@@ -470,7 +470,7 @@ func _test_content_base() -> void:
 func _test_content_registry_with_content() -> void:
 	print("-- ContentRegistry (with sample content) --")
 	var supplies := ContentRegistry.get_all("supplies")
-	check(supplies.size() == 2, "ContentRegistry: 2 supplies loaded (rum + food)")
+	check(supplies.size() == 3, "ContentRegistry: 3 supplies loaded (rum + food + water)")
 
 	var rum: SupplyDef = ContentRegistry.get_by_id("supplies", "rum")
 	check(rum != null, "ContentRegistry: rum supply found by id")
@@ -496,7 +496,7 @@ func _test_content_registry_with_content() -> void:
 	check(ContentRegistry.get_validation_errors().is_empty(), "ContentRegistry: no validation errors with clean catalog")
 
 	var zone_types := ContentRegistry.get_all("zone_types")
-	check(zone_types.size() == 2, "ContentRegistry: 2 zone types loaded")
+	check(zone_types.size() == 4, "ContentRegistry: 4 zone types loaded (coastal + open_ocean + lee_shore + unknown_zone)")
 
 	var coastal: ZoneTypeDef = ContentRegistry.get_by_id("zone_types", "coastal")
 	check(coastal != null, "ContentRegistry: coastal zone type found by id")
