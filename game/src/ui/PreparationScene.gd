@@ -403,6 +403,8 @@ func _format_officer_card(def: OfficerDef) -> String:
 		lines.append("%d run(s) survived" % def.runs_survived)
 		if not def.notable_events.is_empty():
 			lines.append("History: " + ", ".join(def.notable_events.slice(0, 3)))
+	if def.pre_voyage_promise_id != "":
+		lines.append("Hire condition: \"%s\"" % def.pre_voyage_promise_text)
 	return "\n".join(lines)
 
 
