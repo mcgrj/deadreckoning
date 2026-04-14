@@ -110,6 +110,7 @@ func _build_letter_text(bias: Array[String]) -> String:
 
 
 func _ready() -> void:
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var progression := SaveManager.load_progression()
 	_admiralty_bias = progression.admiralty_bias
 	_scandal_flags = progression.scandal_flags

@@ -192,6 +192,7 @@ func _build_log_narrative_text() -> String:
 
 
 func _ready() -> void:
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	if final_state == null:
 		# Fallback: create a dummy state for direct scene preview
 		final_state = ExpeditionState.new()
