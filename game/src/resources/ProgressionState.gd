@@ -9,6 +9,8 @@ extends Resource
 @export var completed_objective_ids: Array[String] = []
 @export var unlocked_content_ids: Array[String] = []
 @export var last_run_difficulty_score: int = 0
+@export var admiralty_bias: Array[String] = []   # Pattern of report framings across runs
+@export var scandal_flags: Array[String] = []    # Specific things on record; seed incident eligibility
 
 
 func is_unlocked(content_id: String) -> bool:

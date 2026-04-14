@@ -19,6 +19,7 @@ func check(condition: bool, label: String) -> void:
 func _ready() -> void:
 	print("=== Stage6BTest ===\n")
 	_test_game_constants()
+	_test_progression_state_new_fields()
 	_finish()
 
 
@@ -34,3 +35,17 @@ func _test_game_constants() -> void:
 	print("-- GameConstants recommendation rewards --")
 	check(GameConstants.RECOMMENDATION_SUPPLY_BONUS == 10, "supply bonus is 10")
 	check(GameConstants.RECOMMENDATION_COMMAND_BONUS == 5, "command bonus is 5")
+
+
+func _test_progression_state_new_fields() -> void:
+	print("-- ProgressionState new fields --")
+	var p := ProgressionState.new()
+	check(p.admiralty_bias is Array, "admiralty_bias is Array")
+	check(p.admiralty_bias.size() == 0, "admiralty_bias defaults empty")
+	check(p.scandal_flags is Array, "scandal_flags is Array")
+	check(p.scandal_flags.size() == 0, "scandal_flags defaults empty")
+
+	# Verify accumulation — same string can appear multiple times
+	p.admiralty_bias.append("blamed_crew")
+	p.admiralty_bias.append("blamed_crew")
+	check(p.admiralty_bias.size() == 2, "admiralty_bias accumulates duplicates")
