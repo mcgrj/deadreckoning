@@ -146,6 +146,23 @@ func _do_advance() -> void:
 		_log_panel.append_latest(_log)
 		_transition_to_run_end()
 		return
+
+	# Deferred node-arrival incident: fires on the click AFTER the final travel tick.
+	# This gives the player a beat where they can see the route map with them at the node
+	# before the incident scene replaces it.
+	if _route.arrived_at_node != null:
+		var anode := _route.arrived_at_node as RouteNode
+		_route.arrived_at_node = null
+		if _state.pending_incident_id.is_empty() and _state.run_end_reason.is_empty():
+			_try_node_arrival_incident(anode)
+		_stats_bar.refresh(_state)
+		_log_panel.append_latest(_log)
+		_route_map.refresh()
+		_refresh_breadcrumb()
+		if _state.pending_incident_id != "":
+			_show_incident()
+		return
+
 	if not _route.is_travelling():
 		_status_label.text = "Choose a heading first."
 		return
@@ -154,25 +171,15 @@ func _do_advance() -> void:
 		_status_label.text = "ERROR: zone not found"
 		return
 
-	# Capture the node we're about to arrive at (ticks_remaining == 1 means arrival)
-	var arriving_node: RouteNode = _route.active_node if _route.ticks_remaining == 1 else null
-
 	_state.tick_count += 1
 	TravelSimulator.process_tick(_state, zone, _log)
 	_route.advance_tick()
-
-	# Node-arrival incident: guarantee an event fires when reaching each node
-	if arriving_node != null and _state.pending_incident_id.is_empty() and _state.run_end_reason.is_empty():
-		_try_node_arrival_incident(arriving_node)
 
 	_stats_bar.refresh(_state)
 	_log_panel.append_latest(_log)
 	_route_map.refresh()
 	_refresh_breadcrumb()
 
-	if _state.pending_incident_id != "" and _state.run_end_reason == "":
-		_show_incident()
-		return
 	if _state.run_end_reason != "":
 		_log_panel.append_latest(_log)
 		_transition_to_run_end()

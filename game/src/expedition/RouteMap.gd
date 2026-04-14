@@ -13,6 +13,7 @@ var current_stage_index: int = 0
 var selected_path: Array = []  # Array[RouteNode], one per completed stage
 var active_node = null          # RouteNode currently being travelled to, or null
 var ticks_remaining: int = 0
+var arrived_at_node = null      # Set on arrival; cleared by RunScene after incident check
 
 
 static func create_test_map() -> RouteMap:
@@ -78,6 +79,7 @@ func advance_tick() -> void:
 		return
 	ticks_remaining -= 1
 	if ticks_remaining == 0:
+		arrived_at_node = active_node  # Consumed by RunScene on next click
 		selected_path.append(active_node)
 		current_stage_index += 1
 		active_node = null

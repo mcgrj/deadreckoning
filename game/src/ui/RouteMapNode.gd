@@ -111,9 +111,9 @@ func _gui_input(event: InputEvent) -> void:
 		return
 	if _route == null:
 		return
-	# While travelling or after final arrival, any click triggers advance.
-	# null tells RunScene to call _do_advance() without selecting a new node.
-	if _route.is_travelling() or _route.is_complete():
+	# While travelling, just arrived, or after final completion: any click
+	# triggers _do_advance() in RunScene without selecting a new node.
+	if _route.is_travelling() or _route.is_complete() or _route.arrived_at_node != null:
 		node_selected.emit(null)
 		get_viewport().set_input_as_handled()
 		return
