@@ -147,7 +147,7 @@ func _do_advance() -> void:
 	_route.advance_tick()
 
 	_stats_bar.refresh(_state)
-	_log_panel.append_tick_entries(_log, _state.tick_count)
+	_log_panel.append_latest(_log)
 	_route_map.refresh()
 	_refresh_breadcrumb()
 
@@ -155,6 +155,7 @@ func _do_advance() -> void:
 		_show_incident()
 		return
 	if _state.run_end_reason != "":
+		_log_panel.append_latest(_log)
 		_transition_to_run_end()
 
 
@@ -174,6 +175,7 @@ func _on_incident_resolved() -> void:
 		if child != _route_map:
 			child.queue_free()
 	_route_map.show()
+	_status_label.text = ""
 	_stats_bar.refresh(_state)
 	_log_panel.append_latest(_log)
 	_route_map.refresh()
