@@ -506,9 +506,9 @@ func _on_set_sail() -> void:
 		if _recommended[content_id].get("type") == "officer":
 			for role: String in _selected_officers:
 				if _selected_officers[role] == content_id:
-					var trait: String = _recommended[content_id].get("trait", "")
-					if trait != "":
-						officer_traits[role] = trait
+					var trait_value: String = _recommended[content_id].get("trait", "")
+					if trait_value != "":
+						officer_traits[role] = trait_value
 
 	var config := {
 		"objective_id": _selected_objective,
