@@ -1,0 +1,8 @@
+{
+  "first_lieutenant": ["Blackwood", "Pemberton", "Aldiss", "Carmichael", "Grantham", "Hartley", "Osborn", "Phelps"],
+  "master": ["Tanner", "Selkirk", "Holt", "Wraight", "Draper", "Fenwick", "Quartermaine", "Spence"],
+  "gunner": ["Coghill", "Durrant", "Flint", "Harker", "Kidd", "Munro", "Oldfield", "Pruitt"],
+  "purser": ["Farrow", "Gidley", "Jenks", "Lemaire", "Nichols", "Oake", "Plum", "Seddon"],
+  "surgeon": ["Halcrow", "Meldrum", "Trench", "Verney", "Whittaker", "Yorke", "Ashe", "Cribb"],
+  "chaplain": ["Berryman", "Cornforth", "Dinsdale", "Estwick", "Faber", "Greenway", "Hornsby", "Ivatt"]
+}

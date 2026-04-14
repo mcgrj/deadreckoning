@@ -1,0 +1,74 @@
+{
+  "first_lieutenant": [
+    { "id": "holds_grudges", "display": "Holds grudges", "tier": "disclosed", "hint": "", "excludes": ["forgiving"] },
+    { "id": "forgiving", "display": "Forgiving nature", "tier": "disclosed", "hint": "", "excludes": ["holds_grudges"] },
+    { "id": "strict_disciplinarian", "display": "Strict disciplinarian", "tier": "disclosed", "hint": "", "excludes": ["lenient_by_nature"] },
+    { "id": "lenient_by_nature", "display": "Lenient by nature", "tier": "disclosed", "hint": "", "excludes": ["strict_disciplinarian"] },
+    { "id": "harbours_ambition", "display": "Harbours ambition", "tier": "rumoured", "hint": "There are rumours of ambitions beyond his current rank.", "excludes": [] },
+    { "id": "loyal_to_captain", "display": "Loyal to captain", "tier": "disclosed", "hint": "", "excludes": ["harbours_ambition"] },
+    { "id": "sympathises_with_crew", "display": "Sympathises with crew", "tier": "hidden", "hint": "", "excludes": ["strict_disciplinarian"] },
+    { "id": "prior_scandal", "display": "Prior scandal", "tier": "rumoured", "hint": "His record shows a cleared inquiry — the details are not public.", "excludes": [] },
+    { "id": "steady_under_pressure", "display": "Steady under pressure", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "volatile_temper", "display": "Volatile temper", "tier": "hidden", "hint": "", "excludes": ["steady_under_pressure"] }
+  ],
+  "master": [
+    { "id": "exceptional_charts", "display": "Exceptional charts", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "drinks_before_passage", "display": "Drinks before a hard passage", "tier": "rumoured", "hint": "There are questions about his habits before difficult navigation.", "excludes": ["temperate"] },
+    { "id": "temperate", "display": "Temperate habits", "tier": "disclosed", "hint": "", "excludes": ["drinks_before_passage"] },
+    { "id": "northern_route_veteran", "display": "Northern route veteran", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "cautious_navigator", "display": "Cautious navigator", "tier": "disclosed", "hint": "", "excludes": ["reckless_navigator"] },
+    { "id": "reckless_navigator", "display": "Reckless navigator", "tier": "hidden", "hint": "", "excludes": ["cautious_navigator"] },
+    { "id": "distrusts_charts", "display": "Distrusts official charts", "tier": "hidden", "hint": "", "excludes": [] },
+    { "id": "prior_grounding", "display": "Prior grounding", "tier": "rumoured", "hint": "There is a note in his record about a grounding that was ruled unavoidable.", "excludes": [] },
+    { "id": "knows_the_currents", "display": "Knows the currents", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "keeps_own_counsel", "display": "Keeps own counsel", "tier": "disclosed", "hint": "", "excludes": [] }
+  ],
+  "gunner": [
+    { "id": "precise_with_powder", "display": "Precise with powder", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "short_temper", "display": "Short temper", "tier": "rumoured", "hint": "The gun crews have mentioned a temper. Nothing formal on record.", "excludes": ["patient_manner"] },
+    { "id": "patient_manner", "display": "Patient manner", "tier": "disclosed", "hint": "", "excludes": ["short_temper"] },
+    { "id": "will_not_cut_corners", "display": "Will not cut corners", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "prize_hungry", "display": "Prize hungry", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "resents_orders", "display": "Resents orders", "tier": "hidden", "hint": "", "excludes": ["will_not_cut_corners"] },
+    { "id": "superstitious", "display": "Superstitious", "tier": "hidden", "hint": "", "excludes": [] },
+    { "id": "prior_accident", "display": "Prior powder accident", "tier": "rumoured", "hint": "There was an incident on his last posting. The inquiry found no fault.", "excludes": [] },
+    { "id": "crew_respected", "display": "Respected by gun crews", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "has_opinions", "display": "Has strong opinions", "tier": "disclosed", "hint": "", "excludes": [] }
+  ],
+  "purser": [
+    { "id": "meticulous_ledgers", "display": "Meticulous ledgers", "tier": "disclosed", "hint": "", "excludes": ["lax_accounting"] },
+    { "id": "lax_accounting", "display": "Lax accounting", "tier": "hidden", "hint": "", "excludes": ["meticulous_ledgers"] },
+    { "id": "drinks_before_accounting", "display": "Drinks before accounting", "tier": "rumoured", "hint": "There are questions about his habits on ledger days.", "excludes": ["meticulous_ledgers"] },
+    { "id": "finds_supply", "display": "Finds supply", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "skims_the_stores", "display": "Skims the stores", "tier": "hidden", "hint": "", "excludes": ["meticulous_ledgers"] },
+    { "id": "prior_inquiry", "display": "Prior inquiry", "tier": "rumoured", "hint": "Questions were raised about a previous commission's accounts. He was cleared.", "excludes": [] },
+    { "id": "trusted_by_cook", "display": "Trusted by the cook", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "overly_cautious_with_stores", "display": "Overly cautious with stores", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "notes_everything", "display": "Notes everything", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "conceals_shortfalls", "display": "Conceals shortfalls", "tier": "hidden", "hint": "", "excludes": ["meticulous_ledgers", "notes_everything"] }
+  ],
+  "surgeon": [
+    { "id": "steady_hands", "display": "Steady hands", "tier": "disclosed", "hint": "", "excludes": ["tremors"] },
+    { "id": "tremors", "display": "Tremors", "tier": "hidden", "hint": "", "excludes": ["steady_hands"] },
+    { "id": "drinks_before_noon", "display": "Drinks before noon", "tier": "rumoured", "hint": "Questions have been raised about his habits.", "excludes": ["strict_self_discipline"] },
+    { "id": "strict_self_discipline", "display": "Strict self-discipline", "tier": "disclosed", "hint": "", "excludes": ["drinks_before_noon"] },
+    { "id": "popular_with_crew", "display": "Popular with the crew", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "cold_bedside_manner", "display": "Cold bedside manner", "tier": "hidden", "hint": "", "excludes": ["popular_with_crew"] },
+    { "id": "harbour_grievance", "display": "Harbours a grievance", "tier": "hidden", "hint": "", "excludes": [] },
+    { "id": "ration_crisis_veteran", "display": "Ration crisis veteran", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "privately_devout", "display": "Privately devout", "tier": "hidden", "hint": "", "excludes": [] },
+    { "id": "accurate_diagnosis", "display": "Accurate diagnosis", "tier": "disclosed", "hint": "", "excludes": [] }
+  ],
+  "chaplain": [
+    { "id": "steady_faith", "display": "Steady faith", "tier": "disclosed", "hint": "", "excludes": ["crisis_of_faith"] },
+    { "id": "crisis_of_faith", "display": "Crisis of faith", "tier": "hidden", "hint": "", "excludes": ["steady_faith"] },
+    { "id": "popular_with_frightened", "display": "Popular with the frightened", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "superstitious_tendencies", "display": "Superstitious tendencies", "tier": "rumoured", "hint": "The men say he takes omens seriously. More seriously than the regulations suggest.", "excludes": [] },
+    { "id": "keeps_confessions", "display": "Keeps confessions", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "shares_what_he_hears", "display": "Shares what he hears", "tier": "hidden", "hint": "", "excludes": ["keeps_confessions"] },
+    { "id": "unpopular_with_cynics", "display": "Unpopular with cynics", "tier": "hidden", "hint": "", "excludes": [] },
+    { "id": "prior_parish_trouble", "display": "Prior parish trouble", "tier": "rumoured", "hint": "He left his last parish under circumstances the Bishop did not record.", "excludes": [] },
+    { "id": "gives_good_burial", "display": "Gives good burial", "tier": "disclosed", "hint": "", "excludes": [] },
+    { "id": "sermons_are_short", "display": "Sermons are short", "tier": "disclosed", "hint": "", "excludes": [] }
+  ]
+}

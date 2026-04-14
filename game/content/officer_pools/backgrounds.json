@@ -1,0 +1,158 @@
+{
+  "first_lieutenant": {
+    "origins": [
+      "Devon-born.",
+      "Scottish.",
+      "No family record worth mentioning.",
+      "Son of a naval officer who died in service.",
+      "Came up through the merchant fleet.",
+      "Kent-born. Fourth son of a clergyman."
+    ],
+    "service": [
+      "Served under Rear-Admiral Thornton before a dispute over a flogging order.",
+      "Three voyages before the mast; earned his commission the hard way.",
+      "Recommended by a man who has since resigned his commission.",
+      "Left his previous posting under circumstances the Admiralty records as routine.",
+      "Served two commissions without incident. The third is not spoken of.",
+      "Court-martial acquitted him. The crew that testified is no longer in service."
+    ],
+    "reputation": [
+      "Known for discipline; known for holding grudges.",
+      "The men respect him. The officers are less certain.",
+      "Fair when watched. Less so when not.",
+      "Hard on pressed men. Attentive to volunteers.",
+      "Quiet. Does not explain himself.",
+      "Popular enough. Has ambitions he has not declared."
+    ]
+  },
+  "master": {
+    "origins": [
+      "Cornish. Born within sight of the sea.",
+      "Dutch-trained, English commission.",
+      "No formal record of origin. Charts well.",
+      "Son of a merchantman. Knows those routes better than the Navy does.",
+      "Norfolk-born. Grew up piloting the estuary.",
+      "Scottish. Learned his charts in waters the Admiralty does not patrol."
+    ],
+    "service": [
+      "Three commissions on the Indies route. Knows the currents better than the charts do.",
+      "Served under a commander who trusted him completely. That commander is dead.",
+      "Recommended by the Hydrographic Office for his survey work.",
+      "Left his last posting when the ship ran aground. He had warned them.",
+      "Two years on the northern passage. Does not speak of it voluntarily.",
+      "His charts are excellent. Some details have been corrected by experience."
+    ],
+    "reputation": [
+      "Reliable. Has opinions he keeps to himself until they become unavoidable.",
+      "Accurate. Drinks before a hard passage — never after.",
+      "The crew trusts his navigation. Less so his moods.",
+      "Quiet in council. Loud when he is right and has been ignored.",
+      "His charts are his own. He does not share them freely.",
+      "Known to add notes to official charts that the Admiralty has not requested."
+    ]
+  },
+  "gunner": {
+    "origins": [
+      "Portsmouth-born. Grew up in the ordnance yards.",
+      "Pressed at eighteen. Has never left service since.",
+      "Welsh. Came up through the artillery before the Navy.",
+      "No family record. Appeared at a recruiting office with his own references.",
+      "Son of a gunner. And his father before him.",
+      "Scottish Highlands. Arrived at the Navy with a chip on his shoulder and excellent aim."
+    ],
+    "service": [
+      "Twenty years in the powder room. Never an accident he will admit to.",
+      "Served on three ships that took prize. Considers this unremarkable.",
+      "His last posting ended when the magazine misfired. He survived. Most didn't.",
+      "Two commissions under a commander who overruled him once. Only once.",
+      "Known for keeping the powder dry when no one else thought it mattered.",
+      "Recommended for his work during an engagement the official record underplays."
+    ],
+    "reputation": [
+      "Reliable with powder. Less reliable with patience.",
+      "The gun crews respect him. He does not return the sentiment unless earned.",
+      "Has a temper he controls until he doesn't.",
+      "Thorough. Will not cut corners on the magazine even under direct order.",
+      "Quiet most of the time. Decisive in the moments that count.",
+      "Has views on how a ship should be run that he shares whether asked or not."
+    ]
+  },
+  "purser": {
+    "origins": [
+      "London-born. Counting-house trained before the Navy.",
+      "Bristol merchant family. Knows what things are worth.",
+      "No formal record. Arrived with strong arithmetic and better references.",
+      "Son of a bankrupt. Careful with money as a result.",
+      "Scottish. Worked the Highland trade routes before commissioning.",
+      "Came up through victualling. Knows every trick in the stores."
+    ],
+    "service": [
+      "Three commissions without a shortfall he admits to.",
+      "Questions were raised about his accounts on a previous commission. He was cleared.",
+      "Recommended by his last commander for keeping the ship fed through a difficult season.",
+      "Left his previous posting when the captain died. The stores were found intact.",
+      "Known for finding supply where none was expected.",
+      "His ledgers are meticulous. Some entries have been queried and subsequently corrected."
+    ],
+    "reputation": [
+      "Careful with the stores. Less careful with who he tells.",
+      "The men eat well under him. The officers are less certain how.",
+      "Knows the difference between what the ledger says and what the hold holds.",
+      "Reliable. Has a habit of noting things that were better left unrecorded.",
+      "Drinks before accounting. Claims it steadies his hand.",
+      "Popular with the cook. The cook is the most important man on the ship."
+    ]
+  },
+  "surgeon": {
+    "origins": [
+      "Edinburgh trained.",
+      "Devon-born. Apprenticed to a naval surgeon at fourteen.",
+      "No family record. Appeared with credentials the Admiralty found satisfactory.",
+      "Son of a physician who disapproved of the Navy.",
+      "Came from the merchant service after one voyage he does not describe.",
+      "Scottish. Completed his apprenticeship early. The reason is not recorded."
+    ],
+    "service": [
+      "Served under Admiral Pemberton before a dispute over a court-martial verdict.",
+      "Three years on the Indies route. Seen things the textbooks do not cover.",
+      "Recommended by a man who has since died. The recommendation is still on file.",
+      "Left a practice in Bristol under circumstances he describes as a misunderstanding.",
+      "Sailed one previous commission — lost the ship, saved every man. Considers this unremarkable.",
+      "Two commissions without a death he could not account for. This is unusual."
+    ],
+    "reputation": [
+      "Steady hands. Known to drink before noon — never after. So far.",
+      "Known for accuracy in diagnosis. Known for grudges in council.",
+      "Popular with the men. Less so with officers who have been overruled.",
+      "Quiet in his quarters. Less quiet in the sick bay.",
+      "Has made enemies in the surgical corps. Does not appear to regret this.",
+      "The crew trusts him. He has not yet given them reason not to."
+    ]
+  },
+  "chaplain": {
+    "origins": [
+      "Oxford-trained. Took orders before the Navy took him.",
+      "No parish. Came to the Navy after a disagreement with his bishop.",
+      "Welsh. The congregation followed him further than expected.",
+      "Son of a minister. The faith is inherited. The doubt is his own.",
+      "Came late to orders. Prior life not on record.",
+      "Scottish. Two years in a Highland parish before the sea called louder."
+    ],
+    "service": [
+      "Three commissions. The men of two of them speak well of him.",
+      "Served under a commander who did not believe. This was complicated.",
+      "Recommended by the Bishop of London for reasons the Navy found sufficient.",
+      "Left his last posting when the ship made port. The captain's log says he resigned. The crew's account differs.",
+      "Known for giving burial at sea with more ceremony than the regulations require.",
+      "His sermons are short. His prayers are long. The men prefer this."
+    ],
+    "reputation": [
+      "Steady faith. The men find comfort in him. Some find discomfort.",
+      "Believes what he preaches. This is rarer than it should be.",
+      "Popular with the frightened. Less popular with the cynical.",
+      "Has views on omens and providence that the surgeon considers superstition and the crew considers gospel.",
+      "Quiet when things go well. Present when they do not.",
+      "The men confess to him. He does not share what he hears. This is known."
+    ]
+  }
+}

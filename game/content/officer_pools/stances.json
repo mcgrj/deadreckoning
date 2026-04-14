@@ -1,0 +1,38 @@
+{
+  "first_lieutenant": [
+    "Sir — the crew's mood before we sail. I'd want you to know they're holding, but they're watching to see how this commission is run.",
+    "The objective as stated leaves us some latitude on the southern approach. I wanted you to know before we commit.",
+    "I've reviewed the standing orders. I have no objection. I'll enforce them as given.",
+    "There are two men from the last commission I'd rather not see together on a watch. I'll manage it, but you should know."
+  ],
+  "master": [
+    "I've sailed those waters, sir. The omen node the charts show on the northern route — I wouldn't trust the category.",
+    "The western approach is longer, but the eastern has a lee shore in these conditions. Your call.",
+    "I can navigate us through. I'd want the spirit locker available before we enter the narrows — it's cold work.",
+    "The charts are reasonable. I've added my own notes in pencil. Pay attention to the pencil."
+  ],
+  "gunner": [
+    "The powder's in good order. I'd want to know before we sail if we're expecting engagement — there's preparation I'd rather do in harbour.",
+    "The magazine is sound. The forward gun has a question I haven't answered yet. I'll have it answered before we clear the bar.",
+    "I've nothing to raise before we sail, sir. The guns are ready.",
+    "There are three men in my crew I don't know yet. I'll have their measure by the time we need them."
+  ],
+  "purser": [
+    "The stores are loaded as provisioned. I'd want you to know the water casks are new — I don't know them yet.",
+    "I've reviewed the objective. If we're surveying, we'll need extra provisions for shore parties. I can make it work, but it'll be tight.",
+    "The rum allocation is correct. I want that on record before we sail.",
+    "I'm not certain I have enough medicine for a long passage, sir. That's the surgeon's department, but I wanted you to hear it from me."
+  ],
+  "surgeon": [
+    "I've reviewed the charts, sir. The northern route — I'd want extra medicine for what the weather can do to a man in those latitudes.",
+    "The crew's in reasonable health for now. I wouldn't push them hard the first week.",
+    "If I may, sir — I'm not certain I have enough medicine for a long passage.",
+    "There are two men from the last commission who I want to keep an eye on. Nothing formal. Just a concern."
+  ],
+  "chaplain": [
+    "I'll hold a service before we sail if you permit it, sir. The men find it settling.",
+    "The objective the Admiralty has given us — there's something in the phrasing that unsettles me. I may be reading too much into it.",
+    "I've spoken with the men. They're ready. Some of them more than others.",
+    "Sir — the omen node on the northern route. I'm not asking you to change the route. I'm asking you to let me address it with the men before we arrive."
+  ]
+}
