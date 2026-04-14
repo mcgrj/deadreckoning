@@ -5,8 +5,6 @@
 # Spec: docs/superpowers/specs/2026-04-13-stage-6a-admiralty-preparation-design.md
 extends Node
 
-const OfficerGenerator := preload("res://src/expedition/OfficerGenerator.gd")
-
 const SLOT_DEFAULT := "default"
 
 ## Pending run config passed from PreparationScene to RunScene across scene changes.

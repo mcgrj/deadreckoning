@@ -7,8 +7,6 @@
 class_name ProgressionState
 extends Resource
 
-const OfficerGenerator := preload("res://src/expedition/OfficerGenerator.gd")
-
 @export var completed_objective_ids: Array[String] = []
 @export var unlocked_content_ids: Array[String] = []
 @export var last_run_difficulty_score: int = 0
