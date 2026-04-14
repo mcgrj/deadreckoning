@@ -222,14 +222,16 @@ func _test_compute_bias_effects() -> void:
 	var scene: Node = PrepClass.new()
 
 	# blamed_crew → first_lieutenant_lenient unavailable, iron_discipline recommended
-	var effects: Dictionary = scene.call("_compute_bias_effects", ["blamed_crew"])
+	var bias1: Array[String] = ["blamed_crew"]
+	var effects: Dictionary = scene.call("_compute_bias_effects", bias1)
 	check("first_lieutenant_lenient" in effects.get("unavailable_ids", []),
 		"blamed_crew makes lenient lieutenant unavailable")
 	check(effects.get("recommended", {}).has("iron_discipline"),
 		"blamed_crew recommends iron_discipline doctrine")
 
 	# admitted_failure → reformist officer surfaced
-	var effects2: Dictionary = scene.call("_compute_bias_effects", ["admitted_failure"])
+	var bias2: Array[String] = ["admitted_failure"]
+	var effects2: Dictionary = scene.call("_compute_bias_effects", bias2)
 	check(effects2.get("recommended", {}).has("first_lieutenant_lenient"),
 		"admitted_failure surfaces lenient lieutenant as recommended")
 
@@ -241,10 +243,12 @@ func _test_admiralty_letter_text() -> void:
 	var PrepClass: GDScript = load("res://src/ui/PreparationScene.gd")
 	var scene: Node = PrepClass.new()
 
-	var text: String = scene.call("_build_letter_text", ["blamed_crew"])
+	var letter_bias: Array[String] = ["blamed_crew"]
+	var text: String = scene.call("_build_letter_text", letter_bias)
 	check(text.length() > 10, "letter text non-empty for blamed_crew bias")
 	check(text.contains("crew") or text.contains("men"), "blamed_crew letter mentions crew")
 
-	var empty_text: String = scene.call("_build_letter_text", [])
+	var empty_bias: Array[String] = []
+	var empty_text: String = scene.call("_build_letter_text", empty_bias)
 	check(empty_text == "", "no bias produces empty letter text")
 	scene.free()

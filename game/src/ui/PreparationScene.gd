@@ -27,7 +27,7 @@ var _scandal_flags: Array[String] = []
 var _unavailable_ids: Array[String] = []   # content ids greyed out this prep
 var _recommended: Dictionary = {}          # content_id -> { reward_text, type, trait? }
 var _free_upgrade_id: String = ""          # recommended upgrade that doesn't use a slot
-var _allocation_panel: VBoxContainer = null
+var _allocation_panel: VBoxContainer = null  # wired up in _build_ui (Task 10)
 
 
 # Returns { "unavailable_ids": Array[String], "recommended": Dictionary }
@@ -78,8 +78,15 @@ func _compute_bias_effects(bias: Array[String]) -> Dictionary:
 func _build_letter_text(bias: Array[String]) -> String:
 	if bias.is_empty():
 		return ""
-	var sentences: Array[String] = []
+	# Deduplicate bias keys first — same framing filed multiple times produces one sentence.
+	var seen_keys: Array[String] = []
+	var unique_bias: Array[String] = []
 	for b: String in bias:
+		if b not in seen_keys:
+			seen_keys.append(b)
+			unique_bias.append(b)
+	var sentences: Array[String] = []
+	for b: String in unique_bias:
 		match b:
 			"blamed_crew":
 				sentences.append("Your account of the crew's insubordination during the previous commission was noted. The Board expects firmer authority on this voyage. Officers of a lenient temperament have not been made available to you.")
@@ -99,14 +106,7 @@ func _build_letter_text(bias: Array[String]) -> String:
 				sentences.append("The Board accepted your previous account. They will be paying closer attention to the ship log on your next commission.")
 			"compliant":
 				sentences.append("Full compliance with the Board's recommendations has been noted. Expectations for the next commission will reflect this record.")
-	# Deduplicate while preserving order (same bias string can appear multiple times)
-	var seen: Array[String] = []
-	var unique: Array[String] = []
-	for s: String in sentences:
-		if s not in seen:
-			seen.append(s)
-			unique.append(s)
-	return "\n\n".join(unique)
+	return "\n\n".join(sentences)
 
 
 func _ready() -> void:
