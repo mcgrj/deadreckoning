@@ -82,6 +82,8 @@ static func generate(role: String) -> OfficerDef:
 	def.notable_events = []
 	def.starting_effects = []
 	def.advice_hooks = []
+	def.pre_voyage_promise_id = ""
+	def.pre_voyage_promise_text = ""
 
 	return def
 
