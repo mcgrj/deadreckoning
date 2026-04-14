@@ -27,9 +27,10 @@ func _ready() -> void:
 	root_hbox.add_theme_constant_override("separation", 16)
 	add_child(root_hbox)
 
-	# Left: secondary stats — expand so they're not crammed in the corner
+	# Left: secondary stats — expand and centre vertically in the bar
 	var left := HBoxContainer.new()
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	left.add_theme_constant_override("separation", 28)
 	left.alignment = BoxContainer.ALIGNMENT_BEGIN
 	root_hbox.add_child(left)
@@ -42,6 +43,7 @@ func _ready() -> void:
 	# Centre: world clock
 	var centre := HBoxContainer.new()
 	centre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	centre.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	centre.alignment = BoxContainer.ALIGNMENT_CENTER
 	root_hbox.add_child(centre)
 
@@ -64,6 +66,7 @@ func _ready() -> void:
 	# Right: Burden + Command bars
 	var right := VBoxContainer.new()
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	right.add_theme_constant_override("separation", 8)
 	right.alignment = BoxContainer.ALIGNMENT_CENTER
 	root_hbox.add_child(right)

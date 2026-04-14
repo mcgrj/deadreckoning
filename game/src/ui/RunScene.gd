@@ -154,9 +154,16 @@ func _do_advance() -> void:
 		_status_label.text = "ERROR: zone not found"
 		return
 
+	# Capture the node we're about to arrive at (ticks_remaining == 1 means arrival)
+	var arriving_node: RouteNode = _route.active_node if _route.ticks_remaining == 1 else null
+
 	_state.tick_count += 1
 	TravelSimulator.process_tick(_state, zone, _log)
 	_route.advance_tick()
+
+	# Node-arrival incident: guarantee an event fires when reaching each node
+	if arriving_node != null and _state.pending_incident_id.is_empty() and _state.run_end_reason.is_empty():
+		_try_node_arrival_incident(arriving_node)
 
 	_stats_bar.refresh(_state)
 	_log_panel.append_latest(_log)
@@ -169,6 +176,30 @@ func _do_advance() -> void:
 	if _state.run_end_reason != "":
 		_log_panel.append_latest(_log)
 		_transition_to_run_end()
+
+
+# Selects a random eligible incident when arriving at a node.
+# Uses the same tick-trigger pool (all incidents are tick-band for now).
+func _try_node_arrival_incident(node: RouteNode) -> void:
+	var eligible: Array = []
+	for item: ContentBase in ContentRegistry.get_all("incidents"):
+		var inc := item as IncidentDef
+		if inc == null:
+			continue
+		var last: int = _state.incident_last_fired.get(inc.id, -GameConstants.INCIDENT_COOLDOWN_TICKS)
+		if _state.tick_count - last < GameConstants.INCIDENT_COOLDOWN_TICKS:
+			continue
+		if not ConditionEvaluator.all_met(_state, inc.required_conditions, _log):
+			continue
+		eligible.append(inc)
+	if eligible.is_empty():
+		return
+	var chosen: IncidentDef = eligible[randi() % eligible.size()]
+	_state.pending_incident_id = chosen.id
+	_state.incident_last_fired[chosen.id] = _state.tick_count
+	_log.log_event(_state.tick_count, "RunScene",
+		"Arrived at %s — incident: %s" % [node.id, chosen.id],
+		{"incident_id": chosen.id, "node": node.id})
 
 
 func _show_incident() -> void:
