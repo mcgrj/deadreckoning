@@ -51,3 +51,7 @@ const DIFFICULTY_BURDEN_WEIGHT: float = 0.3
 const DIFFICULTY_COMMAND_WEIGHT: float = 0.3
 const DIFFICULTY_CREW_LOSS_WEIGHT: int = 5
 const DIFFICULTY_SUPPLY_DEPLETION_WEIGHT: int = 3
+
+# Admiralty recommendation rewards
+const RECOMMENDATION_SUPPLY_BONUS: int = 10   # Extra food granted for accepting recommended objective
+const RECOMMENDATION_COMMAND_BONUS: int = 5   # Command granted for accepting recommended doctrine
