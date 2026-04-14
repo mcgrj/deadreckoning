@@ -15,6 +15,7 @@ const VALID_EFFECT_TYPES: Array[String] = [
 	"set_memory_flag",
 	"add_crew_trait",
 	"remove_crew_trait",
+	"add_officer_scar",
 ]
 
 const VALID_CONDITION_TYPES: Array[String] = [
@@ -30,6 +31,7 @@ const VALID_CONDITION_TYPES: Array[String] = [
 	"zone_type_is",
 	"has_standing_order",
 	"ship_condition_gte",
+	"officer_has_scar",
 ]
 
 

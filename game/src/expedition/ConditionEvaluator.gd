@@ -75,6 +75,12 @@ static func evaluate(state: ExpeditionState, condition: ConditionDef, log: Simul
 			details["actual"] = state.ship_condition
 			message = "Ship condition %d >= %d? %s" % [state.ship_condition, condition.threshold, "PASS" if result else "FAIL"]
 
+		"officer_has_scar":
+			result = state.officer_has_scar(condition.target_id, condition.tag)
+			details["role"] = condition.target_id
+			details["scar"] = condition.tag
+			message = "Officer '%s' has scar '%s'? %s" % [condition.target_id, condition.tag, "PASS" if result else "FAIL"]
+
 		_:
 			push_warning("ConditionEvaluator: unknown condition type '%s'" % condition.type)
 			result = false

@@ -37,6 +37,10 @@ var stress_indicators: Dictionary = {
 	"crew_losses": 0,
 	"supply_depletions": 0,
 }
+## Officer scars active this run. Keys are role strings; values are Array[String] of scar tags.
+## Populated from pool at run start (persistent scars) and appended to during the run (provisional).
+var officer_defs: Array = []  # Array[OfficerDef] — not exported; holds hired officer records for this run
+var officer_scars: Dictionary = {}  # role -> Array[String]
 var run_end_reason: String = ""        # "completed" | "mutiny" | "breakdown" | ""
 var command_culture: String = ""       # Set from doctrine's command_culture_modifier
 var active_objective_id: String = ""   # The objective selected at preparation
@@ -206,6 +210,19 @@ func nudge_leadership_tag(tag: String) -> void:
 	if not leadership_tags.has(tag):
 		leadership_tags[tag] = 0
 	leadership_tags[tag] += 1
+
+
+# --- Officer scar accessors ---
+
+func add_officer_scar(role: String, scar_tag: String) -> void:
+	if not officer_scars.has(role):
+		officer_scars[role] = []
+	if scar_tag not in officer_scars[role]:
+		officer_scars[role].append(scar_tag)
+
+
+func officer_has_scar(role: String, scar_tag: String) -> bool:
+	return scar_tag in officer_scars.get(role, [])
 
 
 # --- Promise methods ---

@@ -73,6 +73,12 @@ static func apply(state: ExpeditionState, effect: EffectDef, log: SimulationLog)
 				"Removed crew trait: %s" % effect.tag,
 				{"type": "remove_crew_trait", "tag": effect.tag})
 
+		"add_officer_scar":
+			state.add_officer_scar(effect.target_id, effect.tag)
+			log.log_effect(state.tick_count, "EffectProcessor",
+				"Officer scar '%s' added to role '%s'" % [effect.tag, effect.target_id],
+				{"type": "add_officer_scar", "role": effect.target_id, "scar": effect.tag})
+
 		_:
 			push_warning("EffectProcessor: unknown effect type '%s'" % effect.type)
 			log.log_effect(state.tick_count, "EffectProcessor",
