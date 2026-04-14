@@ -73,13 +73,14 @@ func _ready() -> void:
 	)
 	add_child(timer)
 	set_process(true)
-	set_process_unhandled_input(true)
 
 
 func _process(_delta: float) -> void:
 	if _route == null:
 		return
-	var mouse := get_global_mouse_position() - global_position - _offset
+	# get_local_mouse_position() is relative to this Control's top-left;
+	# subtract _offset to get canvas-local coords
+	var mouse := get_local_mouse_position() - _offset
 	var new_hover: RouteNode = null
 	for node: RouteNode in _all_nodes():
 		if _node_canvas_pos(node).distance_to(mouse) < NODE_RADIUS:
@@ -90,7 +91,9 @@ func _process(_delta: float) -> void:
 		queue_redraw()
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _gui_input(event: InputEvent) -> void:
+	# _unhandled_input is not used because Control (MOUSE_FILTER_STOP default)
+	# consumes mouse button events before they reach _unhandled_input.
 	if not (event is InputEventMouseButton):
 		return
 	var mb := event as InputEventMouseButton
@@ -98,10 +101,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _route == null or _route.is_travelling():
 		return
-	var mouse := mb.global_position - global_position - _offset
+	# mb.position is local to this Control; subtract _offset for canvas-local coords
+	var canvas_mouse := mb.position - _offset
 	for node: RouteNode in _route.get_current_stage():
-		if _node_canvas_pos(node).distance_to(mouse) < NODE_RADIUS:
+		if _node_canvas_pos(node).distance_to(canvas_mouse) < NODE_RADIUS:
 			node_selected.emit(node)
+			get_viewport().set_input_as_handled()
 			return
 
 

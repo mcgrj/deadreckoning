@@ -31,6 +31,12 @@ func _ready() -> void:
 
 
 func _build_ui() -> void:
+	# Dark background
+	var bg := ColorRect.new()
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color.html("#0a0a14")
+	add_child(bg)
+
 	var root_vbox := VBoxContainer.new()
 	root_vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root_vbox.add_theme_constant_override("separation", 0)
@@ -49,8 +55,9 @@ func _build_ui() -> void:
 	body.add_theme_constant_override("separation", 0)
 	root_vbox.add_child(body)
 
-	# Left: log panel
+	# Left: log panel (fixed 270px)
 	_log_panel = LogPanel.new()
+	_log_panel.custom_minimum_size.x = 270
 	_log_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body.add_child(_log_panel)
 
