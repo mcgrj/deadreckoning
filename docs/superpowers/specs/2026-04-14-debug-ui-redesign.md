@@ -276,6 +276,14 @@ Each button calls `_activate_tab(tab_name)` and executes its action, then refres
 
 Active promise shown below the grid as a styled block with remaining ticks.
 
+**Progression panel** — below the state grid, a separate styled block showing `ProgressionState` fields loaded from `SaveManager`:
+- `admiralty_bias` — rendered as a row of small tag Labels (same style as standing orders), one per accumulated bias string
+- `scandal_flags` — rendered as a row of tag Labels in amber (same style as damage tags)
+- `last_run_difficulty_score` — single value row
+- If both arrays are empty, show a muted "(no Admiralty record)" placeholder
+
+This data is read-only in the debug scene — it reflects what `SaveManager` has persisted, not a live `ExpeditionState`.
+
 **Route tab** — embeds the same `RouteMapNode` scene used in RunScene. Shows the current route state. "Show Route" button in sidebar initialises the route if not yet created.
 
 **Log tab** — full-width log table with columns: Tick | Source | Message. All entries, oldest first (or reverse with a toggle). Wider source column than LogPanel since space is available.
