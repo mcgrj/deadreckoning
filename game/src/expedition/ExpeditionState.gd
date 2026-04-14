@@ -104,6 +104,16 @@ static func create_from_config(config: Dictionary) -> ExpeditionState:
 				state.officer_defs.append(officer_def)
 				EffectProcessor.apply_effects(state, officer_def.starting_effects, log)
 
+	# Seed pre-voyage hire promise from the first hired officer who requires one.
+	# Only one active promise is supported at a time; the first officer encountered wins.
+	# Deadline 999 is intentionally longer than any run — the promise is broken by
+	# incident outcomes, not by expiry.
+	var _seed_log := SimulationLog.new()
+	for _officer_def: OfficerDef in state.officer_defs:
+		if _officer_def.pre_voyage_promise_id != "" and state.active_promise.is_empty():
+			state.make_promise(_officer_def.pre_voyage_promise_id, _officer_def.pre_voyage_promise_text, 999, _seed_log)
+			break
+
 	# Apply selected upgrades
 	var upgrade_ids: Array = config.get("upgrade_ids", [])
 	for upgrade_id: String in upgrade_ids:
