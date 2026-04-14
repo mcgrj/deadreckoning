@@ -9,7 +9,7 @@ extends Resource
 ## The choice option text shown to the player.
 @export var choice_text: String = ""
 
-## Officer id who proposes this choice. Empty = captain's own option.
+## Officer role who proposes this choice (e.g. "surgeon", "bosun"). Empty = captain's own option.
 @export var officer_id: String = ""
 
 ## All conditions must pass for this choice to appear.
