@@ -4,7 +4,7 @@
 #
 # Valid types: burden_above, burden_below, command_above, command_below, supply_below,
 #              has_damage_tag, has_memory_flag, has_crew_trait, officer_present, zone_type_is,
-#              has_standing_order
+#              has_standing_order, officer_has_scar
 #
 # Spec: docs/superpowers/specs/2026-04-13-stage-2-expedition-state-design.md
 class_name ConditionDef
@@ -19,8 +19,8 @@ extends Resource
 ## Memory flag key for has_memory_flag conditions.
 @export var flag_key: String = ""
 
-## Tag string for has_damage_tag, has_crew_trait, officer_present, zone_type_is.
+## Tag string for has_damage_tag, has_crew_trait, officer_present, zone_type_is, officer_has_scar.
 @export var tag: String = ""
 
-## Target id for supply_below (supply id), officer_present (officer id), etc.
+## Target id for supply_below (supply id), officer_present (officer id), officer_has_scar (officer id), etc.
 @export var target_id: String = ""
