@@ -21,6 +21,9 @@ func _ready() -> void:
 	_test_game_constants()
 	_test_progression_state_new_fields()
 	_test_record_report_framing()
+	_test_framing_gate_mutiny()
+	_test_framing_gate_breakdown()
+	_test_framing_gate_losses()
 	_finish()
 
 
@@ -84,3 +87,60 @@ func _test_record_report_framing() -> void:
 	# Clean up
 	DirAccess.remove_absolute(GameConstants.SAVE_DIR + slot + "/progression.tres")
 	DirAccess.remove_absolute(GameConstants.SAVE_DIR + slot + "/")
+
+
+func _test_framing_gate_mutiny() -> void:
+	print("-- Framing gate: mutiny --")
+	var RunEndSceneClass: GDScript = load("res://src/ui/RunEndScene.gd")
+	var scene: Node = RunEndSceneClass.new()
+	var state := ExpeditionState.new()
+	state.run_end_reason = "mutiny"
+	state.stress_indicators = {"crew_losses": 0, "peak_burden": 80, "min_command": 10, "supply_depletions": 0}
+	scene.set("final_state", state)
+	scene.set("_objective_success", false)
+	var available: Array = scene.call("_get_available_framings")
+	check("suppress_mutiny" in available, "suppress_mutiny available on mutiny")
+	check("blame_crew" in available, "blame_crew available on mutiny (any_failure)")
+	check("admit_failure" in available, "admit_failure available on mutiny (any_failure)")
+	scene.free()
+
+
+func _test_framing_gate_breakdown() -> void:
+	print("-- Framing gate: breakdown --")
+	var RunEndSceneClass: GDScript = load("res://src/ui/RunEndScene.gd")
+	var scene: Node = RunEndSceneClass.new()
+	var state := ExpeditionState.new()
+	state.run_end_reason = "breakdown"
+	state.stress_indicators = {"crew_losses": 0, "peak_burden": 100, "min_command": 30, "supply_depletions": 0}
+	scene.set("final_state", state)
+	scene.set("_objective_success", false)
+	var available: Array = scene.call("_get_available_framings")
+	check("suppress_mutiny" not in available, "suppress_mutiny NOT available on breakdown")
+	check("blame_crew" in available, "blame_crew available on breakdown")
+	check("admit_failure" in available, "admit_failure available on breakdown")
+	scene.free()
+
+
+func _test_framing_gate_losses() -> void:
+	print("-- Framing gate: glorify_sacrifice requires losses --")
+	var RunEndSceneClass: GDScript = load("res://src/ui/RunEndScene.gd")
+	var scene: Node = RunEndSceneClass.new()
+	var state := ExpeditionState.new()
+	state.run_end_reason = "breakdown"
+	state.stress_indicators = {"crew_losses": 2, "peak_burden": 80, "min_command": 30, "supply_depletions": 0}
+	scene.set("final_state", state)
+	scene.set("_objective_success", false)
+	var available: Array = scene.call("_get_available_framings")
+	check("glorify_sacrifice" in available, "glorify_sacrifice available when crew_losses > 0")
+
+	# No losses — not available
+	var scene2: Node = RunEndSceneClass.new()
+	var state2 := ExpeditionState.new()
+	state2.run_end_reason = "breakdown"
+	state2.stress_indicators = {"crew_losses": 0, "peak_burden": 80, "min_command": 30, "supply_depletions": 0}
+	scene2.set("final_state", state2)
+	scene2.set("_objective_success", false)
+	var available2: Array = scene2.call("_get_available_framings")
+	check("glorify_sacrifice" not in available2, "glorify_sacrifice NOT available when no losses")
+	scene2.free()
+	scene.free()

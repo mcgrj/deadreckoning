@@ -13,6 +13,134 @@ var _objective_def: ObjectiveDef = null
 var _objective_success: bool = false
 var _difficulty_score: int = 0
 
+var _selected_framing: String = ""
+
+# Each entry: id -> { title, spin_text, consequence_text, bias_string, scandal_flag, gate }
+# gate values:
+#   "mutiny"                   — run_end_reason == "mutiny"
+#   "any_failure"              — run_end_reason in ["mutiny", "breakdown"]
+#   "failure_with_hazard"      — failed + storm/hazard memory flag
+#   "failure_with_misconduct"  — failed + misconduct memory flag
+#   "failure_with_officer"     — failed + objective failed + officer incident flag
+#   "any_with_losses"          — crew_losses > 0 (any outcome)
+#   "success_with_discipline"  — completed + discipline standing order active
+const FRAMING_OPTIONS: Dictionary = {
+	"suppress_mutiny": {
+		"title": "Suppress the Mutiny",
+		"spin_text": "You report a disciplinary incident. The mutiny goes unrecorded. The Admiralty will not know the crew took the ship — unless someone talks.",
+		"consequence_text": "The Board grants you authority to manage discipline privately on your next commission. They will be watching for further irregularities.",
+		"bias_string": "suppressed_mutiny",
+		"scandal_flag": "scandal_suppressed_mutiny",
+		"gate": "mutiny",
+	},
+	"blame_crew": {
+		"title": "Blame the Crew",
+		"spin_text": "The men were unfit. Pressed sailors with no loyalty and no discipline. You held command as long as any officer could have.",
+		"consequence_text": "The Admiralty will not provision pressed men for your next voyage. You will receive volunteers — fewer of them, and they will expect better conditions.",
+		"bias_string": "blamed_crew",
+		"scandal_flag": "scandal_blamed_crew",
+		"gate": "any_failure",
+	},
+	"admit_failure": {
+		"title": "Admit Command Failure",
+		"spin_text": "The breakdown of authority was yours to prevent. You did not. The record should say so.",
+		"consequence_text": "The Admiralty respects the candour. They assign you a reformist first lieutenant for the next expedition — an officer who believes authority is earned, not assumed.",
+		"bias_string": "admitted_failure",
+		"scandal_flag": "scandal_admitted_failure",
+		"gate": "any_failure",
+	},
+	"blame_weather": {
+		"title": "Blame the Weather",
+		"spin_text": "The conditions were beyond any officer's ability to manage. Storms, spoiled stores, a passage the charts did not adequately warn of.",
+		"consequence_text": "The Admiralty notes the conditions. They add a supply buffer to your next commission — and will select a more demanding route to test your claim.",
+		"bias_string": "weather_blamed",
+		"scandal_flag": "scandal_weather_blamed",
+		"gate": "failure_with_hazard",
+	},
+	"conceal_misconduct": {
+		"title": "Conceal Misconduct",
+		"spin_text": "Certain incidents on the lower deck need not concern the Admiralty. What happened was managed. The record will reflect a disciplined ship.",
+		"consequence_text": "The Board accepts the account. They will be paying closer attention to your next commission's ship log.",
+		"bias_string": "concealed_misconduct",
+		"scandal_flag": "scandal_concealed_misconduct",
+		"gate": "failure_with_misconduct",
+	},
+	"accuse_officer": {
+		"title": "Accuse a Rival Officer",
+		"spin_text": "The expedition's failure traces to an officer whose conduct was unsuitable for command. The objective was never attempted because of their interference.",
+		"consequence_text": "The Board investigates. The accused officer's role will not be filled by their usual contacts on your next commission.",
+		"bias_string": "officer_accused",
+		"scandal_flag": "scandal_officer_accused",
+		"gate": "failure_with_officer",
+	},
+	"glorify_sacrifice": {
+		"title": "Glorify the Sacrifice",
+		"spin_text": "Men died holding this expedition together. The Admiralty should know what this crew endured before judging the outcome.",
+		"consequence_text": "The Admiralty commends the effort. They add an additional supply allocation to your next commission — and expect results to match the hardship you describe.",
+		"bias_string": "sacrifice_on_record",
+		"scandal_flag": "scandal_glorified_sacrifice",
+		"gate": "any_with_losses",
+	},
+	"emphasise_discipline": {
+		"title": "Emphasise Discipline",
+		"spin_text": "The expedition maintained order throughout. Standards were upheld. The crew performed as directed.",
+		"consequence_text": "The Admiralty notes the command culture. Iron Discipline doctrine is commended for your next commission.",
+		"bias_string": "discipline_on_record",
+		"scandal_flag": "",
+		"gate": "success_with_discipline",
+	},
+}
+
+
+func _get_available_framings() -> Array[String]:
+	var available: Array[String] = []
+	var failed: bool = final_state.run_end_reason in ["mutiny", "breakdown"]
+	for id: String in FRAMING_OPTIONS:
+		var opt: Dictionary = FRAMING_OPTIONS[id]
+		var include := false
+		match opt.get("gate", ""):
+			"mutiny":
+				include = (final_state.run_end_reason == "mutiny")
+			"any_failure":
+				include = failed
+			"failure_with_hazard":
+				include = failed and _has_hazard_flag()
+			"failure_with_misconduct":
+				include = failed and _has_misconduct_flag()
+			"failure_with_officer":
+				include = failed and not _objective_success and _has_officer_incident_flag()
+			"any_with_losses":
+				include = (final_state.stress_indicators.get("crew_losses", 0) > 0)
+			"success_with_discipline":
+				include = (final_state.run_end_reason == "completed") and _has_discipline_order()
+		if include:
+			available.append(id)
+	return available
+
+
+func _has_hazard_flag() -> bool:
+	return ("storm_survived" in final_state.memory_flags or
+			"hazard_encountered" in final_state.memory_flags)
+
+
+func _has_misconduct_flag() -> bool:
+	for flag: String in ["rum_theft_unresolved", "botched_hanging", "burial_denied", "officer_misconduct"]:
+		if flag in final_state.memory_flags:
+			return true
+	return false
+
+
+func _has_officer_incident_flag() -> bool:
+	for flag: String in ["purser_exposed", "surgeon_publicly_overruled", "officer_dispute"]:
+		if flag in final_state.memory_flags:
+			return true
+	return false
+
+
+func _has_discipline_order() -> bool:
+	return ("suppress_dissent" in final_state.standing_orders or
+			"strict_watches" in final_state.standing_orders)
+
 
 func _ready() -> void:
 	if final_state == null:
