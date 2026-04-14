@@ -53,6 +53,15 @@ func record_objective_complete(objective_id: String, slot_id: String = SLOT_DEFA
 	save_progression(progression, slot_id)
 
 
+func record_report_framing(bias_string: String, scandal_flag: String, slot_id: String = SLOT_DEFAULT) -> void:
+	var progression := load_progression(slot_id)
+	if bias_string != "":
+		progression.admiralty_bias.append(bias_string)
+	if scandal_flag != "":
+		progression.scandal_flags.append(scandal_flag)
+	save_progression(progression, slot_id)
+
+
 func save_run_state(state: ExpeditionState, slot_id: String = SLOT_DEFAULT) -> void:
 	# Stub: full implementation in RunScene (Task 9).
 	# ExpeditionState is RefCounted, not Resource — serialised as JSON.

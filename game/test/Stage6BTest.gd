@@ -20,6 +20,7 @@ func _ready() -> void:
 	print("=== Stage6BTest ===\n")
 	_test_game_constants()
 	_test_progression_state_new_fields()
+	_test_record_report_framing()
 	_finish()
 
 
@@ -57,3 +58,28 @@ func _test_progression_state_new_fields() -> void:
 	var d := ProgressionState.create_default()
 	check(d.admiralty_bias.size() == 0, "create_default admiralty_bias is empty")
 	check(d.scandal_flags.size() == 0, "create_default scandal_flags is empty")
+
+
+func _test_record_report_framing() -> void:
+	print("-- SaveManager.record_report_framing --")
+	var slot := "test_slot_6b"
+
+	# First framing
+	SaveManager.record_report_framing("blamed_crew", "scandal_blamed_crew", slot)
+	var p := SaveManager.load_progression(slot)
+	check("blamed_crew" in p.admiralty_bias, "bias appended after first call")
+	check("scandal_blamed_crew" in p.scandal_flags, "scandal flag appended after first call")
+
+	# Second framing — same bias, different flag
+	SaveManager.record_report_framing("blamed_crew", "scandal_blamed_crew", slot)
+	p = SaveManager.load_progression(slot)
+	check(p.admiralty_bias.size() == 2, "admiralty_bias accumulates across calls")
+	check(p.scandal_flags.size() == 2, "scandal_flags accumulates across calls")
+
+	# Empty flag — no panic
+	SaveManager.record_report_framing("discipline_on_record", "", slot)
+	p = SaveManager.load_progression(slot)
+	check(p.scandal_flags.size() == 2, "empty scandal_flag not appended")
+
+	# Clean up
+	DirAccess.remove_absolute(GameConstants.SAVE_DIR + slot + "/progression.tres")
