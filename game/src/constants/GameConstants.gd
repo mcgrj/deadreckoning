@@ -55,3 +55,8 @@ const DIFFICULTY_SUPPLY_DEPLETION_WEIGHT: int = 3
 # Admiralty recommendation rewards
 const RECOMMENDATION_SUPPLY_BONUS: int = 10   # Extra food granted for accepting recommended objective
 const RECOMMENDATION_COMMAND_BONUS: int = 5   # Command granted for accepting recommended doctrine
+
+# Scar thresholds — minimum values that trigger a run-end scar on all surviving officers
+const SCAR_THRESHOLD_CREW_LOSSES: int = 2
+const SCAR_THRESHOLD_MIN_COMMAND: int = 30
+const SCAR_THRESHOLD_PEAK_BURDEN: int = 75

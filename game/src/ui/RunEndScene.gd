@@ -359,7 +359,32 @@ func _on_framing_selected(framing_id: String, btn: Button, return_btn: Button) -
 	return_btn.disabled = false
 
 
+func _apply_threshold_scars() -> void:
+	if final_state == null:
+		return
+	var losses: int = final_state.stress_indicators.get("crew_losses", 0)
+	var min_cmd: int = final_state.stress_indicators.get("min_command", 100)
+	var peak_brd: int = final_state.stress_indicators.get("peak_burden", 0)
+
+	for def: OfficerDef in final_state.officer_defs:
+		if losses >= GameConstants.SCAR_THRESHOLD_CREW_LOSSES:
+			final_state.add_officer_scar(def.role, "survivor_of_high_losses")
+		if min_cmd <= GameConstants.SCAR_THRESHOLD_MIN_COMMAND:
+			final_state.add_officer_scar(def.role, "witnessed_authority_collapse")
+		if peak_brd >= GameConstants.SCAR_THRESHOLD_PEAK_BURDEN:
+			final_state.add_officer_scar(def.role, "endured_extreme_hardship")
+
+
 func _on_return() -> void:
+	# Apply run-end threshold scars to all officers that survived the run
+	_apply_threshold_scars()
+
+	# Commit scars to pool and save progression
+	var progression := SaveManager.load_progression()
+	SaveManager.commit_officer_scars(final_state, progression)
+	SaveManager.replenish_pool(progression)
+	SaveManager.save_progression(progression)
+
 	if _selected_framing != "":
 		var opt: Dictionary = FRAMING_OPTIONS.get(_selected_framing, {})
 		SaveManager.record_report_framing(
