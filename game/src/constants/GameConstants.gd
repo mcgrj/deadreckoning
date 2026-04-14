@@ -32,14 +32,6 @@ const INCIDENT_COMMAND_BONUS: float = 0.20        # Low command = weak authority
 const INCIDENT_FATIGUE_BONUS: float = 0.15        # High fatigue = short tempers
 const INCIDENT_SICKNESS_BONUS: float = 0.10       # High sickness = fear and resentment
 
-static func incident_trigger_chance(burden: int, command: int, fatigue: int, sickness: int) -> float:
-	return clampf(
-		INCIDENT_BASE_TRIGGER_CHANCE
-		+ (float(burden) / 100.0) * INCIDENT_BURDEN_BONUS
-		+ (float(100 - command) / 100.0) * INCIDENT_COMMAND_BONUS
-		+ (float(fatigue) / 100.0) * INCIDENT_FATIGUE_BONUS
-		+ (float(sickness) / 100.0) * INCIDENT_SICKNESS_BONUS,
-		0.0, INCIDENT_MAX_TRIGGER_CHANCE)
 
 # Supply exhaustion penalties (burden spikes when a supply hits zero)
 const BURDEN_ON_FOOD_EXHAUSTED: int = 6

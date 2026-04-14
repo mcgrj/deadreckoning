@@ -277,16 +277,19 @@ func _test_incident_cooldown() -> void:
 
 func _test_incident_trigger_chance_scaling() -> void:
 	print("-- Incident trigger chance scaling --")
-	# burden=20, command=70, fatigue=0, sickness=0
-	# = 0.25 + 0.06 + 0.06 + 0 + 0 = 0.37
-	check(absf(GameConstants.incident_trigger_chance(20, 70, 0, 0) - 0.37) < 0.001,
+	var s := ExpeditionState.new()
+
+	# burden=20, command=70, fatigue=0, sickness=0 → 0.25 + 0.06 + 0.06 + 0 + 0 = 0.37
+	s.burden = 20; s.command = 70; s.travel_fatigue = 0; s.sickness_risk = 0
+	check(absf(TravelSimulator._incident_trigger_chance(s) - 0.37) < 0.001,
 		"healthy state chance is 0.37")
 
-	# burden=80, command=20, fatigue=60, sickness=50
-	# = 0.25 + 0.24 + 0.16 + 0.09 + 0.05 = 0.79
-	check(absf(GameConstants.incident_trigger_chance(80, 20, 60, 50) - 0.79) < 0.001,
+	# burden=80, command=20, fatigue=60, sickness=50 → 0.25 + 0.24 + 0.16 + 0.09 + 0.05 = 0.79
+	s.burden = 80; s.command = 20; s.travel_fatigue = 60; s.sickness_risk = 50
+	check(absf(TravelSimulator._incident_trigger_chance(s) - 0.79) < 0.001,
 		"crisis state chance is 0.79")
 
-	# Max everything is capped at INCIDENT_MAX_TRIGGER_CHANCE
-	check(GameConstants.incident_trigger_chance(100, 0, 100, 100) <= GameConstants.INCIDENT_MAX_TRIGGER_CHANCE,
+	# Max everything is capped
+	s.burden = 100; s.command = 0; s.travel_fatigue = 100; s.sickness_risk = 100
+	check(TravelSimulator._incident_trigger_chance(s) <= GameConstants.INCIDENT_MAX_TRIGGER_CHANCE,
 		"max stats capped at INCIDENT_MAX_TRIGGER_CHANCE")
