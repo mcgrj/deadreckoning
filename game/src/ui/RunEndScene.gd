@@ -13,7 +13,7 @@ var _objective_def: ObjectiveDef = null
 var _objective_success: bool = false
 var _difficulty_score: int = 0
 
-var _selected_framing: String = ""
+var _selected_framing: String = ""  # set by _on_framing_selected; consumed by _on_return
 
 # Each entry: id -> { title, spin_text, consequence_text, bias_string, scandal_flag, gate }
 # gate values:
@@ -93,6 +93,8 @@ const FRAMING_OPTIONS: Dictionary = {
 
 
 func _get_available_framings() -> Array[String]:
+	if final_state == null:
+		return []
 	var available: Array[String] = []
 	var failed: bool = final_state.run_end_reason in ["mutiny", "breakdown"]
 	for id: String in FRAMING_OPTIONS:

@@ -142,5 +142,5 @@ func _test_framing_gate_losses() -> void:
 	scene2.set("_objective_success", false)
 	var available2: Array = scene2.call("_get_available_framings")
 	check("glorify_sacrifice" not in available2, "glorify_sacrifice NOT available when no losses")
-	scene2.free()
 	scene.free()
+	scene2.free()
