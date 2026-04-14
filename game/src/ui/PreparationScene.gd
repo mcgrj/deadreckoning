@@ -124,6 +124,7 @@ func _ready() -> void:
 			_free_upgrade_id = content_id
 	SaveManager.replenish_pool(progression)
 	_officer_pool_defs = progression.officer_pool
+	SaveManager.save_progression(progression)
 	_build_ui()
 
 
