@@ -68,13 +68,51 @@ func _ready() -> void:
 	right.alignment = BoxContainer.ALIGNMENT_CENTER
 	root_hbox.add_child(right)
 
-	var burden_result := _add_bar_row(right, "BURDEN", Color(1.0, 0.5, 0.1))
-	_burden_val = burden_result[0]
-	_burden_fill = burden_result[1]
+	# Burden bar row
+	var burden_row := HBoxContainer.new()
+	burden_row.add_theme_constant_override("separation", 6)
+	right.add_child(burden_row)
+	var burden_lbl := Label.new()
+	burden_lbl.text = "BURDEN"
+	burden_lbl.add_theme_font_size_override("font_size", 9)
+	burden_lbl.add_theme_color_override("font_color", Color(0.4, 0.5, 0.6))
+	burden_lbl.custom_minimum_size.x = 52
+	burden_row.add_child(burden_lbl)
+	_burden_val = Label.new()
+	_burden_val.add_theme_font_size_override("font_size", 11)
+	_burden_val.custom_minimum_size.x = 24
+	burden_row.add_child(_burden_val)
+	var burden_bg := ColorRect.new()
+	burden_bg.custom_minimum_size = Vector2(BAR_MAX_WIDTH, 6)
+	burden_bg.color = Color(0.05, 0.07, 0.12)
+	burden_row.add_child(burden_bg)
+	_burden_fill = ColorRect.new()
+	_burden_fill.color = Color(1.0, 0.5, 0.1)
+	_burden_fill.custom_minimum_size = Vector2(0, 6)
+	burden_bg.add_child(_burden_fill)
 
-	var command_result := _add_bar_row(right, "COMMAND", Color(0.2, 0.6, 1.0))
-	_command_val = command_result[0]
-	_command_fill = command_result[1]
+	# Command bar row
+	var command_row := HBoxContainer.new()
+	command_row.add_theme_constant_override("separation", 6)
+	right.add_child(command_row)
+	var command_lbl := Label.new()
+	command_lbl.text = "COMMAND"
+	command_lbl.add_theme_font_size_override("font_size", 9)
+	command_lbl.add_theme_color_override("font_color", Color(0.4, 0.5, 0.6))
+	command_lbl.custom_minimum_size.x = 52
+	command_row.add_child(command_lbl)
+	_command_val = Label.new()
+	_command_val.add_theme_font_size_override("font_size", 11)
+	_command_val.custom_minimum_size.x = 24
+	command_row.add_child(_command_val)
+	var command_bg := ColorRect.new()
+	command_bg.custom_minimum_size = Vector2(BAR_MAX_WIDTH, 6)
+	command_bg.color = Color(0.05, 0.07, 0.12)
+	command_row.add_child(command_bg)
+	_command_fill = ColorRect.new()
+	_command_fill.color = Color(0.2, 0.6, 1.0)
+	_command_fill.custom_minimum_size = Vector2(0, 6)
+	command_bg.add_child(_command_fill)
 
 
 func _add_stat(parent: HBoxContainer, key: String) -> Label:
@@ -96,36 +134,6 @@ func _add_stat(parent: HBoxContainer, key: String) -> Label:
 	return val
 
 
-func _add_bar_row(parent: VBoxContainer, label_text: String, fill_color: Color) -> Array:
-	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 6)
-	parent.add_child(hbox)
-
-	var lbl := Label.new()
-	lbl.text = label_text
-	lbl.add_theme_font_size_override("font_size", 9)
-	lbl.add_theme_color_override("font_color", Color(0.4, 0.5, 0.6))
-	lbl.custom_minimum_size.x = 52
-	hbox.add_child(lbl)
-
-	var val := Label.new()
-	val.add_theme_font_size_override("font_size", 11)
-	val.custom_minimum_size.x = 24
-	hbox.add_child(val)
-
-	var bar_bg := ColorRect.new()
-	bar_bg.custom_minimum_size = Vector2(BAR_MAX_WIDTH, 6)
-	bar_bg.color = Color(0.05, 0.07, 0.12)
-	hbox.add_child(bar_bg)
-
-	var fill := ColorRect.new()
-	fill.color = fill_color
-	fill.set_anchors_preset(Control.PRESET_LEFT_WIDE)
-	bar_bg.add_child(fill)
-
-	return [val, fill]
-
-
 func refresh(state: ExpeditionState) -> void:
 	_ship_val.text = "%d%%" % state.ship_condition
 	_food_val.text = str(state.get_supply("food"))
@@ -136,10 +144,10 @@ func refresh(state: ExpeditionState) -> void:
 	_clock.refresh(state.tick_count)
 
 	_burden_val.text = str(state.burden)
-	_burden_fill.size.x = (float(state.burden) / 100.0) * BAR_MAX_WIDTH
+	_burden_fill.custom_minimum_size.x = clampf(float(state.burden) / 100.0, 0.0, 1.0) * BAR_MAX_WIDTH
 
 	_command_val.text = str(state.command)
-	_command_fill.size.x = (float(state.command) / 100.0) * BAR_MAX_WIDTH
+	_command_fill.custom_minimum_size.x = clampf(float(state.command) / 100.0, 0.0, 1.0) * BAR_MAX_WIDTH
 
 
 # Tested in Stage7UITest
