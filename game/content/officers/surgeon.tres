@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_p1wp8")
-role = "legacy_surgeon"
+role = "surgeon"
 competence = 3
 loyalty = 4
 worldview = "humanitarian"

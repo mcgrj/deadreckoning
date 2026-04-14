@@ -114,12 +114,14 @@ func _test_officer_council_proposals() -> void:
 	# Build officer defs manually (not via ContentRegistry)
 	var bosun_def := OfficerDef.new()
 	bosun_def.id = "bosun"
+	bosun_def.role = "bosun"
 	bosun_def.worldview = "disciplinarian"
 	bosun_def.competence = 4
 	bosun_def.advice_hooks = ["test_incident"]
 
 	var surgeon_def := OfficerDef.new()
 	surgeon_def.id = "surgeon"
+	surgeon_def.role = "surgeon"
 	surgeon_def.worldview = "humanitarian"
 	surgeon_def.competence = 3
 	surgeon_def.advice_hooks = []
