@@ -162,11 +162,10 @@ func _do_advance() -> void:
 func _show_incident() -> void:
 	_route_map.hide()
 	var scene := load("res://src/ui/IncidentResolutionScene.tscn").instantiate() as IncidentResolutionScene
-	# add_child must come before setup/populate so @onready vars are resolved in _ready()
+	# setup() must come before add_child() so _state/_incident are set when _ready() fires
+	scene.setup(_state, _log)
 	_right_slot.add_child(scene)
 	scene.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	scene.setup(_state, _log)
-	scene.populate()
 	scene.resolved.connect(_on_incident_resolved)
 
 
