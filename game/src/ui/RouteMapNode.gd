@@ -38,13 +38,25 @@ var _log: SimulationLog = null
 var _offset: Vector2 = Vector2.ZERO
 var _hovered_node: RouteNode = null
 var _glow_phase: float = 0.0
+var _pos_cache: Dictionary = {}  # RouteNode -> Vector2 (canvas-local, no offset)
 
 
 func setup(route: RouteMap, state: ExpeditionState, log: SimulationLog) -> void:
 	_route = route
 	_state = state
 	_log = log
+	_rebuild_pos_cache()
 	queue_redraw()
+
+
+func _rebuild_pos_cache() -> void:
+	_pos_cache.clear()
+	if _route == null:
+		return
+	for si in range(_route.stages.size()):
+		var stage: Array = _route.stages[si]
+		for ni in range(stage.size()):
+			_pos_cache[stage[ni]] = Vector2(_node_x(ni, stage.size()), _stage_y(si, _route.stages.size()))
 
 
 func refresh() -> void:
@@ -151,7 +163,7 @@ func _draw_tick_dots() -> void:
 	if tick_dist <= 0:
 		return
 
-	var from_pos := _active_leg_from_pos()
+	var from_pos := _active_leg_from_pos() + _offset
 	var to_pos := _node_canvas_pos(node) + _offset
 	var ticks_done: int = tick_dist - _route.ticks_remaining
 
@@ -178,7 +190,7 @@ func _draw_boat() -> void:
 	var ticks_done: int = tick_dist - _route.ticks_remaining
 	var t := clampf((float(ticks_done) - 0.5) / float(tick_dist), 0.0, 1.0)
 
-	var from_pos := _active_leg_from_pos()
+	var from_pos := _active_leg_from_pos() + _offset
 	var to_pos := _node_canvas_pos(node) + _offset
 	var boat_pos := _bezier_point(from_pos, from_pos + Vector2(0, -80),
 	                              to_pos + Vector2(0, 80), to_pos, t)
@@ -223,6 +235,9 @@ func _draw_node(node: RouteNode) -> void:
 	elif state == "reachable":
 		var ga := 0.08 + 0.06 * sin(_glow_phase * 0.7)
 		draw_circle(pos, NODE_RADIUS + 5.0, Color(stroke.r, stroke.g, stroke.b, ga))
+	elif node == _hovered_node and state != "locked":
+		draw_arc(pos, NODE_RADIUS + 2.0, 0.0, TAU, 32,
+		         Color(stroke.r, stroke.g, stroke.b, 0.6), 1.0)
 
 	draw_circle(pos, NODE_RADIUS, Color(bg.r, bg.g, bg.b, opacity))
 	draw_arc(pos, NODE_RADIUS, 0.0, TAU, 32,
@@ -266,18 +281,13 @@ func _node_state(node: RouteNode) -> String:
 
 
 func _node_canvas_pos(node: RouteNode) -> Vector2:
-	for si in range(_route.stages.size()):
-		var stage: Array = _route.stages[si]
-		for ni in range(stage.size()):
-			if stage[ni] == node:
-				return Vector2(_node_x(ni, stage.size()), _stage_y(si, _route.stages.size()))
-	return Vector2.ZERO
+	return _pos_cache.get(node, Vector2.ZERO)
 
 
 func _active_leg_from_pos() -> Vector2:
 	if _route.selected_path.is_empty():
-		return Vector2(CANVAS_W * 0.5, DEPART_Y) + _offset
-	return _node_canvas_pos(_route.selected_path[-1]) + _offset
+		return Vector2(CANVAS_W * 0.5, DEPART_Y)
+	return _node_canvas_pos(_route.selected_path[-1])
 
 
 func _bg_color(category: String) -> Color:
