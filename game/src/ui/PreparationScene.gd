@@ -110,6 +110,16 @@ func _build_letter_text(bias: Array[String]) -> String:
 
 
 func _ready() -> void:
+	var progression := SaveManager.load_progression()
+	_admiralty_bias = progression.admiralty_bias
+	_scandal_flags = progression.scandal_flags
+	var effects := _compute_bias_effects(_admiralty_bias)
+	_unavailable_ids = effects.get("unavailable_ids", [])
+	_recommended = effects.get("recommended", {})
+	# Identify free upgrade (type == "upgrade" in recommended)
+	for content_id: String in _recommended:
+		if _recommended[content_id].get("type", "") == "upgrade":
+			_free_upgrade_id = content_id
 	_build_ui()
 
 
@@ -132,6 +142,25 @@ func _build_ui() -> void:
 	subtitle.text = "Configure your expedition before sailing."
 	subtitle.add_theme_font_size_override("font_size", 14)
 	vbox.add_child(subtitle)
+
+	# Admiralty letter (only if bias exists)
+	var letter_text := _build_letter_text(_admiralty_bias)
+	if letter_text != "":
+		var letter_panel := PanelContainer.new()
+		var letter_vbox := VBoxContainer.new()
+		letter_panel.add_child(letter_vbox)
+
+		var letter_heading := Label.new()
+		letter_heading.text = "Correspondence from the Admiralty Board"
+		letter_vbox.add_child(letter_heading)
+
+		var letter_body := Label.new()
+		letter_body.text = letter_text
+		letter_body.autowrap_mode = TextServer.AUTOWRAP_WORD
+		letter_vbox.add_child(letter_body)
+
+		vbox.add_child(letter_panel)
+		vbox.add_child(HSeparator.new())
 
 	vbox.add_child(HSeparator.new())
 
@@ -185,15 +214,26 @@ func _build_objective_slots(parent: VBoxContainer) -> void:
 			continue
 		if shown >= GameConstants.OBJECTIVE_SHORTLIST_SIZE:
 			break
+		var unavailable: bool = def.id in _unavailable_ids
+		var is_recommended: bool = def.id in _recommended
+		var reward_text: String = _recommended.get(def.id, {}).get("reward_text", "")
+
 		var btn := Button.new()
-		btn.text = "%s\nTier %d — %s" % [def.display_name, def.difficulty_tier, def.description]
+		var label := "%s\nTier %d — %s" % [def.display_name, def.difficulty_tier, def.description]
+		if is_recommended:
+			label += "\n▲ " + reward_text
+		if unavailable:
+			label += "\n— Not available this commission"
+		btn.text = label
 		btn.custom_minimum_size = Vector2(220, 80)
 		btn.toggle_mode = true
+		btn.disabled = unavailable
+		btn.modulate.a = 0.4 if unavailable else 1.0
 		btn.pressed.connect(_on_objective_selected.bind(def.id, btn))
 		_objective_buttons[def.id] = btn
 		hbox.add_child(btn)
 		shown += 1
-		if shown == 1:
+		if shown == 1 and not unavailable:
 			_selected_objective = def.id
 			btn.button_pressed = true
 
@@ -216,10 +256,21 @@ func _build_doctrine_slots(parent: VBoxContainer) -> void:
 		var def: DoctrineDef = doc as DoctrineDef
 		if def == null:
 			continue
+		var unavailable: bool = def.id in _unavailable_ids
+		var is_recommended: bool = def.id in _recommended
+		var reward_text: String = _recommended.get(def.id, {}).get("reward_text", "")
+
 		var btn := Button.new()
-		btn.text = "%s\n%s" % [def.display_name, def.description]
+		var label := "%s\n%s" % [def.display_name, def.description]
+		if is_recommended:
+			label += "\n▲ " + reward_text + " — Admiralty recommended"
+		if unavailable:
+			label += "\n— Not available this commission"
+		btn.text = label
 		btn.custom_minimum_size = Vector2(220, 60)
 		btn.toggle_mode = true
+		btn.disabled = unavailable
+		btn.modulate.a = 0.4 if unavailable else 1.0
 		btn.pressed.connect(_on_doctrine_selected.bind(def.id, btn))
 		_doctrine_buttons[def.id] = btn
 		hbox.add_child(btn)
@@ -248,7 +299,17 @@ func _build_officer_slots(parent: VBoxContainer) -> void:
 			_officer_buttons_by_role[role] = []
 		for def: OfficerDef in variants:
 			var btn := Button.new()
-			btn.text = "%s\n%s" % [def.display_name, _format_effects(def.starting_effects)]
+			var unavailable: bool = def.id in _unavailable_ids
+			var is_recommended: bool = def.id in _recommended
+			var reward_text: String = _recommended.get(def.id, {}).get("reward_text", "")
+			var extra := ""
+			if is_recommended:
+				extra = "\n▲ " + reward_text
+			if unavailable:
+				extra = "\n— Not available this commission"
+			btn.text = "%s\n%s%s" % [def.display_name, _format_effects(def.starting_effects), extra]
+			btn.disabled = unavailable
+			btn.modulate.a = 0.4 if unavailable else 1.0
 			btn.custom_minimum_size = Vector2(200, 70)
 			btn.toggle_mode = true
 			btn.pressed.connect(_on_officer_selected.bind(role, def.id, btn))
@@ -268,13 +329,30 @@ func _build_upgrade_slots(parent: VBoxContainer) -> void:
 		var def: ShipUpgradeDef = upg as ShipUpgradeDef
 		if def == null:
 			continue
+		var unavailable: bool = def.id in _unavailable_ids
+		var is_free: bool = (def.id == _free_upgrade_id)
+		var is_recommended: bool = def.id in _recommended
+		var reward_text: String = _recommended.get(def.id, {}).get("reward_text", "")
+
 		var btn := Button.new()
-		btn.text = "%s\n%s" % [def.display_name, def.drawback_text]
+		var label := "%s\n%s" % [def.display_name, def.drawback_text]
+		if is_recommended:
+			label += "\n▲ " + reward_text + " — Admiralty recommended"
+		if unavailable:
+			label += "\n— Not available this commission"
+		btn.text = label
 		btn.custom_minimum_size = Vector2(200, 70)
 		btn.toggle_mode = true
+		btn.disabled = unavailable
+		btn.modulate.a = 0.4 if unavailable else 1.0
 		btn.pressed.connect(_on_upgrade_toggled.bind(def.id, btn))
 		_upgrade_buttons[def.id] = btn
 		hbox.add_child(btn)
+
+		# Pre-select free upgrade without consuming a slot
+		if is_free and not unavailable:
+			_selected_upgrades.append(def.id)
+			btn.button_pressed = true
 
 
 func _format_effects(effects: Array) -> String:
@@ -319,15 +397,17 @@ func _on_officer_selected(role: String, officer_id: String, btn: Button) -> void
 
 func _on_upgrade_toggled(upgrade_id: String, btn: Button) -> void:
 	if upgrade_id in _selected_upgrades:
-		_selected_upgrades.erase(upgrade_id)
-		btn.button_pressed = false
-	else:
-		if _selected_upgrades.size() >= GameConstants.MAX_UPGRADES:
-			_status_label.text = "Cannot select more than %d upgrades." % GameConstants.MAX_UPGRADES
+		if upgrade_id != _free_upgrade_id:  # free upgrade cannot be deselected
+			_selected_upgrades.erase(upgrade_id)
 			btn.button_pressed = false
+	else:
+		# Count non-free upgrades against the cap
+		var non_free_count := _selected_upgrades.filter(func(id): return id != _free_upgrade_id).size()
+		if non_free_count >= GameConstants.MAX_UPGRADES:
+			btn.button_pressed = false
+			_status_label.text = "Maximum %d upgrades selected." % GameConstants.MAX_UPGRADES
 			return
 		_selected_upgrades.append(upgrade_id)
-		btn.button_pressed = true
 	_status_label.text = ""
 
 
