@@ -49,3 +49,11 @@ func _test_progression_state_new_fields() -> void:
 	p.admiralty_bias.append("blamed_crew")
 	p.admiralty_bias.append("blamed_crew")
 	check(p.admiralty_bias.size() == 2, "admiralty_bias accumulates duplicates")
+	p.scandal_flags.append("scandal_suppressed_mutiny")
+	p.scandal_flags.append("scandal_suppressed_mutiny")
+	check(p.scandal_flags.size() == 2, "scandal_flags accumulates duplicates")
+
+	# create_default() must leave both arrays empty — they are run-accumulated
+	var d := ProgressionState.create_default()
+	check(d.admiralty_bias.size() == 0, "create_default admiralty_bias is empty")
+	check(d.scandal_flags.size() == 0, "create_default scandal_flags is empty")
