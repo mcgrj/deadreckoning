@@ -214,7 +214,7 @@ Admiralty prep is where value collision operates at the meta-level. The player i
 
 ## 7. Officer Selection Mechanics
 
-> **Implementation note:** Officers are procedurally generated, not hand-authored. Every officer in the Admiralty pool is assembled from role-constrained authored content pools (names, background fragments, traits). The generation system and pool structure are fully specified in `2026-04-14-emergent-officers-scars-design.md`. This section defines the choice design principles; that spec defines how officers are produced and how their history persists.
+> **Implementation note:** Officers are procedurally generated, not hand-authored. This is **implemented** — authored `OfficerDef` `.tres` files have been removed. Every officer in the Admiralty pool is assembled at runtime by `OfficerGenerator` from JSON content pools (names, background fragments, traits). Pool persistence lives in `ProgressionState`; scars are committed by `SaveManager.commit_officer_scars()` at run end. The full design and architecture are in `2026-04-14-emergent-officers-scars-design.md`. This section defines the choice design principles; that spec defines how officers are produced and how their history persists.
 
 ### Quality-vs-Debt Spectrum
 
