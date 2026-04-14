@@ -10,6 +10,12 @@ This is not a simulation of individual crew members. The crew remains group-leve
 
 **Reference games:** Darkest Dungeon (quirk accumulation, permanent death stakes), Kingdom Death: Monster (survivor memory across campaign), FTL (attachment through shared danger), Mewgenics (combinatorial generation creating anecdote).
 
+**Related specs:**
+- `2026-04-14-impactful-choices-design.md` — defines officer selection as a quality-vs-debt choice, officer information domains, three-tier trait disclosure, pre-voyage promises, and pre-departure stances. Section 7 of that spec is the design authority for officer choice mechanics; this spec is the authority for how officers are generated and how their history persists.
+- `2026-04-14-stage-6b-admiralty-reporting-design.md` — defines `admiralty_bias` and `scandal_flags` in `ProgressionState`. The `officer_accused` bias string reduces available candidates in the accused role's slot. The officer recommendation reward writes a `loyal` starting trait into the run config — the generation system must be compatible with this injection.
+
+**Implementation ordering:** This spec should be implemented before `impactful-choices-design.md`. The impactful-choices officer mechanics (Section 7) assume the procedural pool exists. Pre-departure stances and pre-voyage promises gain their narrative weight from distinct generated identities. Implement the pool and generation system first, then layer the impactful-choices officer mechanics on top.
+
 ---
 
 ## 1. Officer Generation
@@ -37,9 +43,12 @@ Background fragments are assembled from authored pools per role, not generated f
 
 **Starting trait combination** — 2–3 traits drawn from role-appropriate pools, with a coherence filter. Traits should not contradict each other and should loosely support the background fragment. A surgeon with `drinks_before_noon` should not also have `strict_self_discipline`. The coherence filter is implemented through exclusion tags on each trait: a trait declares which other traits it cannot appear alongside.
 
-Traits split into two categories following the existing `OfficerDef` model:
-- `known_traits` — visible to the player from hire
-- `hidden_traits` — revealed through incidents during the run
+Traits are assigned one of three disclosure tiers at generation (see Section 2.4 for full disclosure model):
+- `disclosed` — the flaw is on record; the player sees it at hire
+- `rumoured` — something is mentioned but unconfirmed; the player sees a hint, not the trait
+- `hidden` — no indication at hire; surfaces only through specific in-voyage incident conditions
+
+**Information domain** — each role grants a specific type of intelligence during the voyage. Domain and domain fidelity (driven by competence) are set at generation and do not change between runs unless competence drifts via scars. See Section 2.3 for the full domain map.
 
 ### Content pools are data-driven and independently expandable
 
@@ -48,7 +57,7 @@ All generation source material lives in authored data files — not in code. Exp
 Each pool type is a separate authored list:
 - **Name pools** — one list per role (or per nationality archetype, shared across roles). Adding a name = adding a line.
 - **Background fragment pools** — three sub-lists per role (origins, past service events, reputation lines). Adding a new background variation = adding one entry to one sub-list.
-- **Trait pools** — one list per role, each entry carrying: trait id, display name, whether it is `known` or `hidden`, and an exclusion tag list. Adding a new trait = adding one entry.
+- **Trait pools** — one list per role, each entry carrying: trait id, display name, disclosure tier (`disclosed` / `rumoured` / `hidden`), and an exclusion tag list. Adding a new trait = adding one entry.
 
 The generation system reads these pools at runtime. The format should be chosen for ease of authoring: JSON arrays are appropriate given their simplicity and the volume of short text entries. The existing `.tres` resource format is better for structured objects with many typed fields (like `IncidentDef`); flat text pools are better as JSON.
 
@@ -85,6 +94,66 @@ The player sees all candidates organised by role at the Admiralty preparation st
 - Run history: runs survived, and a short list of notable expedition events that left visible scars
 
 Hidden traits and scar flags not yet surfaced remain hidden at hire. The player is hiring with incomplete information, and that uncertainty is intentional.
+
+---
+
+## 2.3 Officer Information Domains
+
+Each officer role grants a specific type of intelligence about the route and objective. The quality of the intelligence scales with the officer's competence. A compromised or debt-triggered officer may produce inaccurate intelligence in their domain, not just reduced intelligence.
+
+| Role | Information domain |
+|---|---|
+| Master / Navigator | Route detail — tick distances, hazard marker accuracy, hidden node category hints |
+| Purser | Supply opportunity visibility — resource availability at upcoming nodes |
+| Surgeon | Crew risk forecasting — Burden trajectory, sickness probability on this route segment |
+| Chaplain | Omen/threat interpretation — omen nodes partially described rather than shown as "?" |
+| Bosun | Discipline risk signals — social incident probability hints |
+
+Scars from previous runs can modify domain accuracy. A `ration_crisis_veteran` purser reads supply nodes more accurately than a fresh hire. A `publicly_overruled` surgeon may produce pessimistic crew risk estimates — not wrong, but filtered through resentment.
+
+---
+
+## 2.4 Three-Tier Trait Disclosure
+
+Officer traits are not all visible at hire. Every generated officer has a disclosure tier assigned to each of their traits:
+
+**Disclosed** — the trait is on record. The player sees it in the officer card at hire. Typical of officers with a documented naval history, prior scandals, or known reputations. The tradeoff is fully legible before hire.
+
+**Rumoured** — something is mentioned but unconfirmed. The officer card shows a hint — *"questions have been raised about his accounting"* — not the trait itself. The player is taking an information risk. May be worse than expected; may be nothing.
+
+**Hidden** — no indication at hire. The trait surfaces only under specific in-voyage conditions: when a relevant incident fires, when the voyage reaches a threshold state, or when a scar from a previous run has already revealed it. A returning officer's previously hidden traits are fully known — the expedition history is the disclosure mechanism.
+
+**The known-devil dynamic** sits here: a returning officer with accumulated scars is better understood than a fresh hire. The player chooses between familiarity (known debts, known strengths) and the potential upside of an untested unknown. This is the core tension of the hiring choice within each role slot.
+
+---
+
+## 2.5 Pre-Voyage Officer Mechanics
+
+These mechanics are specified in full in `2026-04-14-impactful-choices-design.md` Section 7. This section records the requirements so the generation system produces officers that support them.
+
+### Pre-voyage promises
+
+Some officers require a promise from the captain to accept the commission. These promises are tracked by the existing promise system from the moment of hire, not from the first incident.
+
+Examples:
+- An alcoholic Master will sail only if the captain promises not to restrict spirit locker access during the voyage
+- A veteran Bosun will sail only if pressed men are promised discipline by the book
+- A popular Surgeon will sail only if the sick bay is promised not to be stripped for cargo
+
+The generation system must be able to flag an officer as requiring a pre-voyage promise, and associate a promise id and promise text with that officer record. The promise id connects to the existing `make_promise` / `keep_promise` / `break_promise` machinery in `ExpeditionState`. Promise requirement is set by the trait pool: a trait entry can declare `requires_promise: true` and supply the promise template.
+
+### Pre-departure stances
+
+Before departure, one or two officers register an opinion on the objective, route, or a visible threat. This uses the existing officer council architecture at the prep stage.
+
+Examples:
+- *"Sir, I've sailed those waters. The omen node on the northern route is not what the charts suggest."* (Bosun, experienced)
+- *"I'm not certain I have enough medicine for a long passage, sir."* (Surgeon, anxious)
+- *"The Admiralty objective leaves us exposed. I recommend we reconsider the route."* (Lieutenant, ambitious)
+
+Pre-departure stances are narrative hooks, not mandatory guidance. The officer's competence and disclosed traits colour whether the player trusts the stance. A Bosun warning about an omen node may reflect genuine experience or personal superstition.
+
+The generation system flags whether an officer will generate a pre-departure stance (driven by worldview and role), and the stance template is drawn from the role's authored stance pool. Stances are expandable in the same data files as other pools.
 
 ---
 
@@ -163,19 +232,26 @@ Permanent loss is devastating precisely because scars have accumulated. The syst
 
 ## 4. Fit With Existing Architecture
 
-This system does not require new core simulation machinery. It extends what already exists:
+As of Stage 7 (delivered), the full simulation stack exists: `ExpeditionState`, `TravelSimulator`, `EffectProcessor`, `ConditionEvaluator`, `OfficerCouncil`, `IncidentDef` / `IncidentChoiceDef` resources, `ProgressionState`, `SaveManager`, `PreparationScene`, `RunScene`, `IncidentResolutionScene`, and `RunEndScene`. This system does not require new core simulation machinery — it extends what already exists.
 
 | Existing system | Change |
 |---|---|
-| `OfficerDef` | Still the runtime record for an officer, but now always produced by the generator rather than hand-authored. Scar traits are written back to this record at run end. |
-| `IncidentDef` conditions | Can already check officer traits; no change needed. |
-| `IncidentChoiceDef` effects | Scar-trigger effects added as a new effect type: `add_officer_scar`. |
-| `ExpeditionState` memory flags | Subset of flags become persistent officer flags at run end. |
-| `ProgressionState` | Stores the pool: all candidate `OfficerDef` records, their scar histories, and run survival counts. |
+| `OfficerDef` | Still the runtime officer record, now always produced by the generator. Gains: `disclosure_tier` per trait, `information_domain` field, `pre_voyage_promise_id` (optional), `pre_departure_stance_pool` (optional), `provisional_scars` array (cleared at run start, committed at run end), `run_history` summary. |
+| `IncidentDef` conditions | Can already check officer traits via `required_conditions`; no change needed. |
+| `IncidentChoiceDef` effects | New effect type: `add_officer_scar` — names the scar trait and whether it is disclosed or hidden. |
+| `ExpeditionState` memory flags | Subset of flags promoted to officer-persistent flags at run end. Run config gains `officer_starting_traits` dict for Stage 6B `loyal` trait injection. |
+| `ProgressionState` | Extended to store the officer pool: all candidate `OfficerDef` records with scar history and run survival counts. Existing `admiralty_bias` and `scandal_flags` arrays (Stage 6B) continue to be read at prep time; `officer_accused` bias reduces candidate count in the accused role's slot. |
+| `PreparationScene` | Extended to show the role-organised officer pool, three-tier disclosure presentation, and pre-voyage promise prompt where required. |
+| `SaveManager` | Extended to persist pool state alongside existing progression data. |
 
-The procedural generation system is new but self-contained. It reads authored JSON content pools and produces `OfficerDef` records. Once a record exists in the pool, the rest of the game — incidents, simulation, UI — treats it identically to how it would treat any officer. The generator is invisible to those systems.
+The procedural generation system is a new addition but is self-contained: a new `OfficerGenerator` class reads JSON content pools and produces `OfficerDef` records. Once a record enters the pool, all existing systems treat it identically to a hand-authored officer. The generator is invisible to the simulation, incident, and UI layers.
 
-Existing authored `OfficerDef` `.tres` files are superseded by this system and should be removed when this feature is implemented.
+**Authored `.tres` files to be removed on implementation:**
+
+The following hand-authored officer files in `game/content/officers/` are superseded and must be deleted when this feature ships:
+`bosun.tres`, `chaplain_pragmatic.tres`, `chaplain_orthodox.tres`, `surgeon.tres`, `surgeon_compassionate.tres`, `surgeon_methodical.tres`, `purser_generous.tres`, `purser_frugal.tres`, `master_experienced.tres`, `master_reckless.tres`, `first_lieutenant_lenient.tres`, `first_lieutenant_stern.tres`, `gunner_reliable.tres`, `gunner_disciplined.tres`
+
+Their content (trait combinations, worldviews, competence/loyalty spreads) should inform the authored generation pools — not be preserved as static records.
 
 ---
 
@@ -185,10 +261,15 @@ Existing authored `OfficerDef` `.tres` files are superseded by this system and s
 
 - Procedural officer generation (name, background, starting traits — coherent and role-consistent)
 - Admiralty pool organised by role, 2–3 candidates per role, with role-balance guarantee and replenishment
-- Data-driven content pools (names, background fragments, traits) expandable without code changes
+- Data-driven content pools (names, background fragments, traits, stances) expandable without code changes
+- Three-tier trait disclosure: disclosed, rumoured, hidden — with the known-devil dynamic for returning officers
+- Officer information domains: each role grants specific intelligence, fidelity scales with competence
+- Pre-voyage promises: some officers require a promise as a condition of hire
+- Pre-departure stances: officers register opinions on objective or route before sailing
 - Three scar forms: trait tags, stat drift, cross-run memory flags
 - Scar triggers from incident choice outcomes and run-end stress thresholds
 - Permanent officer loss through authored incident outcomes
+- Stage 6B compatibility: `officer_accused` bias reduces role candidate count; `loyal` starting trait injection via run config
 
 ### Explicitly deferred
 
