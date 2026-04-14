@@ -86,8 +86,15 @@ static func generate(role: String) -> OfficerDef:
 	def.notable_events = []
 	def.starting_effects = []
 	def.advice_hooks = []
-	def.pre_voyage_promise_id = ""
-	def.pre_voyage_promise_text = ""
+	var promises_pool := _pool("promises")
+	var role_promises: Array = promises_pool.get(role, [])
+	if def.competence >= 3 and not role_promises.is_empty() and randf() < 0.30:
+		var chosen: Dictionary = role_promises[randi() % role_promises.size()]
+		def.pre_voyage_promise_id = chosen.get("id", "")
+		def.pre_voyage_promise_text = chosen.get("text", "")
+	else:
+		def.pre_voyage_promise_id = ""
+		def.pre_voyage_promise_text = ""
 
 	return def
 
