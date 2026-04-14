@@ -277,37 +277,16 @@ func _test_incident_cooldown() -> void:
 
 func _test_incident_trigger_chance_scaling() -> void:
 	print("-- Incident trigger chance scaling --")
-	# Healthy state: base only
-	# chance = 0.25 + (20/100)*0.30 + (30/100)*0.20 + (0/100)*0.15 + (0/100)*0.10
-	#        = 0.25 + 0.06 + 0.06 + 0 + 0 = 0.37
-	var healthy_chance: float = (
-		GameConstants.INCIDENT_BASE_TRIGGER_CHANCE
-		+ (20.0 / 100.0) * GameConstants.INCIDENT_BURDEN_BONUS
-		+ (30.0 / 100.0) * GameConstants.INCIDENT_COMMAND_BONUS
-		+ (0.0 / 100.0) * GameConstants.INCIDENT_FATIGUE_BONUS
-		+ (0.0 / 100.0) * GameConstants.INCIDENT_SICKNESS_BONUS
-	)
-	check(absf(healthy_chance - 0.37) < 0.001, "healthy state chance is 0.37")
+	# burden=20, command=70, fatigue=0, sickness=0
+	# = 0.25 + 0.06 + 0.06 + 0 + 0 = 0.37
+	check(absf(GameConstants.incident_trigger_chance(20, 70, 0, 0) - 0.37) < 0.001,
+		"healthy state chance is 0.37")
 
-	# Crisis state: burden=80, command=20, fatigue=60, sickness=50
-	# chance = 0.25 + (80/100)*0.30 + (80/100)*0.20 + (60/100)*0.15 + (50/100)*0.10
-	#        = 0.25 + 0.24 + 0.16 + 0.09 + 0.05 = 0.79
-	var crisis_chance: float = clampf(
-		GameConstants.INCIDENT_BASE_TRIGGER_CHANCE
-		+ (80.0 / 100.0) * GameConstants.INCIDENT_BURDEN_BONUS
-		+ (80.0 / 100.0) * GameConstants.INCIDENT_COMMAND_BONUS
-		+ (60.0 / 100.0) * GameConstants.INCIDENT_FATIGUE_BONUS
-		+ (50.0 / 100.0) * GameConstants.INCIDENT_SICKNESS_BONUS,
-		0.0, GameConstants.INCIDENT_MAX_TRIGGER_CHANCE)
-	check(absf(crisis_chance - 0.79) < 0.001, "crisis state chance is 0.79")
+	# burden=80, command=20, fatigue=60, sickness=50
+	# = 0.25 + 0.24 + 0.16 + 0.09 + 0.05 = 0.79
+	check(absf(GameConstants.incident_trigger_chance(80, 20, 60, 50) - 0.79) < 0.001,
+		"crisis state chance is 0.79")
 
-	# Max everything is capped
-	var max_chance: float = clampf(
-		GameConstants.INCIDENT_BASE_TRIGGER_CHANCE
-		+ GameConstants.INCIDENT_BURDEN_BONUS
-		+ GameConstants.INCIDENT_COMMAND_BONUS
-		+ GameConstants.INCIDENT_FATIGUE_BONUS
-		+ GameConstants.INCIDENT_SICKNESS_BONUS,
-		0.0, GameConstants.INCIDENT_MAX_TRIGGER_CHANCE)
-	check(max_chance <= GameConstants.INCIDENT_MAX_TRIGGER_CHANCE,
+	# Max everything is capped at INCIDENT_MAX_TRIGGER_CHANCE
+	check(GameConstants.incident_trigger_chance(100, 0, 100, 100) <= GameConstants.INCIDENT_MAX_TRIGGER_CHANCE,
 		"max stats capped at INCIDENT_MAX_TRIGGER_CHANCE")

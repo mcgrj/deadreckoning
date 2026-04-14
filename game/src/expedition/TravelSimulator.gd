@@ -139,13 +139,8 @@ static func process_tick(state: ExpeditionState, zone: ZoneTypeDef, log: Simulat
 			weights.append(w)
 			total_weight += w
 
-		var trigger_chance: float = clampf(
-			GameConstants.INCIDENT_BASE_TRIGGER_CHANCE
-			+ (float(state.burden) / 100.0) * GameConstants.INCIDENT_BURDEN_BONUS
-			+ (float(100 - state.command) / 100.0) * GameConstants.INCIDENT_COMMAND_BONUS
-			+ (float(state.travel_fatigue) / 100.0) * GameConstants.INCIDENT_FATIGUE_BONUS
-			+ (float(state.sickness_risk) / 100.0) * GameConstants.INCIDENT_SICKNESS_BONUS,
-			0.0, GameConstants.INCIDENT_MAX_TRIGGER_CHANCE)
+		var trigger_chance: float = GameConstants.incident_trigger_chance(
+			state.burden, state.command, state.travel_fatigue, state.sickness_risk)
 		log.log_event(state.tick_count, "TravelSimulator",
 			"Incident trigger chance: %.2f" % trigger_chance,
 			{"chance": trigger_chance, "burden": state.burden, "command": state.command,
