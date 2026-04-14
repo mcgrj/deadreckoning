@@ -13,6 +13,7 @@ const MAX_RENDERED_ENTRIES := 200
 var _all_entries: Array[Dictionary] = []
 var _entry_container: VBoxContainer
 var _scroll: ScrollContainer
+var _last_rendered_tick: int = -1
 
 
 func _ready() -> void:
@@ -23,23 +24,21 @@ func _ready() -> void:
 	vbox.add_theme_constant_override("separation", 0)
 	add_child(vbox)
 
-	# Header
-	var header := HBoxContainer.new()
-	header.custom_minimum_size.y = 26
-	header.add_theme_constant_override("separation", 4)
-	vbox.add_child(header)
+	# Header — solid background so it never bleeds into the scroll feed
+	var header_bg := ColorRect.new()
+	header_bg.color = Color(0.07, 0.10, 0.16)
+	header_bg.custom_minimum_size.y = 30
+	vbox.add_child(header_bg)
 
 	var title_lbl := Label.new()
 	title_lbl.text = "SHIP'S LOG"
 	title_lbl.add_theme_font_size_override("font_size", 13)
 	title_lbl.add_theme_color_override("font_color", Color(0.5, 0.7, 0.85))
-	header.add_child(title_lbl)
+	title_lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER_LEFT)
+	title_lbl.position.x = 8
+	header_bg.add_child(title_lbl)
 
-	var live_lbl := Label.new()
-	live_lbl.text = "● LIVE"
-	live_lbl.add_theme_font_size_override("font_size", 13)
-	live_lbl.add_theme_color_override("font_color", Color(0.35, 0.75, 0.35))
-	header.add_child(live_lbl)
+	vbox.add_child(HSeparator.new())
 
 	_scroll = ScrollContainer.new()
 	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -73,7 +72,30 @@ func get_all_entries() -> Array[Dictionary]:
 	return _all_entries
 
 
+func _prepend_tick_header(tick: int) -> void:
+	var period := "DAWN" if tick % 2 == 0 else "DUSK"
+	var day := tick / 2 + 1
+
+	var sep := HSeparator.new()
+	sep.add_theme_color_override("color", Color(0.2, 0.3, 0.4))
+	_entry_container.add_child(sep)
+	_entry_container.move_child(sep, 0)
+
+	var lbl := Label.new()
+	lbl.text = "— Day %d · %s —" % [day, period]
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 11)
+	lbl.add_theme_color_override("font_color", Color(0.38, 0.55, 0.72))
+	_entry_container.add_child(lbl)
+	_entry_container.move_child(lbl, 0)
+
+
 func _add_entry_node(entry: Dictionary) -> void:
+	var tick := entry.get("tick", 0) as int
+	if tick != _last_rendered_tick:
+		_prepend_tick_header(tick)
+		_last_rendered_tick = tick
+
 	var hbox := HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 6)
 	_entry_container.add_child(hbox)
