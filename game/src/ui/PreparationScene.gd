@@ -183,6 +183,10 @@ func _build_ui() -> void:
 
 	vbox.add_child(HSeparator.new())
 
+	# Allocation panel
+	_build_section(vbox, "", func(p): p.add_child(_build_allocation_panel()))
+	vbox.add_child(HSeparator.new())
+
 	# Status + Set Sail
 	_status_label = Label.new()
 	_status_label.text = ""
@@ -373,11 +377,76 @@ func _format_effects(effects: Array) -> String:
 	return ", ".join(parts)
 
 
+func _build_allocation_panel() -> VBoxContainer:
+	var panel := VBoxContainer.new()
+
+	var heading := Label.new()
+	heading.text = "Admiralty Allocation"
+	heading.add_theme_font_size_override("font_size", 16)
+	panel.add_child(heading)
+
+	var subtitle := Label.new()
+	subtitle.text = "Bonuses granted for following Admiralty recommendations."
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD
+	panel.add_child(subtitle)
+
+	_allocation_panel = VBoxContainer.new()
+	panel.add_child(_allocation_panel)
+	_update_allocation_panel()
+	return panel
+
+
+func _update_allocation_panel() -> void:
+	if _allocation_panel == null:
+		return
+	for child in _allocation_panel.get_children():
+		child.queue_free()
+
+	var accepted_rewards: Array[String] = []
+
+	# Objective recommendation
+	if _selected_objective in _recommended and _recommended[_selected_objective].get("type") == "objective":
+		accepted_rewards.append("Objective: " + _recommended[_selected_objective].get("reward_text", ""))
+
+	# Doctrine recommendation
+	if _selected_doctrine in _recommended and _recommended[_selected_doctrine].get("type") == "doctrine":
+		accepted_rewards.append("Doctrine: " + _recommended[_selected_doctrine].get("reward_text", ""))
+
+	# Officer recommendation (show if recommended officer is currently selected)
+	for content_id: String in _recommended:
+		if _recommended[content_id].get("type") == "officer":
+			for role: String in _selected_officers:
+				if _selected_officers[role] == content_id:
+					accepted_rewards.append("Officer: " + _recommended[content_id].get("reward_text", ""))
+
+	# Upgrade recommendation
+	if _free_upgrade_id != "" and _free_upgrade_id in _selected_upgrades:
+		accepted_rewards.append("Upgrade: " + _recommended.get(_free_upgrade_id, {}).get("reward_text", ""))
+
+	if accepted_rewards.is_empty():
+		var none_label := Label.new()
+		none_label.text = "No recommendations accepted."
+		_allocation_panel.add_child(none_label)
+	else:
+		for reward: String in accepted_rewards:
+			var label := Label.new()
+			label.text = "▲ " + reward
+			_allocation_panel.add_child(label)
+
+		# Full compliance warning — appears when all available recommendations are accepted
+		if accepted_rewards.size() >= _recommended.size() and _recommended.size() > 0:
+			var warning := Label.new()
+			warning.text = "Full compliance noted. The Board's expectations for the next commission will reflect this."
+			warning.autowrap_mode = TextServer.AUTOWRAP_WORD
+			_allocation_panel.add_child(warning)
+
+
 func _on_objective_selected(objective_id: String, btn: Button) -> void:
 	for id: String in _objective_buttons:
 		_objective_buttons[id].button_pressed = false
 	_selected_objective = objective_id
 	btn.button_pressed = true
+	_update_allocation_panel()
 
 
 func _on_doctrine_selected(doctrine_id: String, btn: Button) -> void:
@@ -385,6 +454,7 @@ func _on_doctrine_selected(doctrine_id: String, btn: Button) -> void:
 		_doctrine_buttons[id].button_pressed = false
 	_selected_doctrine = doctrine_id
 	btn.button_pressed = true
+	_update_allocation_panel()
 
 
 func _on_officer_selected(role: String, officer_id: String, btn: Button) -> void:
@@ -392,6 +462,7 @@ func _on_officer_selected(role: String, officer_id: String, btn: Button) -> void
 		role_btn.button_pressed = false
 	_selected_officers[role] = officer_id
 	btn.button_pressed = true
+	_update_allocation_panel()
 
 
 func _on_upgrade_toggled(upgrade_id: String, btn: Button) -> void:
@@ -410,21 +481,44 @@ func _on_upgrade_toggled(upgrade_id: String, btn: Button) -> void:
 	_status_label.text = ""
 
 
-func _on_set_sail() -> void:
-	# Validate all required roles are filled
+func _can_sail() -> bool:
 	for role: String in REQUIRED_ROLES:
-		if not _selected_officers.has(role) or _selected_officers[role] == "":
-			_status_label.text = "Must select an officer for: " + role.replace("_", " ").capitalize()
-			return
-	if _selected_objective == "":
-		_status_label.text = "Must select an objective."
+		if not _selected_officers.has(role):
+			return false
+	return _selected_objective != ""
+
+
+func _on_set_sail() -> void:
+	if not _can_sail():
+		_status_label.text = "Select one officer per role before sailing."
 		return
+
+	# Compute accepted rewards
+	var supply_bonus := 0
+	var command_bonus := 0
+	var officer_traits: Dictionary = {}
+
+	if _selected_objective in _recommended:
+		supply_bonus = GameConstants.RECOMMENDATION_SUPPLY_BONUS
+	if _selected_doctrine in _recommended:
+		command_bonus = GameConstants.RECOMMENDATION_COMMAND_BONUS
+	for content_id: String in _recommended:
+		if _recommended[content_id].get("type") == "officer":
+			for role: String in _selected_officers:
+				if _selected_officers[role] == content_id:
+					var trait: String = _recommended[content_id].get("trait", "")
+					if trait != "":
+						officer_traits[role] = trait
 
 	var config := {
 		"objective_id": _selected_objective,
 		"doctrine_id": _selected_doctrine,
 		"officer_ids": _selected_officers.values(),
 		"upgrade_ids": _selected_upgrades,
+		"starting_supply_bonus": supply_bonus,
+		"starting_command_bonus": command_bonus,
+		"officer_starting_traits": officer_traits,
+		"scandal_flags": _scandal_flags,
 	}
 	SaveManager.pending_run_config = config
 
