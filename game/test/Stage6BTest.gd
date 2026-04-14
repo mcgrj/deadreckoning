@@ -24,6 +24,7 @@ func _ready() -> void:
 	_test_framing_gate_mutiny()
 	_test_framing_gate_breakdown()
 	_test_framing_gate_losses()
+	_test_log_narrative_text()
 	_finish()
 
 
@@ -142,5 +143,36 @@ func _test_framing_gate_losses() -> void:
 	scene2.set("_objective_success", false)
 	var available2: Array = scene2.call("_get_available_framings")
 	check("glorify_sacrifice" not in available2, "glorify_sacrifice NOT available when no losses")
+	scene.free()
+	scene2.free()
+
+
+func _test_log_narrative_text() -> void:
+	print("-- RunEndScene._build_log_narrative_text --")
+	var RunEndSceneClass: GDScript = load("res://src/ui/RunEndScene.gd")
+	var scene: Node = RunEndSceneClass.new()
+
+	var state := ExpeditionState.new()
+	state.run_end_reason = "mutiny"
+	state.stress_indicators = {"crew_losses": 3, "peak_burden": 87, "min_command": 14, "supply_depletions": 1}
+	state.active_objective_id = "survey_strange_shore"
+	scene.set("final_state", state)
+	scene.set("_objective_success", false)
+
+	var text: String = scene.call("_build_log_narrative_text")
+	check(text.contains("3"), "crew loss count appears in narrative")
+	check(text.contains("[color="), "scrutiny facts are BBCode-highlighted")
+	check(text.contains("14"), "min command appears highlighted")
+	check(text.contains("mutiny") or text.contains("refused"), "mutiny fact appears in narrative")
+
+	# No losses — no death sentence
+	var scene2: Node = RunEndSceneClass.new()
+	var state2 := ExpeditionState.new()
+	state2.run_end_reason = "breakdown"
+	state2.stress_indicators = {"crew_losses": 0, "peak_burden": 100, "min_command": 30, "supply_depletions": 0}
+	scene2.set("final_state", state2)
+	scene2.set("_objective_success", true)
+	var text2: String = scene2.call("_build_log_narrative_text")
+	check(not text2.contains("dead"), "no death sentence when crew_losses == 0")
 	scene.free()
 	scene2.free()

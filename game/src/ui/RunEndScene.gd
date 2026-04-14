@@ -144,6 +144,49 @@ func _has_discipline_order() -> bool:
 			"strict_watches" in final_state.standing_orders)
 
 
+# Returns a BBCode string for the factual account section.
+# Highlighted sentences are facts the Admiralty will scrutinise.
+func _build_log_narrative_text() -> String:
+	var text := ""
+	var s := final_state.stress_indicators
+
+	# Opening context
+	text += "The expedition departed"
+	if _objective_def != null:
+		text += " with orders to %s" % _objective_def.display_name.to_lower()
+	text += ". "
+
+	# Memory flag context sentences
+	if "rum_theft_unresolved" in final_state.memory_flags:
+		text += "A rum ration dispute went unresolved. "
+	if "storm_survived" in final_state.memory_flags:
+		text += "The ship endured a storm. "
+
+	# Burden context
+	var peak: int = s.get("peak_burden", 0)
+	if peak >= 70:
+		text += "Burden reached %d before the end. " % peak
+
+	# Scrutiny facts — highlighted in Admiralty gold
+	var losses: int = s.get("crew_losses", 0)
+	if losses == 1:
+		text += "[color=#c8b89a]One man is dead.[/color] "
+	elif losses > 1:
+		text += "[color=#c8b89a]%d men are dead.[/color] " % losses
+
+	var min_cmd: int = s.get("min_command", 100)
+	if min_cmd < GameConstants.MUTINY_COMMAND_THRESHOLD:
+		text += "[color=#c8b89a]Command fell to %d.[/color] " % min_cmd
+
+	if final_state.run_end_reason == "mutiny":
+		text += "[color=#c8b89a]The crew refused orders.[/color] "
+
+	if not _objective_success and _objective_def != null:
+		text += "[color=#c8b89a]The objective was never completed.[/color] "
+
+	return text.strip_edges()
+
+
 func _ready() -> void:
 	if final_state == null:
 		# Fallback: create a dummy state for direct scene preview
