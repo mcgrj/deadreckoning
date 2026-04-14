@@ -224,6 +224,13 @@ func _on_incident_resolved() -> void:
 	_refresh_breadcrumb()
 	if _state.run_end_reason != "":
 		_transition_to_run_end()
+	elif _route.is_complete():
+		# Incident fired at final node arrival — route finished, close out
+		_state.run_end_reason = "completed"
+		_log.log_event(_state.tick_count, "RunScene", "Expedition complete.", {})
+		_stats_bar.refresh(_state)
+		_log_panel.append_latest(_log)
+		_transition_to_run_end()
 
 
 func _transition_to_run_end() -> void:

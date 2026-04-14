@@ -27,18 +27,17 @@ func _ready() -> void:
 	root_hbox.add_theme_constant_override("separation", 16)
 	add_child(root_hbox)
 
-	# Left: secondary stats — expand and centre vertically in the bar
-	var left := HBoxContainer.new()
+	# Left: supply stats — same row-per-stat layout as BURDEN/COMMAND
+	var left := VBoxContainer.new()
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	left.add_theme_constant_override("separation", 28)
-	left.alignment = BoxContainer.ALIGNMENT_BEGIN
+	left.add_theme_constant_override("separation", 6)
 	root_hbox.add_child(left)
 
-	_ship_val = _add_stat(left, "SHIP")
-	_food_val = _add_stat(left, "FOOD")
-	_water_val = _add_stat(left, "WATER")
-	_rum_val = _add_stat(left, "RUM")
+	_ship_val  = _add_stat_row(left, "SHIP")
+	_food_val  = _add_stat_row(left, "FOOD")
+	_water_val = _add_stat_row(left, "WATER")
+	_rum_val   = _add_stat_row(left, "RUM")
 
 	# Centre: world clock
 	var centre := HBoxContainer.new()
@@ -118,21 +117,23 @@ func _ready() -> void:
 	command_bg.add_child(_command_fill)
 
 
-func _add_stat(parent: HBoxContainer, key: String) -> Label:
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 2)
-	parent.add_child(vbox)
-
-	var val := Label.new()
-	val.text = "—"
-	val.add_theme_font_size_override("font_size", 18)
-	vbox.add_child(val)
+func _add_stat_row(parent: VBoxContainer, key: String) -> Label:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	parent.add_child(row)
 
 	var lbl := Label.new()
 	lbl.text = key
 	lbl.add_theme_font_size_override("font_size", 11)
-	lbl.add_theme_color_override("font_color", Color(0.45, 0.62, 0.72))
-	vbox.add_child(lbl)
+	lbl.add_theme_color_override("font_color", Color(0.55, 0.65, 0.72))
+	lbl.custom_minimum_size.x = 52
+	row.add_child(lbl)
+
+	var val := Label.new()
+	val.text = "—"
+	val.add_theme_font_size_override("font_size", 14)
+	val.custom_minimum_size.x = 36
+	row.add_child(val)
 
 	return val
 
