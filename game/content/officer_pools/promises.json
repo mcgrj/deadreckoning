@@ -1,0 +1,49 @@
+{
+  "master": [
+    {
+      "id": "promise_spirit_locker_open",
+      "text": "The spirit locker will remain accessible to the Master throughout the voyage."
+    },
+    {
+      "id": "promise_course_respected",
+      "text": "The Master's course recommendation will be followed at each route fork."
+    }
+  ],
+  "purser": [
+    {
+      "id": "promise_no_audit",
+      "text": "The stores will not be formally audited without cause during the voyage."
+    },
+    {
+      "id": "promise_purser_discretion",
+      "text": "Distribution of comforts will remain at the Purser's discretion."
+    }
+  ],
+  "surgeon": [
+    {
+      "id": "promise_sick_bay_intact",
+      "text": "The sick bay will not be stripped of supplies or repurposed during the voyage."
+    },
+    {
+      "id": "promise_surgeon_consulted",
+      "text": "The Surgeon will be consulted before any punishment that risks serious injury."
+    }
+  ],
+  "chaplain": [
+    {
+      "id": "promise_burial_rites",
+      "text": "Burial rites will be observed for any man who dies on the voyage."
+    },
+    {
+      "id": "promise_prayer_permitted",
+      "text": "The men will be permitted to observe prayer before entering dangerous waters."
+    }
+  ],
+  "first_lieutenant": [
+    {
+      "id": "promise_officer_consulted",
+      "text": "The First Lieutenant will be consulted before major disciplinary decisions are made alone."
+    }
+  ],
+  "gunner": []
+}
