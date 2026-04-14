@@ -174,7 +174,7 @@ func _test_officer_def() -> void:
 	check(o.competence == 0, "OfficerDef.competence defaults to 0")
 	check(o.loyalty == 0, "OfficerDef.loyalty defaults to 0")
 	check(o.worldview == "", "OfficerDef.worldview defaults to empty string")
-	check(o.known_traits.is_empty(), "OfficerDef.known_traits defaults empty")
+	check(o.disclosed_traits.is_empty(), "OfficerDef.disclosed_traits defaults empty")
 	check(o.hidden_traits.is_empty(), "OfficerDef.hidden_traits defaults empty")
 	check(o.advice_hooks.is_empty(), "OfficerDef.advice_hooks defaults empty")
 	o.id = "bosun"
@@ -182,14 +182,14 @@ func _test_officer_def() -> void:
 	o.competence = 4
 	o.loyalty = 3
 	o.worldview = "disciplinarian"
-	o.known_traits = ["blunt", "reliable"]
+	o.disclosed_traits = ["blunt", "reliable"]
 	o.hidden_traits = ["brutal_in_private"]
 	o.advice_hooks = ["drunk_purser_store_error"]
 	check(o.role == "bosun", "OfficerDef.role round-trips")
 	check(o.competence == 4, "OfficerDef.competence round-trips")
 	check(o.loyalty == 3, "OfficerDef.loyalty round-trips")
 	check(o.worldview == "disciplinarian", "OfficerDef.worldview round-trips")
-	check(o.known_traits == ["blunt", "reliable"], "OfficerDef.known_traits round-trips")
+	check(o.disclosed_traits == ["blunt", "reliable"], "OfficerDef.disclosed_traits round-trips")
 	check(o.hidden_traits == ["brutal_in_private"], "OfficerDef.hidden_traits round-trips")
 	check(o.advice_hooks == ["drunk_purser_store_error"], "OfficerDef.advice_hooks round-trips")
 
@@ -477,12 +477,10 @@ func _test_content_registry_with_content() -> void:
 	check(rum.is_rum == true, "ContentRegistry: rum.is_rum is true")
 	check(rum.starting_amount == 100, "ContentRegistry: rum.starting_amount is 100")
 
+	# Officers are no longer hand-authored .tres files in ContentRegistry.
+	# They are generated at runtime and stored in ProgressionState.officer_pool.
 	var officers := ContentRegistry.get_all("officers")
-	check(officers.size() == 14, "ContentRegistry: 14 officers loaded")
-
-	var bosun: OfficerDef = ContentRegistry.get_by_id("officers", "bosun")
-	check(bosun != null, "ContentRegistry: bosun officer found by id")
-	check(bosun.role == "bosun", "ContentRegistry: bosun.role is correct")
+	check(officers.size() == 0, "ContentRegistry: 0 authored officers (all officers are generated)")
 
 	var incidents := ContentRegistry.get_all("incidents")
 	check(incidents.size() >= 1, "ContentRegistry: at least 1 incident loaded")

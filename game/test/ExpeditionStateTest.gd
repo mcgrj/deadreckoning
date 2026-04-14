@@ -123,9 +123,9 @@ func _test_expedition_state_defaults() -> void:
 	check(state.supplies.has("food"), "Supplies include food")
 	check(state.supplies["rum"] == 100, "Rum starting amount is 100")
 
-	# Officers populated from ContentRegistry
-	check(state.officers.has("bosun"), "Officers include bosun")
-	check(state.officers.has("surgeon"), "Officers include surgeon")
+	# Officers are no longer loaded from ContentRegistry in create_default.
+	# They come from the pool via create_from_config. Default state has no officers.
+	check(state.officers.is_empty(), "Default state has no officers (pool-driven system)")
 
 	# Rum ration expected when rum starts > 0
 	check(state.rum_ration_expected == true, "Rum ration expected when rum > 0")
@@ -174,7 +174,8 @@ func _test_expedition_state_accessors() -> void:
 	state.remove_crew_trait("superstitious")
 	check(not state.has_crew_trait("superstitious"), "remove_crew_trait works")
 
-	# Officer check
+	# Officer check — manually add to state (officers no longer auto-loaded from ContentRegistry)
+	state.officers.append("bosun")
 	check(state.has_officer("bosun"), "has_officer works for present officer")
 	check(not state.has_officer("navigator"), "has_officer returns false for absent officer")
 
@@ -363,6 +364,8 @@ func _test_condition_evaluator_officer() -> void:
 	print("-- ConditionEvaluator: officer_present --")
 	var state = _make_state()
 	var log = _make_log()
+	# Officers no longer auto-loaded from ContentRegistry — add manually for this test
+	state.officers.append("bosun")
 	check(ConditionEvaluator.evaluate(state, _make_condition("officer_present", 0, "bosun"), log) == true, "officer_present bosun: PASS")
 	check(ConditionEvaluator.evaluate(state, _make_condition("officer_present", 0, "navigator"), log) == false, "officer_present navigator: FAIL")
 

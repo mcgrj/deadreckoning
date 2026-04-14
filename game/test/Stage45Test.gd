@@ -194,12 +194,21 @@ func _test_incident_weight_calculation() -> void:
 func _test_officer_council_with_registry() -> void:
 	print("-- OfficerCouncil with ContentRegistry --")
 	var state := ExpeditionState.new()
-	# Both bosun and surgeon are loaded by ContentRegistry autoload
-	var officer_defs: Array = []
-	for item: ContentBase in ContentRegistry.get_all("officers"):
-		var def := item as OfficerDef
-		if def != null:
-			officer_defs.append(def)
+	# Officers are now generated — build OfficerDefs directly for this test.
+	# (They are no longer hand-authored in ContentRegistry.)
+	var bosun_def_r := OfficerDef.new()
+	bosun_def_r.id = "bosun"
+	bosun_def_r.role = "bosun"
+	bosun_def_r.worldview = "disciplinarian"
+	bosun_def_r.competence = 4
+
+	var surgeon_def_r := OfficerDef.new()
+	surgeon_def_r.id = "surgeon"
+	surgeon_def_r.role = "surgeon"
+	surgeon_def_r.worldview = "humanitarian"
+	surgeon_def_r.competence = 3
+
+	var officer_defs: Array = [bosun_def_r, surgeon_def_r]
 
 	var incident := ContentRegistry.get_by_id("incidents", "drunk_purser_store_error") as IncidentDef
 	check(incident != null, "drunk_purser_store_error loads from registry")
