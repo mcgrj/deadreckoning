@@ -28,6 +28,7 @@ var _unavailable_ids: Array[String] = []   # content ids greyed out this prep
 var _recommended: Dictionary = {}          # content_id -> { reward_text, type, trait? }
 var _free_upgrade_id: String = ""          # recommended upgrade that doesn't use a slot
 var _allocation_panel: VBoxContainer = null  # wired up in _build_ui (Task 10)
+var _officer_pool_defs: Array = []  # OfficerDef records loaded from ProgressionState
 
 
 # Returns { "unavailable_ids": Array[String], "recommended": Dictionary }
@@ -121,6 +122,8 @@ func _ready() -> void:
 	for content_id: String in _recommended:
 		if _recommended[content_id].get("type", "") == "upgrade":
 			_free_upgrade_id = content_id
+	SaveManager.replenish_pool(progression)
+	_officer_pool_defs = progression.officer_pool
 	_build_ui()
 
 
@@ -281,16 +284,10 @@ func _build_doctrine_slots(parent: VBoxContainer) -> void:
 
 
 func _build_officer_slots(parent: VBoxContainer) -> void:
-	var all_officers: Array = ContentRegistry.get_all("officers")
-	# Group by role
-	var by_role: Dictionary = {}
-	for off: ContentBase in all_officers:
-		var def: OfficerDef = off as OfficerDef
-		if def == null or def.role == "" or def.role not in REQUIRED_ROLES:
-			continue
-		if not by_role.has(def.role):
-			by_role[def.role] = []
-		by_role[def.role].append(def)
+	# Determine which roles are reduced/unavailable due to officer_accused bias
+	var accused_roles: Array[String] = []
+	if "officer_accused" in _admiralty_bias:
+		accused_roles = ["first_lieutenant"]  # bias specifically targets first_lieutenant per 6B spec
 
 	for role: String in REQUIRED_ROLES:
 		var role_label := Label.new()
@@ -298,29 +295,31 @@ func _build_officer_slots(parent: VBoxContainer) -> void:
 		parent.add_child(role_label)
 		var hbox := HBoxContainer.new()
 		parent.add_child(hbox)
-		var variants: Array = by_role.get(role, [])
+
+		var candidates: Array = _officer_pool_defs.filter(func(d: OfficerDef): return d.role == role)
 		if not _officer_buttons_by_role.has(role):
 			_officer_buttons_by_role[role] = []
-		for def: OfficerDef in variants:
+
+		for def: OfficerDef in candidates:
 			var btn := Button.new()
-			var unavailable: bool = def.id in _unavailable_ids
+			var unavailable: bool = role in accused_roles
 			var is_recommended: bool = def.id in _recommended
 			var reward_text: String = _recommended.get(def.id, {}).get("reward_text", "")
-			var extra := ""
+			var card_text := _format_officer_card(def)
+			if is_recommended:
+				card_text += "\n▲ " + reward_text
 			if unavailable:
-				extra = "\n— Not available this commission"
-			elif is_recommended:
-				extra = "\n▲ " + reward_text
-			btn.text = "%s\n%s%s" % [def.display_name, _format_effects(def.starting_effects), extra]
+				card_text += "\n— Not available this commission"
+			btn.text = card_text
 			btn.disabled = unavailable
 			btn.modulate.a = 0.4 if unavailable else 1.0
-			btn.custom_minimum_size = Vector2(200, 70)
+			btn.custom_minimum_size = Vector2(240, 110)
 			btn.toggle_mode = true
 			btn.pressed.connect(_on_officer_selected.bind(role, def.id, btn))
 			_officer_buttons[def.id] = btn
 			_officer_buttons_by_role[role].append(btn)
 			hbox.add_child(btn)
-			if not _selected_officers.has(role):
+			if not _selected_officers.has(role) and not unavailable:
 				_selected_officers[role] = def.id
 				btn.button_pressed = true
 
@@ -376,6 +375,34 @@ func _format_effects(effects: Array) -> String:
 			"add_crew_trait":
 				parts.append("Trait: %s" % eff.tag)
 	return ", ".join(parts)
+
+
+func _competence_band(val: int) -> String:
+	match val:
+		1: return "unreliable"
+		2: return "uncertain"
+		3: return "steady"
+		4: return "dependable"
+		5: return "exceptional"
+		_: return "unknown"
+
+
+func _format_officer_card(def: OfficerDef) -> String:
+	var background: String = def.tags[0] if def.tags.size() > 0 else ""
+	var lines: Array[String] = []
+	lines.append(def.display_name)
+	if background != "":
+		lines.append(background)
+	if not def.disclosed_traits.is_empty():
+		lines.append("Known: " + ", ".join(def.disclosed_traits))
+	if not def.rumoured_hints.is_empty():
+		lines.append("Rumoured: " + ", ".join(def.rumoured_hints))
+	lines.append("Competence: %s · Loyalty: %s" % [_competence_band(def.competence), _competence_band(def.loyalty)])
+	if def.runs_survived > 0:
+		lines.append("%d run(s) survived" % def.runs_survived)
+		if not def.notable_events.is_empty():
+			lines.append("History: " + ", ".join(def.notable_events.slice(0, 3)))
+	return "\n".join(lines)
 
 
 func _build_allocation_panel() -> VBoxContainer:
@@ -511,10 +538,20 @@ func _on_set_sail() -> void:
 					if trait_value != "":
 						officer_traits[role] = trait_value
 
+	# Collect OfficerDef records for hired officers (pass defs, not just ids)
+	var hired_officer_defs: Array = []
+	for role: String in _selected_officers:
+		var oid: String = _selected_officers[role]
+		for def: OfficerDef in _officer_pool_defs:
+			if def.id == oid:
+				hired_officer_defs.append(def)
+				break
+
 	var config := {
 		"objective_id": _selected_objective,
 		"doctrine_id": _selected_doctrine,
 		"officer_ids": _selected_officers.values(),
+		"officer_defs": hired_officer_defs,
 		"upgrade_ids": _selected_upgrades,
 		"starting_supply_bonus": supply_bonus,
 		"starting_command_bonus": command_bonus,
