@@ -18,34 +18,43 @@ This is not a simulation of individual crew members. The crew remains group-leve
 
 Officers are procedurally assembled at the point they enter the Admiralty pool. The goal is **coherence, not surprise**: the name, background, role, and traits should feel like they belong to the same person. A player looking at a generated officer should be able to form a mental model of who this person is before hiring them.
 
+This system **fully replaces** the authored OfficerDef `.tres` approach. There are no fixed named officers alongside generated ones — every officer in the pool is generated. Keeping both would be pointless complexity. The authored content pools (names, fragments, traits) are what give the generator its character; those are where authorial voice lives, not in hand-crafted individual records.
+
 ### Generation inputs
 
 Each officer is assembled from four layers that must be consistent with each other:
 
 **Role** — drawn from the authored role list (`surgeon`, `bosun`, `purser`, `chaplain`, `first_mate`, `lieutenant`, etc.). Role is selected first; all other layers are role-constrained.
 
-**Name** — drawn from a role-appropriate name list. Names are period-authentic (age-of-sail English, with room for Irish, Scottish, and Dutch names reflecting historical crew composition). Name lists are authored per role or per nationality archetype.
+**Name** — drawn from a role-appropriate or nationality-appropriate name list. Names are period-authentic (age-of-sail English, with room for Irish, Scottish, and Dutch names reflecting historical crew composition). Name lists are authored data and can be expanded without code changes.
 
 **Background fragment** — a short assembled sentence from authored parts. Structure: `[Origin] · [Past service or defining event] · [Current reputation or known flaw]`. Example outputs:
 - *"Devon-born. Served three years under Admiral Pemberton before court-martial for insubordination. Known for accuracy; known for grudges."*
 - *"Scottish. Sailed merchant routes to the Indies. Drinks before noon, never after — so far."*
 - *"No family record. Recommended by a man who has since died. Quiet."*
 
-Background fragments are assembled from authored pools per role, not generated from scratch. The pools should be written to be evocative and specific, not generic. Ambiguity is a feature — "recommended by a man who has since died" implies a story the player will fill in themselves.
+Background fragments are assembled from authored pools per role, not generated from scratch. Each pool has three independently authored sub-lists (origins, past service events, reputation/flaw lines) that are combined at generation. The pools should be written to be evocative and specific, not generic. Ambiguity is a feature — "recommended by a man who has since died" implies a story the player will fill in themselves.
 
-**Starting trait combination** — 2–3 traits drawn from role-appropriate pools, with a coherence filter. Traits should not contradict each other and should loosely support the background fragment. A surgeon with `drinks_before_noon` should not also have `strict_self_discipline`.
+**Starting trait combination** — 2–3 traits drawn from role-appropriate pools, with a coherence filter. Traits should not contradict each other and should loosely support the background fragment. A surgeon with `drinks_before_noon` should not also have `strict_self_discipline`. The coherence filter is implemented through exclusion tags on each trait: a trait declares which other traits it cannot appear alongside.
 
 Traits split into two categories following the existing `OfficerDef` model:
 - `known_traits` — visible to the player from hire
 - `hidden_traits` — revealed through incidents during the run
 
+### Content pools are data-driven and independently expandable
+
+All generation source material lives in authored data files — not in code. Expanding the name pool, adding a new background fragment, or introducing a new trait requires only editing content files. No code changes are needed.
+
+Each pool type is a separate authored list:
+- **Name pools** — one list per role (or per nationality archetype, shared across roles). Adding a name = adding a line.
+- **Background fragment pools** — three sub-lists per role (origins, past service events, reputation lines). Adding a new background variation = adding one entry to one sub-list.
+- **Trait pools** — one list per role, each entry carrying: trait id, display name, whether it is `known` or `hidden`, and an exclusion tag list. Adding a new trait = adding one entry.
+
+The generation system reads these pools at runtime. The format should be chosen for ease of authoring: JSON arrays are appropriate given their simplicity and the volume of short text entries. The existing `.tres` resource format is better for structured objects with many typed fields (like `IncidentDef`); flat text pools are better as JSON.
+
 ### Coherence is the priority
 
-The generation system does not need to be complex. A small, well-authored set of pools with a basic coherence filter (tag exclusions, role constraints) will produce more convincing results than a complex generator with thin source material. Write the pools carefully; the system will handle assembly.
-
-### Generated vs authored officers
-
-The existing authored OfficerDef `.tres` files remain valid as **fixed pool entries** — named characters who always appear in the pool with their authored values. Generated officers fill the remaining pool slots. This allows the game to have recurring named characters (the drunken purser who keeps showing up, the ambitious lieutenant the player dreads) alongside fresh unknowns each run.
+The generation system does not need to be complex. A small, well-authored set of pools with a basic coherence filter will produce more convincing results than a complex generator with thin source material. Write the pools carefully; the system handles assembly.
 
 ---
 
@@ -53,26 +62,29 @@ The existing authored OfficerDef `.tres` files remain valid as **fixed pool entr
 
 ### Structure
 
-The pool holds **6–8 officers** at any time. Before each expedition, the player hires **3–4** from this pool. Unhired officers remain in the pool for future runs.
+The pool is organised **by role**. Each role maintains **2–3 candidates** at any time. The player picks one candidate per role they want to fill — they do not have to fill every role, but the choice within each role is always meaningful.
 
-Pool composition:
-- Surviving officers from previous runs (carry-forward)
-- Any fixed authored officers whose conditions are met (unlock state, reputation flags)
-- Generated officers filling remaining slots
+Approximate pool size with 6 roles at 2–3 candidates each: **12–18 officers**. This is the number that makes choice feel real. A pool of 6–8 total with no role structure produces either role gaps (no surgeon available) or role gluts (three surgeons, one bosun).
+
+Hiring: before each expedition, the player reviews all role slots and selects one candidate per role. Unhired candidates remain in their slot for the next expedition — they do not disappear if passed over.
+
+### Role balance guarantee
+
+The generator enforces role balance. When replenishing, it checks each role's current candidate count and generates for the role with the fewest candidates first. A role can never drop below 1 candidate; replenishment targets 2–3. This ensures the player always has at least one option per role, and usually a genuine tradeoff within the role.
 
 ### Replenishment
 
-When an officer slot is vacated (death, desertion, dismissal, retirement), a new officer is generated to fill it. The pool therefore always offers a mixture of experienced survivors and untested unknowns — this is the core tension of the hiring choice.
+When a candidate slot is vacated (officer death, desertion, dismissal, retirement, or the player hired them), a new officer is generated for that role. The pool therefore always offers a mixture of experienced survivors and untested unknowns within each role — this is the core tension of the hiring choice.
 
 ### Pool visibility
 
-The player sees the full pool at the Admiralty preparation stage. Each officer shows:
+The player sees all candidates organised by role at the Admiralty preparation stage. Each officer shows:
 - Name, role, background fragment
 - Known traits
-- Competence and loyalty (as word-bands, not raw numbers: *unreliable / steady / dependable / exceptional*)
-- Run history summary: how many runs survived, any notable expedition events that left visible scars
+- Competence and loyalty as word-bands, not raw numbers: *unreliable / steady / dependable / exceptional*
+- Run history: runs survived, and a short list of notable expedition events that left visible scars
 
-Hidden traits and scar flags not yet surfaced remain hidden at hire. The player is hiring with incomplete information.
+Hidden traits and scar flags not yet surfaced remain hidden at hire. The player is hiring with incomplete information, and that uncertainty is intentional.
 
 ---
 
@@ -153,15 +165,17 @@ Permanent loss is devastating precisely because scars have accumulated. The syst
 
 This system does not require new core simulation machinery. It extends what already exists:
 
-| Existing system | Extension needed |
+| Existing system | Change |
 |---|---|
-| `OfficerDef` traits | Scar traits added post-run to persistent `.tres` or equivalent save record |
-| `IncidentDef` conditions | Can already check officer traits; no change needed |
-| `IncidentChoiceDef` effects | Scar-trigger effects added as a new effect type: `add_officer_scar` |
-| `ExpeditionState` memory flags | Subset of flags become persistent officer flags at run end |
-| `ProgressionState` | Officer pool state and persistent scar records stored here |
+| `OfficerDef` | Still the runtime record for an officer, but now always produced by the generator rather than hand-authored. Scar traits are written back to this record at run end. |
+| `IncidentDef` conditions | Can already check officer traits; no change needed. |
+| `IncidentChoiceDef` effects | Scar-trigger effects added as a new effect type: `add_officer_scar`. |
+| `ExpeditionState` memory flags | Subset of flags become persistent officer flags at run end. |
+| `ProgressionState` | Stores the pool: all candidate `OfficerDef` records, their scar histories, and run survival counts. |
 
-The procedural generation system is a new addition but is self-contained: it produces an `OfficerDef`-compatible record that the rest of the game treats identically to an authored officer. The generation logic does not need to be visible to the incident or simulation systems.
+The procedural generation system is new but self-contained. It reads authored JSON content pools and produces `OfficerDef` records. Once a record exists in the pool, the rest of the game — incidents, simulation, UI — treats it identically to how it would treat any officer. The generator is invisible to those systems.
+
+Existing authored `OfficerDef` `.tres` files are superseded by this system and should be removed when this feature is implemented.
 
 ---
 
@@ -170,7 +184,8 @@ The procedural generation system is a new addition but is self-contained: it pro
 ### In scope for this design
 
 - Procedural officer generation (name, background, starting traits — coherent and role-consistent)
-- Admiralty pool of 6–8 with carry-forward and replenishment
+- Admiralty pool organised by role, 2–3 candidates per role, with role-balance guarantee and replenishment
+- Data-driven content pools (names, background fragments, traits) expandable without code changes
 - Three scar forms: trait tags, stat drift, cross-run memory flags
 - Scar triggers from incident choice outcomes and run-end stress thresholds
 - Permanent officer loss through authored incident outcomes
@@ -188,9 +203,9 @@ The procedural generation system is a new addition but is self-contained: it pro
 
 For the first implementation pass, the authored pools that feed generation should be small but high quality:
 
-- 4–5 name list entries per role
-- 3–4 background fragment combinations per role (origin pool × past service pool × reputation pool)
-- 6–8 role-appropriate starting traits per role, with coherence exclusion tags
-- 10–15 scar trait definitions covering the most common run events
+- **Names:** 8–12 entries per role (or per nationality archetype). Enough that repeated names are rare within a session.
+- **Background fragments:** 4–6 origins, 4–6 past service events, 4–6 reputation lines per role. Combinatorial — 4×4×4 = 64 possible backgrounds per role before any repetition is noticeable.
+- **Starting traits:** 8–12 role-appropriate entries per role, each with coherence exclusion tags. Enough that two candidates of the same role rarely feel identical.
+- **Scar traits:** 10–15 definitions covering the most common run events, each with a clear trigger condition.
 
-Do not build large pools before the loop proves the concept. The generation system should be extensible — adding new names, fragments, and scar types should require only authored content, not code changes.
+Do not build large pools before the loop proves the concept. The generation system must be extensible by content alone — adding new entries to any pool requires only editing the authored data files, not touching code.
