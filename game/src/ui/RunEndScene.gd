@@ -245,14 +245,10 @@ func _build_ui() -> void:
 	# Outcome header
 	var outcome_text := ""
 	match final_state.run_end_reason:
-		"completed":
-			outcome_text = "Expedition Complete"
-		"mutiny":
-			outcome_text = "Mutiny"
-		"breakdown":
-			outcome_text = "Expedition Lost"
-		_:
-			outcome_text = "Run Ended"
+		"completed": outcome_text = "Expedition Complete"
+		"mutiny":    outcome_text = "Mutiny"
+		"breakdown": outcome_text = "Expedition Lost"
+		_:           outcome_text = "Run Ended"
 
 	var outcome_label := Label.new()
 	outcome_label.text = outcome_text
@@ -261,7 +257,7 @@ func _build_ui() -> void:
 
 	vbox.add_child(HSeparator.new())
 
-	# Objective result (uses pre-computed _objective_def / _objective_success)
+	# Objective result
 	var obj_label := Label.new()
 	if _objective_def:
 		var result_str := "SUCCESS" if _objective_success else "FAILED"
@@ -273,40 +269,101 @@ func _build_ui() -> void:
 
 	vbox.add_child(HSeparator.new())
 
-	# Stress indicators
-	var stress_title := Label.new()
-	stress_title.text = "Expedition Record"
-	stress_title.add_theme_font_size_override("font_size", 18)
-	vbox.add_child(stress_title)
+	# Factual account
+	var log_title := Label.new()
+	log_title.text = "What the Log Shows"
+	log_title.add_theme_font_size_override("font_size", 18)
+	vbox.add_child(log_title)
 
+	var narrative := RichTextLabel.new()
+	narrative.bbcode_enabled = true
+	narrative.fit_content = true
+	narrative.autowrap_mode = TextServer.AUTOWRAP_WORD
+	narrative.text = _build_log_narrative_text()
+	vbox.add_child(narrative)
+
+	# Stress stats
 	var s := final_state.stress_indicators
 	var stress_label := Label.new()
-	stress_label.text = (
-		"Peak Burden: %d\nMin Command: %d\nCrew Losses: %d\nSupply Depletions: %d" % [
-			s.get("peak_burden", 0), s.get("min_command", 0),
-			s.get("crew_losses", 0), s.get("supply_depletions", 0)
-		]
-	)
+	stress_label.text = "Peak Burden: %d  |  Min Command: %d  |  Crew Lost: %d  |  Admiralty Assessment: %d / 100" % [
+		s.get("peak_burden", 0), s.get("min_command", 0),
+		s.get("crew_losses", 0), _difficulty_score
+	]
 	vbox.add_child(stress_label)
 
 	vbox.add_child(HSeparator.new())
 
-	# Difficulty score (pre-computed in _evaluate_outcome)
-	var score_label := Label.new()
-	score_label.text = "Admiralty Assessment: %d / 100" % _difficulty_score
-	score_label.add_theme_font_size_override("font_size", 18)
-	vbox.add_child(score_label)
+	# Report framing
+	_build_report_section(vbox)
 
-	vbox.add_child(HSeparator.new())
 
-	# Return button
+func _build_report_section(parent: VBoxContainer) -> void:
+	var title := Label.new()
+	title.text = "Your Report to the Admiralty"
+	title.add_theme_font_size_override("font_size", 18)
+	parent.add_child(title)
+
+	var subtitle := Label.new()
+	subtitle.text = "Choose how the expedition is recorded. The Admiralty will remember."
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD
+	parent.add_child(subtitle)
+
+	var available := _get_available_framings()
+
+	# Return button — enabled only after a framing is selected
 	var return_btn := Button.new()
 	return_btn.text = "Return to Admiralty"
+	return_btn.disabled = true
+
+	for id: String in available:
+		var opt: Dictionary = FRAMING_OPTIONS[id]
+		var card := _build_framing_card(id, opt, return_btn)
+		parent.add_child(card)
+
+	parent.add_child(return_btn)
 	return_btn.pressed.connect(_on_return)
-	vbox.add_child(return_btn)
+
+
+func _build_framing_card(framing_id: String, opt: Dictionary, return_btn: Button) -> PanelContainer:
+	var panel := PanelContainer.new()
+	var vbox := VBoxContainer.new()
+	panel.add_child(vbox)
+
+	var title := Label.new()
+	title.text = opt.get("title", "")
+	title.add_theme_font_size_override("font_size", 16)
+	vbox.add_child(title)
+
+	var spin := Label.new()
+	spin.text = opt.get("spin_text", "")
+	spin.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(spin)
+
+	var consequence := Label.new()
+	consequence.text = opt.get("consequence_text", "")
+	consequence.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(consequence)
+
+	var select_btn := Button.new()
+	select_btn.text = "Select"
+	select_btn.pressed.connect(_on_framing_selected.bind(framing_id, select_btn, return_btn))
+	vbox.add_child(select_btn)
+
+	return panel
+
+
+func _on_framing_selected(framing_id: String, btn: Button, return_btn: Button) -> void:
+	_selected_framing = framing_id
+	return_btn.disabled = false
 
 
 func _on_return() -> void:
+	if _selected_framing != "":
+		var opt: Dictionary = FRAMING_OPTIONS.get(_selected_framing, {})
+		SaveManager.record_report_framing(
+			opt.get("bias_string", ""),
+			opt.get("scandal_flag", "")
+		)
 	var prep_scene: Node = load("res://src/ui/PreparationScene.tscn").instantiate()
 	var old_scene := get_tree().current_scene
 	get_tree().root.add_child(prep_scene)
