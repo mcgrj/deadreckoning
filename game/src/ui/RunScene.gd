@@ -20,6 +20,7 @@ var _status_label: Label
 
 
 func _ready() -> void:
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var config := SaveManager.pending_run_config
 	SaveManager.pending_run_config = {}
 	_state = ExpeditionState.create_from_config(config)
