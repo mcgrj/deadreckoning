@@ -68,13 +68,8 @@ func _build_ui() -> void:
 	advice_lbl.add_theme_color_override("font_color", Color(0.4, 0.55, 0.65))
 	vbox.add_child(advice_lbl)
 
-	# Build proposals
-	var officer_defs: Array = []
-	for item: ContentBase in ContentRegistry.get_all("officers"):
-		var def := item as OfficerDef
-		if def != null:
-			officer_defs.append(def)
-	_proposals = OfficerCouncil.get_proposals(_state, _incident, officer_defs)
+	# Build proposals from officer defs wired into state at run start
+	_proposals = OfficerCouncil.get_proposals(_state, _incident, _state.officer_defs)
 
 	for i in range(_proposals.size()):
 		var proposal: Dictionary = _proposals[i]

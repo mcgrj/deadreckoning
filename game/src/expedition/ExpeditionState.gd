@@ -84,13 +84,25 @@ static func create_from_config(config: Dictionary) -> ExpeditionState:
 				state.rum_ration_expected = true
 				state.add_crew_trait("rum_aboard")
 
-	# Apply selected officers
-	var officer_ids: Array = config.get("officer_ids", [])
-	for officer_id: String in officer_ids:
-		var officer_def: OfficerDef = ContentRegistry.get_by_id("officers", officer_id) as OfficerDef
-		if officer_def:
-			state.officers.append(officer_def.id)
-			EffectProcessor.apply_effects(state, officer_def.starting_effects, log)
+	# Apply selected officers from pool defs (preferred) or ids (legacy fallback)
+	var officer_defs_config: Array = config.get("officer_defs", [])
+	if not officer_defs_config.is_empty():
+		for def: OfficerDef in officer_defs_config:
+			state.officers.append(def.id)
+			state.officer_defs.append(def)
+			# Load persistent scars into officer_scars for condition checking this run
+			for scar: String in def.scar_traits:
+				state.add_officer_scar(def.role, scar)
+			EffectProcessor.apply_effects(state, def.starting_effects, log)
+	else:
+		# Legacy path — ContentRegistry lookup (used in tests that don't have pool)
+		var officer_ids: Array = config.get("officer_ids", [])
+		for officer_id: String in officer_ids:
+			var officer_def: OfficerDef = ContentRegistry.get_by_id("officers", officer_id) as OfficerDef
+			if officer_def:
+				state.officers.append(officer_def.id)
+				state.officer_defs.append(officer_def)
+				EffectProcessor.apply_effects(state, officer_def.starting_effects, log)
 
 	# Apply selected upgrades
 	var upgrade_ids: Array = config.get("upgrade_ids", [])
