@@ -14,6 +14,7 @@ var _all_entries: Array[Dictionary] = []
 var _entry_container: VBoxContainer
 var _scroll: ScrollContainer
 var _user_scrolled: bool = false
+var _scroll_pending: bool = false
 
 
 func _ready() -> void:
@@ -53,6 +54,8 @@ func _ready() -> void:
 	_scroll.add_child(_entry_container)
 
 
+# NOTE: Not idempotent — calling twice with the same tick will double-append entries.
+# Prefer append_latest when possible (index-based, immune to repeats).
 func append_tick_entries(log: SimulationLog, tick: int) -> void:
 	for entry: Dictionary in log.get_entries_since(tick):
 		_all_entries.append(entry)
@@ -114,7 +117,7 @@ func _trim_rendered() -> void:
 	var children := _entry_container.get_children()
 	var excess := children.size() - MAX_RENDERED_ENTRIES
 	for i in range(excess):
-		children[i].queue_free()
+		children[i].free()
 
 
 func _on_scroll_changed(value: float) -> void:
@@ -123,9 +126,11 @@ func _on_scroll_changed(value: float) -> void:
 
 
 func _auto_scroll() -> void:
-	if _user_scrolled:
+	if _user_scrolled or _scroll_pending:
 		return
+	_scroll_pending = true
 	await get_tree().process_frame
+	_scroll_pending = false
 	if is_instance_valid(_scroll):
 		_scroll.scroll_vertical = _scroll.get_v_scroll_bar().max_value
 
