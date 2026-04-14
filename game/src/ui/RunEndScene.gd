@@ -146,11 +146,13 @@ func _has_discipline_order() -> bool:
 
 # Returns a BBCode string for the factual account section.
 # Highlighted sentences are facts the Admiralty will scrutinise.
+# Each segment appends a trailing space; strip_edges() cleans the final result.
 func _build_log_narrative_text() -> String:
 	var text := ""
 	var s := final_state.stress_indicators
 
 	# Opening context
+	# Assumes display_name is an infinitive phrase (e.g. "recover lost charts").
 	text += "The expedition departed"
 	if _objective_def != null:
 		text += " with orders to %s" % _objective_def.display_name.to_lower()
@@ -167,7 +169,9 @@ func _build_log_narrative_text() -> String:
 	if peak >= 70:
 		text += "Burden reached %d before the end. " % peak
 
-	# Scrutiny facts — highlighted in Admiralty gold
+	# Scrutiny facts — highlighted in Admiralty gold.
+	# On a mutiny run both "Command fell" and "The crew refused orders" appear;
+	# command reading first, refusal as the terminal fact.
 	var losses: int = s.get("crew_losses", 0)
 	if losses == 1:
 		text += "[color=#c8b89a]One man is dead.[/color] "
