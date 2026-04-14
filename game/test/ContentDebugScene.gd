@@ -1,613 +1,738 @@
 # ContentDebugScene.gd
-# Interactive debug scene for Dead Reckoning.
-# Left sidebar: content family buttons + expedition sim controls.
-# Right pane: scrollable output.
+# Standalone dev tool. Sidebar of grouped buttons + custom tab system.
+# Owns its own ExpeditionState, RouteMap, and SimulationLog.
+# Does not interact with SaveManager.
 #
-# Stage 1: Content catalog browsing and validation.
-# Stage 2: Expedition state simulation.
+# Spec: docs/superpowers/specs/2026-04-14-debug-ui-redesign.md
 extends HBoxContainer
 
-@onready var _output: RichTextLabel = $OutputContainer/Output
+const SIDEBAR_WIDTH := 150.0
 
+# --- State ---
 var _state: ExpeditionState = null
 var _log: SimulationLog = null
+var _route: RouteMap = null
 var _effect_index: int = 0
 var _condition_index: int = 0
-var _route_map: RouteMap = null
-var _incident_scene: Node = null
+
+# --- UI refs ---
+var _tab_buttons: Dictionary = {}   # tab_name -> Button
+var _tab_panes: Dictionary = {}     # tab_name -> Control
+var _active_tab: String = ""
+
+# Pane-internal refs updated on refresh
+var _state_pane: Control = null
+var _route_map_node: RouteMapNode = null
+var _log_table: VBoxContainer = null
 
 
 func _ready() -> void:
-	# Stage 1 — content catalog buttons
-	$SidebarScroll/Sidebar/ValidateAll.pressed.connect(_on_validate_all_pressed)
-	$SidebarScroll/Sidebar/Incidents.pressed.connect(_on_family_pressed.bind("incidents"))
-	$SidebarScroll/Sidebar/Officers.pressed.connect(_on_family_pressed.bind("officers"))
-	$SidebarScroll/Sidebar/Supplies.pressed.connect(_on_family_pressed.bind("supplies"))
-	$SidebarScroll/Sidebar/StandingOrders.pressed.connect(_on_family_pressed.bind("standing_orders"))
-	$SidebarScroll/Sidebar/Upgrades.pressed.connect(_on_family_pressed.bind("upgrades"))
-	$SidebarScroll/Sidebar/Doctrines.pressed.connect(_on_family_pressed.bind("doctrines"))
-	$SidebarScroll/Sidebar/CrewBackgrounds.pressed.connect(_on_family_pressed.bind("crew_backgrounds"))
-	$SidebarScroll/Sidebar/ZoneTypes.pressed.connect(_on_family_pressed.bind("zone_types"))
-	$SidebarScroll/Sidebar/Objectives.pressed.connect(_on_family_pressed.bind("objectives"))
-
-	# Stage 2 — expedition sim buttons
-	$SidebarScroll/Sidebar/NewExpedition.pressed.connect(_on_new_expedition)
-	$SidebarScroll/Sidebar/ShowState.pressed.connect(_on_show_state)
-	$SidebarScroll/Sidebar/ApplyEffect.pressed.connect(_on_apply_effect)
-	$SidebarScroll/Sidebar/CheckCondition.pressed.connect(_on_check_condition)
-	$SidebarScroll/Sidebar/Tick.pressed.connect(_on_tick)
-	$SidebarScroll/Sidebar/MakePromise.pressed.connect(_on_make_promise)
-	$SidebarScroll/Sidebar/KeepPromise.pressed.connect(_on_keep_promise)
-	$SidebarScroll/Sidebar/BreakPromise.pressed.connect(_on_break_promise)
-	$SidebarScroll/Sidebar/ToggleDamageTag.pressed.connect(_on_toggle_damage_tag)
-	$SidebarScroll/Sidebar/SetMemoryFlag.pressed.connect(_on_set_memory_flag)
-	$SidebarScroll/Sidebar/ToggleSpiritStore.pressed.connect(_on_toggle_spirit_store)
-	$SidebarScroll/Sidebar/ShowLog.pressed.connect(_on_show_log)
-
-	# Stage 3 — route map controls
-	$SidebarScroll/Sidebar/ShowRoute.pressed.connect(_on_show_route)
-	$SidebarScroll/Sidebar/AdvanceDay.pressed.connect(_on_advance_day)
-	$SidebarScroll/Sidebar/ForceIncident.pressed.connect(_on_force_incident)
-	_output.meta_clicked.connect(_on_route_meta_clicked)
-
-	# Stage 4 — incident resolution + standing orders
-	$SidebarScroll/Sidebar/ToggleRationing.pressed.connect(_on_toggle_rationing)
-
-	_show_validate_all()
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_build_sidebar()
+	_build_main_area()
+	_activate_tab("state")
 
 
-# --- Stage 1: Content catalog ---
+# ── Sidebar ────────────────────────────────────────────────────────────────────
 
-func _on_validate_all_pressed() -> void:
-	_show_validate_all()
+func _build_sidebar() -> void:
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size.x = SIDEBAR_WIDTH
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	add_child(scroll)
+
+	var sidebar := VBoxContainer.new()
+	sidebar.custom_minimum_size.x = SIDEBAR_WIDTH
+	sidebar.add_theme_constant_override("separation", 2)
+	scroll.add_child(sidebar)
+
+	_sidebar_section(sidebar, "EXPEDITION")
+	_sidebar_button(sidebar, "New Expedition", _on_new_expedition)
+	_sidebar_button(sidebar, "Show State",     func() -> void: _activate_tab("state"))
+	_sidebar_button(sidebar, "Tick",           _on_tick)
+	_sidebar_button(sidebar, "Show Log",       func() -> void: _activate_tab("log"))
+
+	_sidebar_section(sidebar, "EFFECTS")
+	_sidebar_button(sidebar, "Apply Effect",   _on_apply_effect)
+	_sidebar_button(sidebar, "Check Condition",_on_check_condition)
+
+	_sidebar_section(sidebar, "PROMISES")
+	_sidebar_button(sidebar, "Make Promise",   _on_make_promise)
+	_sidebar_button(sidebar, "Keep Promise",   _on_keep_promise)
+	_sidebar_button(sidebar, "Break Promise",  _on_break_promise)
+
+	_sidebar_section(sidebar, "FLAGS")
+	_sidebar_button(sidebar, "Toggle Damage Tag", _on_toggle_damage_tag)
+	_sidebar_button(sidebar, "Set Memory Flag",   _on_set_memory_flag)
+
+	_sidebar_section(sidebar, "ORDERS")
+	_sidebar_button(sidebar, "Toggle Rationing",  _on_toggle_rationing)
+	_sidebar_button(sidebar, "Toggle Spirit Store",_on_toggle_spirit_store)
+
+	_sidebar_section(sidebar, "ROUTE")
+	_sidebar_button(sidebar, "Show Route",        _on_show_route)
+	_sidebar_button(sidebar, "Advance Day",        _on_advance_day)
+	_sidebar_button(sidebar, "Force Incident",     _on_force_incident)
+
+	_sidebar_section(sidebar, "CONTENT")
+	_sidebar_button(sidebar, "Validate All",       func() -> void: _activate_tab("validate"))
 
 
-func _on_family_pressed(family: String) -> void:
-	_show_family(family)
+func _sidebar_section(parent: VBoxContainer, title: String) -> void:
+	var lbl := Label.new()
+	lbl.text = title
+	lbl.add_theme_font_size_override("font_size", 9)
+	lbl.add_theme_color_override("font_color", Color(0.18, 0.25, 0.35))
+	lbl.custom_minimum_size.y = 20
+	parent.add_child(lbl)
 
 
-func _show_validate_all() -> void:
-	_clear_output()
-	_output.append_text("[b]Content Catalog — Validate All[/b]\n\n")
+func _sidebar_button(parent: VBoxContainer, label: String, callback: Callable) -> Button:
+	var btn := Button.new()
+	btn.text = label
+	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	btn.add_theme_font_size_override("font_size", 10)
+	btn.pressed.connect(callback)
+	parent.add_child(btn)
+	return btn
+
+
+# ── Main area: tab bar + content ───────────────────────────────────────────────
+
+func _build_main_area() -> void:
+	var main_vbox := VBoxContainer.new()
+	main_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	main_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_vbox.add_theme_constant_override("separation", 0)
+	add_child(main_vbox)
+
+	# Tab bar (custom HBoxContainer of buttons)
+	var tab_bar := HBoxContainer.new()
+	tab_bar.custom_minimum_size.y = 34
+	tab_bar.add_theme_constant_override("separation", 0)
+	main_vbox.add_child(tab_bar)
+	main_vbox.add_child(HSeparator.new())
+
+	# Content area
+	var content_area := Control.new()
+	content_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_vbox.add_child(content_area)
+
+	# Build tabs
+	var tab_names := ["state", "route", "log", "incidents", "officers",
+	                  "supplies", "standing_orders", "validate"]
+	var tab_labels := {
+		"state": "State", "route": "Route", "log": "Log",
+		"incidents": "Incidents", "officers": "Officers",
+		"supplies": "Supplies", "standing_orders": "Orders",
+		"validate": "Validate"
+	}
+
+	for tab_name: String in tab_names:
+		var btn := Button.new()
+		btn.text = tab_labels.get(tab_name, tab_name)
+		btn.flat = true
+		btn.focus_mode = Control.FOCUS_NONE
+		btn.add_theme_font_size_override("font_size", 10)
+		btn.pressed.connect(_activate_tab.bind(tab_name))
+		tab_bar.add_child(btn)
+		_tab_buttons[tab_name] = btn
+
+		# Build pane
+		var pane := _build_tab_pane(tab_name)
+		pane.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		pane.visible = false
+		content_area.add_child(pane)
+		_tab_panes[tab_name] = pane
+
+
+func _build_tab_pane(tab_name: String) -> Control:
+	var scroll := ScrollContainer.new()
+	var inner := VBoxContainer.new()
+	inner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	inner.add_theme_constant_override("separation", 8)
+	scroll.add_child(inner)
+
+	match tab_name:
+		"state":
+			_state_pane = inner
+			# Populated by _refresh_state_pane()
+		"route":
+			_route_map_node = RouteMapNode.new()
+			_route_map_node.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			_route_map_node.size_flags_vertical = Control.SIZE_EXPAND_FILL
+			_route_map_node.custom_minimum_size = Vector2(300, 520)
+			inner.add_child(_route_map_node)
+		"log":
+			_log_table = inner
+			# Populated by _refresh_log_pane()
+		"validate":
+			# Populated by _refresh_validate_pane()
+			inner.name = "validate_inner"
+		_:
+			# Content family tabs populated by _refresh_content_pane()
+			inner.name = tab_name + "_inner"
+
+	return scroll
+
+
+func _activate_tab(tab_name: String) -> void:
+	if not _tab_panes.has(tab_name):
+		return
+	for name: String in _tab_panes:
+		_tab_panes[name].visible = (name == tab_name)
+	for name: String in _tab_buttons:
+		var btn := _tab_buttons[name] as Button
+		btn.add_theme_color_override("font_color",
+			Color(0.67, 0.83, 1.0) if name == tab_name else Color(0.25, 0.4, 0.55))
+	_active_tab = tab_name
+	_refresh_active_tab()
+
+
+func _refresh_active_tab() -> void:
+	match _active_tab:
+		"state":    _refresh_state_pane()
+		"log":      _refresh_log_pane()
+		"validate": _refresh_validate_pane()
+		"route":
+			if _route != null and _route_map_node != null:
+				_route_map_node.setup(_route, _state, _log)
+		_:
+			_refresh_content_pane(_active_tab)
+
+
+# ── State pane ─────────────────────────────────────────────────────────────────
+
+func _refresh_state_pane() -> void:
+	if _state_pane == null:
+		return
+	for child in _state_pane.get_children():
+		child.queue_free()
+	await get_tree().process_frame  # let queue_free flush
+
+	if _state == null:
+		var placeholder := Label.new()
+		placeholder.text = "(no expedition — click New Expedition)"
+		placeholder.add_theme_color_override("font_color", Color(0.3, 0.4, 0.5))
+		_state_pane.add_child(placeholder)
+		return
+
+	# 2×2 grid
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 10)
+	_state_pane.add_child(grid)
+
+	grid.add_child(_state_block_core())
+	grid.add_child(_state_block_supplies())
+	grid.add_child(_state_block_tags())
+	grid.add_child(_state_block_rum())
+
+	# Promise
+	if not _state.active_promise.is_empty():
+		var promise_panel := PanelContainer.new()
+		var promise_vbox := VBoxContainer.new()
+		promise_panel.add_child(promise_vbox)
+		var pt := Label.new()
+		pt.text = "\"%s\"" % _state.active_promise.get("text", "")
+		pt.add_theme_font_size_override("font_size", 10)
+		promise_vbox.add_child(pt)
+		var ps := Label.new()
+		ps.text = "%d ticks remaining · type: %s" % [
+			_state.active_promise.get("ticks_remaining", 0),
+			_state.active_promise.get("id", "")]
+		ps.add_theme_font_size_override("font_size", 9)
+		ps.add_theme_color_override("font_color", Color(0.3, 0.55, 0.75))
+		promise_vbox.add_child(ps)
+		_state_pane.add_child(promise_panel)
+
+	# Progression panel (Stage 6B data from SaveManager)
+	var prog := SaveManager.load_progression()
+	var prog_panel := PanelContainer.new()
+	var prog_vbox := VBoxContainer.new()
+	prog_panel.add_child(prog_vbox)
+
+	var prog_title := Label.new()
+	prog_title.text = "ADMIRALTY RECORD"
+	prog_title.add_theme_font_size_override("font_size", 9)
+	prog_title.add_theme_color_override("font_color", Color(0.3, 0.4, 0.5))
+	prog_vbox.add_child(prog_title)
+
+	if prog.admiralty_bias.is_empty() and prog.scandal_flags.is_empty():
+		var empty_lbl := Label.new()
+		empty_lbl.text = "(no Admiralty record)"
+		empty_lbl.add_theme_font_size_override("font_size", 10)
+		empty_lbl.add_theme_color_override("font_color", Color(0.25, 0.35, 0.4))
+		prog_vbox.add_child(empty_lbl)
+	else:
+		if not prog.admiralty_bias.is_empty():
+			prog_vbox.add_child(_tag_row(prog.admiralty_bias, Color.html("#ffccaa"), Color.html("#1a0f00")))
+		if not prog.scandal_flags.is_empty():
+			prog_vbox.add_child(_tag_row(prog.scandal_flags, Color.html("#ffdd66"), Color.html("#1a1400")))
+		var score_lbl := Label.new()
+		score_lbl.text = "Last difficulty: %d" % prog.last_run_difficulty_score
+		score_lbl.add_theme_font_size_override("font_size", 10)
+		prog_vbox.add_child(score_lbl)
+
+	_state_pane.add_child(prog_panel)
+
+
+func _state_block_core() -> PanelContainer:
+	var panel := PanelContainer.new()
+	var vbox := VBoxContainer.new()
+	panel.add_child(vbox)
+	_block_title(vbox, "CORE")
+	_state_row(vbox, "Burden",         str(_state.burden),         Color.html("#ff9966"))
+	_mini_bar(vbox, float(_state.burden) / 100.0, Color.html("#ff9966"))
+	_state_row(vbox, "Command",        str(_state.command),        Color.html("#88ccff"))
+	_mini_bar(vbox, float(_state.command) / 100.0, Color.html("#88ccff"))
+	_state_row(vbox, "Ship condition", "%d%%" % _state.ship_condition, Color.html("#ffdd88"))
+	_state_row(vbox, "Tick",           str(_state.tick_count),     Color(0.7, 0.7, 0.7))
+	return panel
+
+
+func _state_block_supplies() -> PanelContainer:
+	var panel := PanelContainer.new()
+	var vbox := VBoxContainer.new()
+	panel.add_child(vbox)
+	_block_title(vbox, "SUPPLIES")
+	for supply_id: String in _state.supplies:
+		_state_row(vbox, supply_id, str(_state.get_supply(supply_id)), Color(0.7, 0.85, 0.7))
+	return panel
+
+
+func _state_block_tags() -> PanelContainer:
+	var panel := PanelContainer.new()
+	var vbox := VBoxContainer.new()
+	panel.add_child(vbox)
+	_block_title(vbox, "TAGS & FLAGS")
+
+	_block_subtitle(vbox, "Damage tags")
+	vbox.add_child(_tag_row(_state.damage_tags,    Color.html("#ffaa44"), Color.html("#1a0a00")))
+	_block_subtitle(vbox, "Memory flags")
+	vbox.add_child(_tag_row(_state.memory_flags,   Color.html("#88ccff"), Color.html("#0a1520")))
+	_block_subtitle(vbox, "Standing orders")
+	vbox.add_child(_tag_row(_state.standing_orders,Color.html("#ffdd66"), Color.html("#1a1400")))
+	_block_subtitle(vbox, "Officers")
+	vbox.add_child(_tag_row(_state.officers,       Color.html("#aaffaa"), Color.html("#0a1a10")))
+	return panel
+
+
+func _state_block_rum() -> PanelContainer:
+	var panel := PanelContainer.new()
+	var vbox := VBoxContainer.new()
+	panel.add_child(vbox)
+	_block_title(vbox, "RUM STATE")
+	_state_row(vbox, "ration expected", str(_state.rum_ration_expected),  Color.html("#ffaaaa"))
+	_state_row(vbox, "store locked",    str(_state.spirit_store_locked),   Color(0.7, 0.7, 0.7))
+	_state_row(vbox, "theft risk",      str(_state.rum_theft_risk),        Color.html("#ff9966"))
+	_state_row(vbox, "drunkenness risk",str(_state.rum_drunkenness_risk),  Color.html("#ff9966"))
+	_block_title(vbox, "LEADERSHIP")
+	for tag: String in _state.leadership_tags:
+		var val: int = _state.leadership_tags[tag]
+		_state_row(vbox, tag, "+%d" % val if val >= 0 else str(val), Color(0.7, 0.75, 0.8))
+	return panel
+
+
+func _block_title(parent: VBoxContainer, text: String) -> void:
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.add_theme_font_size_override("font_size", 9)
+	lbl.add_theme_color_override("font_color", Color(0.25, 0.38, 0.5))
+	parent.add_child(lbl)
+
+
+func _block_subtitle(parent: VBoxContainer, text: String) -> void:
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.add_theme_font_size_override("font_size", 10)
+	lbl.add_theme_color_override("font_color", Color(0.3, 0.44, 0.5))
+	parent.add_child(lbl)
+
+
+func _state_row(parent: VBoxContainer, key: String, value: String, val_color: Color) -> void:
+	var hbox := HBoxContainer.new()
+	parent.add_child(hbox)
+	var k := Label.new()
+	k.text = key
+	k.add_theme_font_size_override("font_size", 10)
+	k.add_theme_color_override("font_color", Color(0.35, 0.44, 0.5))
+	k.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.add_child(k)
+	var v := Label.new()
+	v.text = value
+	v.add_theme_font_size_override("font_size", 11)
+	v.add_theme_color_override("font_color", val_color)
+	hbox.add_child(v)
+
+
+func _mini_bar(parent: VBoxContainer, fill: float, color: Color) -> void:
+	var bg := ColorRect.new()
+	bg.custom_minimum_size = Vector2(0, 3)
+	bg.color = Color(0.07, 0.1, 0.16)
+	bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	parent.add_child(bg)
+	var fg := ColorRect.new()
+	fg.color = color
+	fg.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+	fg.size.x = clampf(fill, 0.0, 1.0)  # will be relative in final layout — best-effort here
+	bg.add_child(fg)
+
+
+func _tag_row(tags: Array, fg: Color, bg: Color) -> HBoxContainer:
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 3)
+	if tags.is_empty():
+		var empty := Label.new()
+		empty.text = "(none)"
+		empty.add_theme_font_size_override("font_size", 9)
+		empty.add_theme_color_override("font_color", Color(0.25, 0.35, 0.4))
+		hbox.add_child(empty)
+		return hbox
+	for tag: String in tags:
+		var lbl := Label.new()
+		lbl.text = tag
+		lbl.add_theme_font_size_override("font_size", 9)
+		lbl.add_theme_color_override("font_color", fg)
+		# StyleBox background
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = bg
+		sb.set_corner_radius_all(3)
+		sb.content_margin_left = 4; sb.content_margin_right = 4
+		sb.content_margin_top = 1; sb.content_margin_bottom = 1
+		lbl.add_theme_stylebox_override("normal", sb)
+		hbox.add_child(lbl)
+	return hbox
+
+
+# ── Log pane ───────────────────────────────────────────────────────────────────
+
+func _refresh_log_pane() -> void:
+	if _log_table == null:
+		return
+	for child in _log_table.get_children():
+		child.queue_free()
+	await get_tree().process_frame
+
+	if _log == null:
+		return
+
+	# Header row
+	var header := _log_row("TICK", "SOURCE", "MESSAGE", true)
+	_log_table.add_child(header)
+	_log_table.add_child(HSeparator.new())
+
+	for entry: Dictionary in _log.get_entries():
+		_log_table.add_child(_log_row(
+			str(entry.get("tick", 0)),
+			entry.get("source", ""),
+			entry.get("message", ""),
+			false
+		))
+
+
+func _log_row(tick: String, source: String, message: String, is_header: bool) -> HBoxContainer:
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 8)
+
+	var lbl_tick := Label.new()
+	lbl_tick.text = tick
+	lbl_tick.custom_minimum_size.x = 28
+	lbl_tick.add_theme_font_size_override("font_size", 10 if is_header else 11)
+	lbl_tick.add_theme_color_override("font_color",
+		Color(0.3, 0.45, 0.55) if is_header else Color(0.2, 0.3, 0.45))
+	hbox.add_child(lbl_tick)
+
+	var lbl_src := Label.new()
+	lbl_src.text = source
+	lbl_src.custom_minimum_size.x = 110
+	lbl_src.add_theme_font_size_override("font_size", 10)
+	lbl_src.add_theme_color_override("font_color",
+		Color(0.3, 0.45, 0.55) if is_header else Color(0.29, 0.42, 0.54))
+	hbox.add_child(lbl_src)
+
+	var lbl_msg := Label.new()
+	lbl_msg.text = message
+	lbl_msg.autowrap_mode = TextServer.AUTOWRAP_WORD
+	lbl_msg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl_msg.add_theme_font_size_override("font_size", 10 if is_header else 11)
+	lbl_msg.add_theme_color_override("font_color",
+		Color(0.3, 0.45, 0.55) if is_header else Color(0.4, 0.5, 0.55))
+	hbox.add_child(lbl_msg)
+
+	return hbox
+
+
+# ── Validate pane ──────────────────────────────────────────────────────────────
+
+func _refresh_validate_pane() -> void:
+	var pane_scroll := _tab_panes.get("validate") as ScrollContainer
+	if pane_scroll == null:
+		return
+	var inner := pane_scroll.get_child(0) as VBoxContainer
+	if inner == null:
+		return
+	for child in inner.get_children():
+		child.queue_free()
+	await get_tree().process_frame
+
+	var errors := ContentRegistry.get_validation_errors()
+	var summary := Label.new()
+	if errors.is_empty():
+		summary.text = "PASS — no validation errors"
+		summary.add_theme_color_override("font_color", Color(0.4, 0.8, 0.4))
+	else:
+		summary.text = "FAIL — %d error(s)" % errors.size()
+		summary.add_theme_color_override("font_color", Color(1.0, 0.4, 0.27))
+	inner.add_child(summary)
+
+	for err: String in errors:
+		var lbl := Label.new()
+		lbl.text = "· " + err
+		lbl.add_theme_font_size_override("font_size", 10)
+		lbl.add_theme_color_override("font_color", Color(0.7, 0.5, 0.4))
+		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+		inner.add_child(lbl)
+
+	# Also show family counts
+	inner.add_child(HSeparator.new())
 	for family: String in ContentRegistry.get_families():
 		var items := ContentRegistry.get_all(family)
-		_output.append_text("[b]%s[/b]: %d item(s)\n" % [family, items.size()])
-	var errors := ContentRegistry.get_validation_errors()
-	if errors.is_empty():
-		_output.append_text("\n[color=green]PASS — no validation errors[/color]\n")
-		_output.append_text("\nOverall: [color=green]VALID[/color]\n")
-	else:
-		_output.append_text("\n[color=red]FAIL — %d error(s):[/color]\n" % errors.size())
-		for err: String in errors:
-			_output.append_text("  • %s\n" % err)
-		_output.append_text("\nOverall: [color=red]INVALID[/color]\n")
+		var row := Label.new()
+		row.text = "%s: %d item(s)" % [family, items.size()]
+		row.add_theme_font_size_override("font_size", 10)
+		row.add_theme_color_override("font_color", Color(0.4, 0.55, 0.6))
+		inner.add_child(row)
 
 
-func _show_family(family: String) -> void:
-	_clear_output()
-	_output.append_text("[b]%s[/b]\n\n" % family)
-	var items := ContentRegistry.get_all(family)
-	if items.is_empty():
-		_output.append_text("(no items loaded)\n")
+# ── Content family pane ────────────────────────────────────────────────────────
+
+func _refresh_content_pane(family: String) -> void:
+	var pane_scroll := _tab_panes.get(family) as ScrollContainer
+	if pane_scroll == null:
 		return
+	var inner := pane_scroll.get_child(0) as VBoxContainer
+	if inner == null:
+		return
+	for child in inner.get_children():
+		child.queue_free()
+	await get_tree().process_frame
+
+	var items := ContentRegistry.get_all(family)
+
+	# Header row
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
+	inner.add_child(header)
+	for col_text: String in ["ID", "DISPLAY NAME", "CATEGORY", "TAGS"]:
+		var h := Label.new()
+		h.text = col_text
+		h.add_theme_font_size_override("font_size", 9)
+		h.add_theme_color_override("font_color", Color(0.25, 0.38, 0.5))
+		h.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		header.add_child(h)
+	inner.add_child(HSeparator.new())
+
 	for item: ContentBase in items:
-		_output.append_text("• [b]%s[/b]  %s\n" % [item.id, item.display_name])
-		if not item.category.is_empty():
-			_output.append_text("  category: %s\n" % item.category)
-		if not item.tags.is_empty():
-			_output.append_text("  tags: %s\n" % ", ".join(item.tags))
-		_output.append_text("\n")
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		inner.add_child(row)
+
+		var id_lbl := Label.new()
+		id_lbl.text = item.id
+		id_lbl.add_theme_font_size_override("font_size", 10)
+		id_lbl.add_theme_color_override("font_color", Color(0.35, 0.5, 0.6))
+		id_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(id_lbl)
+
+		var name_lbl := Label.new()
+		name_lbl.text = item.display_name if "display_name" in item else ""
+		name_lbl.add_theme_font_size_override("font_size", 11)
+		name_lbl.add_theme_color_override("font_color", Color(0.6, 0.73, 0.8))
+		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(name_lbl)
+
+		var cat_lbl := Label.new()
+		cat_lbl.text = item.category if "category" in item else ""
+		cat_lbl.add_theme_font_size_override("font_size", 10)
+		cat_lbl.add_theme_color_override("font_color", Color(0.45, 0.55, 0.6))
+		cat_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(cat_lbl)
+
+		var tags_lbl := Label.new()
+		tags_lbl.text = ", ".join(Array(item.tags)) if "tags" in item else ""
+		tags_lbl.add_theme_font_size_override("font_size", 9)
+		tags_lbl.add_theme_color_override("font_color", Color(0.35, 0.44, 0.5))
+		tags_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(tags_lbl)
 
 
-# --- Stage 2: Expedition sim ---
-
-func _ensure_expedition() -> bool:
-	if _state == null:
-		_clear_output()
-		_output.append_text("[color=yellow]No expedition active. Press 'New Expedition' first.[/color]\n")
-		return false
-	return true
-
+# ── Sidebar button actions ─────────────────────────────────────────────────────
 
 func _on_new_expedition() -> void:
 	_state = ExpeditionState.create_default()
 	_log = SimulationLog.new()
-	_effect_index = 0
-	_condition_index = 0
-	_clear_output()
-	_output.append_text("[b]New Expedition Created[/b]\n\n")
-	_show_state_summary()
-
-
-func _on_show_state() -> void:
-	if not _ensure_expedition():
-		return
-	_clear_output()
-	_output.append_text("[b]Expedition State[/b]\n\n")
-	_show_state_summary()
-
-
-func _on_apply_effect() -> void:
-	if not _ensure_expedition():
-		return
-
-	var effects: Array[Dictionary] = [
-		{"type": "burden_change", "delta": 10, "label": "Burden +10"},
-		{"type": "command_change", "delta": -5, "label": "Command -5"},
-		{"type": "supply_change", "delta": -3, "target_id": "food", "label": "Food -3"},
-		{"type": "add_damage_tag", "tag": "hull_strained", "label": "Add hull_strained"},
-		{"type": "set_memory_flag", "flag_key": "test_flag", "label": "Set test_flag"},
-		{"type": "ship_condition_change", "delta": -10, "label": "Ship condition -10"},
-	]
-
-	var def := effects[_effect_index % effects.size()]
-	_effect_index += 1
-
-	var e := EffectDef.new()
-	e.type = def.type
-	e.delta = def.get("delta", 0)
-	e.target_id = def.get("target_id", "")
-	e.flag_key = def.get("flag_key", "")
-	e.tag = def.get("tag", "")
-
-	EffectProcessor.apply(_state, e, _log)
-
-	_clear_output()
-	_output.append_text("[b]Applied Effect: %s[/b]\n\n" % def.label)
-	_show_last_log_entry()
-	_output.append_text("\n")
-	_show_state_summary()
-
-
-func _on_check_condition() -> void:
-	if not _ensure_expedition():
-		return
-
-	var conditions: Array[Dictionary] = [
-		{"type": "burden_above", "threshold": 50, "label": "Burden >= 50?"},
-		{"type": "command_below", "threshold": 50, "label": "Command <= 50?"},
-		{"type": "supply_below", "threshold": 10, "target_id": "food", "label": "Food <= 10?"},
-		{"type": "has_damage_tag", "tag": "hull_strained", "label": "Has hull_strained?"},
-		{"type": "has_memory_flag", "flag_key": "test_flag", "label": "Has test_flag?"},
-		{"type": "officer_present", "target_id": "bosun", "label": "Bosun present?"},
-	]
-
-	var def := conditions[_condition_index % conditions.size()]
-	_condition_index += 1
-
-	var c := ConditionDef.new()
-	c.type = def.type
-	c.threshold = def.get("threshold", 0)
-	c.target_id = def.get("target_id", "")
-	c.flag_key = def.get("flag_key", "")
-	c.tag = def.get("tag", "")
-
-	var result := ConditionEvaluator.evaluate(_state, c, _log)
-
-	_clear_output()
-	_output.append_text("[b]Check Condition: %s[/b]\n\n" % def.label)
-	if result:
-		_output.append_text("[color=green]PASS[/color]\n\n")
-	else:
-		_output.append_text("[color=red]FAIL[/color]\n\n")
-	_show_last_log_entry()
+	_route = null
+	_activate_tab("state")
 
 
 func _on_tick() -> void:
-	if not _ensure_expedition():
-		return
-	_state.tick_count += 1
-	RumRules.update_on_tick(_state, _log)
-	_state.tick_promise(_log)
-	_clear_output()
-	_output.append_text("[b]Tick %d[/b]\n\n" % _state.tick_count)
-	_show_state_summary()
-
-
-func _on_make_promise() -> void:
-	if not _ensure_expedition():
-		return
-	var result := _state.make_promise("landfall", "We will make landfall within five days", 5, _log)
-	_clear_output()
-	if result:
-		_output.append_text("[b]Promise Made[/b]\n\n")
-	else:
-		_output.append_text("[color=yellow]Cannot make promise — one already active.[/color]\n\n")
-	_show_state_summary()
-
-
-func _on_keep_promise() -> void:
-	if not _ensure_expedition():
-		return
-	if _state.active_promise.is_empty():
-		_clear_output()
-		_output.append_text("[color=yellow]No active promise to keep.[/color]\n")
-		return
-	_state.keep_promise(_log)
-	_clear_output()
-	_output.append_text("[b]Promise Kept[/b]\n\n")
-	_show_state_summary()
-
-
-func _on_break_promise() -> void:
-	if not _ensure_expedition():
-		return
-	if _state.active_promise.is_empty():
-		_clear_output()
-		_output.append_text("[color=yellow]No active promise to break.[/color]\n")
-		return
-	_state.break_promise(_log)
-	_clear_output()
-	_output.append_text("[b]Promise Broken[/b]\n\n")
-	_show_state_summary()
-
-
-func _on_toggle_damage_tag() -> void:
-	if not _ensure_expedition():
-		return
-	if _state.has_damage_tag("hull_strained"):
-		_state.remove_damage_tag("hull_strained")
-		_clear_output()
-		_output.append_text("[b]Removed damage tag: hull_strained[/b]\n\n")
-	else:
-		_state.add_damage_tag("hull_strained")
-		_clear_output()
-		_output.append_text("[b]Added damage tag: hull_strained[/b]\n\n")
-	_show_state_summary()
-
-
-func _on_set_memory_flag() -> void:
-	if not _ensure_expedition():
-		return
-	_state.add_memory_flag("test_event_occurred")
-	_clear_output()
-	_output.append_text("[b]Set memory flag: test_event_occurred[/b]\n\n")
-	_show_state_summary()
-
-
-func _on_toggle_spirit_store() -> void:
-	if not _ensure_expedition():
-		return
-	_state.spirit_store_locked = not _state.spirit_store_locked
-	_clear_output()
-	var status := "LOCKED" if _state.spirit_store_locked else "UNLOCKED"
-	_output.append_text("[b]Spirit Store: %s[/b]\n\n" % status)
-	_show_state_summary()
-
-
-func _on_show_log() -> void:
-	if not _ensure_expedition():
-		return
-	_clear_output()
-	_output.append_text("[b]Simulation Log[/b]\n\n")
-	var entries := _log.get_entries()
-	if entries.is_empty():
-		_output.append_text("(no entries)\n")
-		return
-	# Reverse chronological
-	for i in range(entries.size() - 1, -1, -1):
-		var e: Dictionary = entries[i]
-		_output.append_text("[b]Tick %d[/b] [%s] %s\n" % [e.tick, e.source, e.message])
-
-
-# --- Stage 4: Standing orders + incident resolution ---
-
-func _on_toggle_rationing() -> void:
 	if _state == null:
-		_clear_output()
-		_output.append_text("[color=yellow]No expedition active.[/color]\n")
 		return
-	if _state.has_standing_order("tighten_rationing"):
-		_state.standing_orders.erase("tighten_rationing")
-		_clear_output()
-		_output.append_text("[color=#ff9966]Standing order cancelled: Tighten Rationing[/color]\n")
-	else:
-		_state.standing_orders.append("tighten_rationing")
-		_clear_output()
-		_output.append_text("[color=#88ff88]Standing order active: Tighten Rationing[/color]\n")
-	_show_state_summary()
-
-
-# --- Display helpers ---
-
-func _clear_output() -> void:
-	_output.clear()
-	$OutputContainer.scroll_vertical = 0
-
-
-func _show_state_summary() -> void:
-	_output.append_text("[b]Burden:[/b] %d   [b]Command:[/b] %d   [b]Ship:[/b] %d   [b]Tick:[/b] %d\n\n" % [
-		_state.burden, _state.command, _state.ship_condition, _state.tick_count])
-
-	_output.append_text("[b]Supplies:[/b]\n")
-	for supply_id: String in _state.supplies:
-		_output.append_text("  %s: %d\n" % [supply_id, _state.supplies[supply_id]])
-
-	if not _state.damage_tags.is_empty():
-		_output.append_text("\n[b]Damage Tags:[/b] %s\n" % ", ".join(_state.damage_tags))
-
-	if not _state.crew_traits.is_empty():
-		_output.append_text("\n[b]Crew Traits:[/b] %s\n" % ", ".join(_state.crew_traits))
-
-	_output.append_text("\n[b]Officers:[/b] %s\n" % ", ".join(_state.officers))
-
-	if not _state.active_promise.is_empty():
-		_output.append_text("\n[b]Promise:[/b] %s (%d ticks remaining)\n" % [
-			_state.active_promise.text, _state.active_promise.ticks_remaining])
-	else:
-		_output.append_text("\n[b]Promise:[/b] (none)\n")
-
-	if not _state.memory_flags.is_empty():
-		_output.append_text("\n[b]Memory Flags:[/b] %s\n" % ", ".join(_state.memory_flags))
-
-	_output.append_text("\n[b]Rum State:[/b] ration_expected=%s  store_locked=%s  theft_risk=%d  drunkenness_risk=%d\n" % [
-		str(_state.rum_ration_expected), str(_state.spirit_store_locked),
-		_state.rum_theft_risk, _state.rum_drunkenness_risk])
-
-	_output.append_text("\n[b]Leadership:[/b] ")
-	var tags: Array[String] = []
-	for key: String in _state.leadership_tags:
-		if _state.leadership_tags[key] != 0:
-			tags.append("%s=%d" % [key, _state.leadership_tags[key]])
-	if tags.is_empty():
-		_output.append_text("(all neutral)\n")
-	else:
-		_output.append_text("%s\n" % ", ".join(tags))
-
-	_output.append_text("\n[b]Stress:[/b] peak_burden=%d  min_command=%d  crew_losses=%d  supply_depletions=%d\n" % [
-		_state.stress_indicators.peak_burden, _state.stress_indicators.min_command,
-		_state.stress_indicators.crew_losses, _state.stress_indicators.supply_depletions])
-
-
-func _show_last_log_entry() -> void:
-	var entries := _log.get_entries()
-	if entries.is_empty():
-		return
-	var e: Dictionary = entries[entries.size() - 1]
-	_output.append_text("[b]Log:[/b] [%s] %s\n" % [e.source, e.message])
-
-
-# --- Stage 3: Route Map ---
-
-func _on_show_route() -> void:
-	if _route_map == null:
-		_route_map = RouteMap.create_test_map()
-	if _state == null:
-		_state = ExpeditionState.create_default()
-		_log = SimulationLog.new()
-	_clear_output()
-	_render_route_map()
-
-
-func _on_advance_day() -> void:
-	if _route_map == null or _state == null:
-		_clear_output()
-		_output.append_text("[color=yellow]Press 'Show Route' first.[/color]\n")
-		return
-	if not _route_map.is_travelling():
-		_clear_output()
-		_output.append_text("[color=yellow]Not travelling — select a node from the route map first.[/color]\n")
-		_render_route_map()
-		return
-	var zone = _route_map.get_active_zone()
+	var zone: ZoneTypeDef = null
+	if _route != null and _route.is_travelling():
+		zone = _route.get_active_zone()
 	if zone == null:
-		_clear_output()
-		_output.append_text("[color=red]Error: active zone not found.[/color]\n")
+		var all_zones := ContentRegistry.get_all("zone_types")
+		if not all_zones.is_empty():
+			zone = all_zones[0] as ZoneTypeDef
+	if zone == null:
 		return
 	_state.tick_count += 1
 	TravelSimulator.process_tick(_state, zone, _log)
-	_route_map.advance_tick()
-	_clear_output()
-	_render_route_map()
+	if _route != null and _route.is_travelling():
+		_route.advance_tick()
+	_refresh_active_tab()
 
 
-func _on_route_meta_clicked(meta: Variant) -> void:
-	var meta_str := str(meta)
-	if not meta_str.begins_with("take_"):
+func _on_apply_effect() -> void:
+	if _state == null or _log == null:
 		return
-	if _route_map == null:
+	var all_effects: Array = []
+	for item: ContentBase in ContentRegistry.get_all("incidents"):
+		var incident := item as IncidentDef
+		if incident == null:
+			continue
+		for choice: IncidentChoiceDef in incident.choices:
+			for eff: EffectDef in choice.immediate_effects:
+				all_effects.append(eff)
+	if all_effects.is_empty():
 		return
-	var node_id := meta_str.substr(5)
-	var stage := _route_map.get_current_stage()
-	for node: RouteNode in stage:
-		if node.id == node_id:
-			_route_map.select_node(node)
-			_clear_output()
-			_render_route_map()
-			return
+	var eff: EffectDef = all_effects[_effect_index % all_effects.size()]
+	_effect_index += 1
+	EffectProcessor.apply_effects(_state, [eff], _log)
+	_refresh_active_tab()
+
+
+func _on_check_condition() -> void:
+	if _state == null or _log == null:
+		return
+	var all_conditions: Array = []
+	for item: ContentBase in ContentRegistry.get_all("incidents"):
+		var incident := item as IncidentDef
+		if incident == null or incident.trigger_condition == null:
+			continue
+		all_conditions.append(incident.trigger_condition)
+	if all_conditions.is_empty():
+		return
+	var cond: ConditionDef = all_conditions[_condition_index % all_conditions.size()]
+	_condition_index += 1
+	var result := ConditionEvaluator.evaluate(_state, cond, _log)
+	_log.log_event(_state.tick_count, "Debug", "Condition check result: %s" % str(result), {})
+	_refresh_active_tab()
+
+
+func _on_make_promise() -> void:
+	if _state == null:
+		return
+	_state.active_promise = {
+		"id": "debug_promise", "text": "We will make landfall within five days.",
+		"deadline_ticks": _state.tick_count + 10, "ticks_remaining": 10
+	}
+	_refresh_active_tab()
+
+
+func _on_keep_promise() -> void:
+	if _state == null or _state.active_promise.is_empty():
+		return
+	_state.burden = maxi(0, _state.burden - 5)
+	_state.command = mini(100, _state.command + 5)
+	_state.active_promise = {}
+	_refresh_active_tab()
+
+
+func _on_break_promise() -> void:
+	if _state == null or _state.active_promise.is_empty():
+		return
+	_state.burden = mini(100, _state.burden + 10)
+	_state.command = maxi(0, _state.command - 10)
+	_state.active_promise = {}
+	_refresh_active_tab()
+
+
+func _on_toggle_damage_tag() -> void:
+	if _state == null:
+		return
+	var tag := "hull_strained"
+	if tag in _state.damage_tags:
+		_state.damage_tags.erase(tag)
+	else:
+		_state.damage_tags.append(tag)
+	_refresh_active_tab()
+
+
+func _on_set_memory_flag() -> void:
+	if _state == null:
+		return
+	var flag := "test_event_occurred"
+	if flag not in _state.memory_flags:
+		_state.add_memory_flag(flag)
+	_refresh_active_tab()
+
+
+func _on_toggle_rationing() -> void:
+	if _state == null:
+		return
+	var order := "tighten_rationing"
+	if order in _state.standing_orders:
+		_state.standing_orders.erase(order)
+	else:
+		_state.standing_orders.append(order)
+	_refresh_active_tab()
+
+
+func _on_toggle_spirit_store() -> void:
+	if _state == null:
+		return
+	_state.spirit_store_locked = not _state.spirit_store_locked
+	_refresh_active_tab()
+
+
+func _on_show_route() -> void:
+	if _state == null:
+		_state = ExpeditionState.create_default()
+		_log = SimulationLog.new()
+	if _route == null:
+		_route = RouteMap.create_test_map()
+	if _route_map_node != null:
+		_route_map_node.setup(_route, _state, _log)
+	_activate_tab("route")
+
+
+func _on_advance_day() -> void:
+	if _state == null or _route == null:
+		return
+	if not _route.is_travelling():
+		var stage := _route.get_current_stage()
+		if not stage.is_empty():
+			_route.select_node(stage[0])
+	var zone := _route.get_active_zone()
+	if zone == null:
+		return
+	_state.tick_count += 1
+	TravelSimulator.process_tick(_state, zone, _log)
+	_route.advance_tick()
+	if _route_map_node != null:
+		_route_map_node.refresh()
+	_refresh_active_tab()
 
 
 func _on_force_incident() -> void:
 	if _state == null:
-		_clear_output()
-		_output.append_text("[color=yellow]No expedition active. Press 'Show Route' first.[/color]\n")
 		return
-
-	# If already showing the resolution scene, do nothing
-	if $IncidentContainer.visible:
-		return
-
-	# Ensure a pending incident exists — scan if none
-	if _state.pending_incident_id.is_empty():
-		var incidents := ContentRegistry.get_all("incidents")
-		var eligible: Array = []
-		var weights: Array = []
-		var total_weight: float = 0.0
-		for item: ContentBase in incidents:
-			var incident := item as IncidentDef
-			if incident == null or incident.trigger_band != "tick":
-				continue
-			if not ConditionEvaluator.all_met(_state, incident.required_conditions, _log):
-				continue
-			var w := TravelSimulator.compute_incident_weight(_state, incident, _log)
-			eligible.append(incident)
-			weights.append(w)
-			total_weight += w
-
-		if eligible.is_empty():
-			# Fallback squall
-			var b := EffectDef.new()
-			b.type = "burden_change"
-			b.delta = 5
-			EffectProcessor.apply(_state, b, _log)
-			var d := EffectDef.new()
-			d.type = "add_damage_tag"
-			d.tag = "storm_damage"
-			EffectProcessor.apply(_state, d, _log)
-			_clear_output()
-			_output.append_text("[color=#ff9966]A squall strikes without warning. (Burden +5, storm_damage)[/color]\n")
-			_show_state_summary()
-			return
-
-		# Weighted random pick
-		var roll := randf() * total_weight
-		var cumulative: float = 0.0
-		for i: int in range(eligible.size()):
-			cumulative += weights[i]
-			if roll <= cumulative:
-				_state.pending_incident_id = eligible[i].id
-				break
-
-	# Show the resolution scene
-	_show_incident_resolution()
-
-
-func _show_incident_resolution() -> void:
-	if _incident_scene != null:
-		_incident_scene.queue_free()
-		_incident_scene = null
-
-	var scene_res := preload("res://src/ui/IncidentResolutionScene.tscn")
-	_incident_scene = scene_res.instantiate()
-	_incident_scene.setup(_state, _log)
-	_incident_scene.resolved.connect(_on_incident_resolved)
-	$IncidentContainer.add_child(_incident_scene)
-	_incident_scene.populate()
-
-	$OutputContainer.visible = false
-	$IncidentContainer.visible = true
-
-
-func _on_incident_resolved() -> void:
-	$IncidentContainer.visible = false
-	$OutputContainer.visible = true
-	if _incident_scene != null:
-		_incident_scene.queue_free()
-		_incident_scene = null
-	_clear_output()
-	_output.append_text("[color=#88ff88]Incident resolved.[/color]\n\n")
-	_show_state_summary()
-
-
-func _render_route_map() -> void:
-	# Category colour map
-	var cat_colors := {
-		"crisis":    "#ff9966",
-		"landfall":  "#88ff88",
-		"social":    "#ffdd66",
-		"omen":      "#cc88ff",
-		"boon":      "#aaffaa",
-		"admiralty": "#ffccaa",
-		"unknown":   "#88ccff",
-	}
-
-	# Header block
-	var zone = _route_map.get_active_zone()
-	var zone_name: String = zone.display_name if zone != null else "(at choice)"
-	var wear_str: String = "%.1f× wear" % zone.ship_wear_modifier if zone != null else ""
-	_output.append_text("[b]SHIP'S LOG[/b]\nDay %d\n\n" % _state.tick_count)
-	_output.append_text("[color=#aaaaaa]ZONE              BURDEN  COMMAND  SHIP[/color]\n")
-	_output.append_text("%-18s[color=#ff9966]%d[/color]       [color=#88ccff]%d[/color]       [color=#ffdd88]%d[/color]\n" % [
-		zone_name, _state.burden, _state.command, _state.ship_condition])
-	_output.append_text("[color=#aaaaaa]%-18sFOOD    WATER    RUM[/color]\n" % wear_str)
-	_output.append_text("%-18s[color=#88ff88]%d[/color]      [color=#88ccff]%d[/color]      [color=#ffaaaa]%d[/color]\n" % [
-		"", _state.get_supply("food"), _state.get_supply("water"), _state.get_supply("rum")])
-	# Last tick's log entries
-	if _log != null:
-		var entries := _log.get_entries()
-		var last_tick := _state.tick_count - 1
-		var tick_entries: Array[String] = []
-		for e: Dictionary in entries:
-			if e.tick == last_tick:
-				tick_entries.append(e.message)
-		if not tick_entries.is_empty():
-			_output.append_text("\n[color=#888888]Last tick:[/color]\n")
-			for msg: String in tick_entries:
-				_output.append_text("[color=#888888]  %s[/color]\n" % msg)
-	_output.append_text("\n")
-
-	if _route_map.is_complete():
-		_output.append_text("[color=#ffaaff][b]ARRIVED[/b][/color]\n\nThe expedition is complete.\n")
-		return
-
-	# Travelling progress indicator
-	if _route_map.is_travelling():
-		var an: RouteNode = _route_map.active_node
-		var cat_color: String = cat_colors.get(an.category, "#ffffff")
-		var progress := an.tick_distance - _route_map.ticks_remaining
-		var bar := "█".repeat(progress) + "░".repeat(_route_map.ticks_remaining)
-		var arrival_str := "arrival tomorrow" if _route_map.ticks_remaining == 1 else "%d days remaining" % _route_map.ticks_remaining
-		_output.append_text("Travelling to [color=%s][b]%s[/b][/color] (%s)\n" % [
-			cat_color, an.category.to_upper(), zone_name])
-		_output.append_text("Day %d of %d  %s  %s\n" % [
-			progress + 1, an.tick_distance, bar, arrival_str])
-		_output.append_text("[color=#aaaaaa]  ↑ Press Advance Day to travel.[/color]\n\n")
-
-	# Route diagram
-	_render_route_diagram(cat_colors)
-
-
-func _render_route_diagram(cat_colors: Dictionary) -> void:
-	var current_idx := _route_map.current_stage_index
-
-	for s_idx in range(_route_map.stages.size()):
-		var stage: Array = _route_map.stages[s_idx]
-		var is_current := s_idx == current_idx
-		var is_past := s_idx < current_idx
-
-		if is_past:
-			var done_node: RouteNode = _route_map.selected_path[s_idx]
-			_output.append_text("[color=#777777]  ✓ %s  %d days[/color]\n" % [
-				done_node.category.to_upper(), done_node.tick_distance])
-		elif is_current and not _route_map.is_travelling():
-			_output.append_text("[b]─ Choose your route ─[/b]\n\n")
-			for node: RouteNode in stage:
-				var col: String = cat_colors.get(node.category, "#ffffff")
-				var bar := "█".repeat(node.tick_distance) + "░".repeat(maxi(0, 5 - node.tick_distance))
-				_output.append_text("  [color=%s]▶ [b]%s[/b][/color]\n" % [col, node.category.to_upper()])
-				_output.append_text("    %s  [color=#dddddd]%d days[/color]\n" % [bar, node.tick_distance])
-				if not node.hints.is_empty():
-					_output.append_text("    [color=#aaaaaa]%s[/color]\n" % node.hints[0])
-				_output.append_text("\n")
-		else:
-			# Future stage — show each node with its days
-			_output.append_text("[color=#aaaaaa]  Stage %d:  " % (s_idx + 1))
-			var labels: Array[String] = []
-			for node: RouteNode in stage:
-				labels.append("%s %d d" % [node.category.to_upper(), node.tick_distance])
-			_output.append_text("  |  ".join(labels) + "[/color]\n")
-
-		# Arrow spacer between stages
-		if s_idx < _route_map.stages.size() - 1:
-			var next_stage: Array = _route_map.stages[s_idx + 1]
-			var min_dist := 9999
-			for node: RouteNode in next_stage:
-				if node.tick_distance < min_dist:
-					min_dist = node.tick_distance
-			var arrows := clampi(min_dist / 2, 1, 4)
-			var arrow_color := "#555555" if s_idx < current_idx else "#aaaaaa"
-			for _a in range(arrows):
-				_output.append_text("[color=%s]  ↓[/color]\n" % arrow_color)
-
-	# Arrival
-	_output.append_text("[color=#777777]  ARRIVAL[/color]\n")
-
-	# Selection buttons (meta links) if at a choice point
-	if not _route_map.is_travelling() and not _route_map.is_complete():
-		_output.append_text("\n")
-		var stage: Array = _route_map.get_current_stage()
-		for node: RouteNode in stage:
-			var col: String = cat_colors.get(node.category, "#ffffff")
-			_output.append_text('[url="take_%s"][[color=%s]Take %s — %d days[/color]][/url]   ' % [
-				node.id, col, node.category.to_upper(), node.tick_distance])
-		_output.append_text("\n")
+	var incidents := ContentRegistry.get_all("incidents")
+	if not incidents.is_empty():
+		_state.pending_incident_id = (incidents[0] as IncidentDef).id
+	_refresh_active_tab()
