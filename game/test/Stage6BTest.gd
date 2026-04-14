@@ -27,6 +27,8 @@ func _ready() -> void:
 	_test_log_narrative_text()
 	_test_expedition_state_officer_traits()
 	_test_create_from_config_rewards()
+	_test_compute_bias_effects()
+	_test_admiralty_letter_text()
 	_finish()
 
 
@@ -212,3 +214,37 @@ func _test_create_from_config_rewards() -> void:
 	check(state.get_supply("food") > 0, "supply bonus applied (food > 0)")
 	check(state.command > 70, "command bonus applied above default")
 	check("scandal_blamed_crew" in state.memory_flags, "scandal flag seeded into memory_flags")
+
+
+func _test_compute_bias_effects() -> void:
+	print("-- PreparationScene._compute_bias_effects --")
+	var PrepClass: GDScript = load("res://src/ui/PreparationScene.gd")
+	var scene: Node = PrepClass.new()
+
+	# blamed_crew → first_lieutenant_lenient unavailable, iron_discipline recommended
+	var effects: Dictionary = scene.call("_compute_bias_effects", ["blamed_crew"])
+	check("first_lieutenant_lenient" in effects.get("unavailable_ids", []),
+		"blamed_crew makes lenient lieutenant unavailable")
+	check(effects.get("recommended", {}).has("iron_discipline"),
+		"blamed_crew recommends iron_discipline doctrine")
+
+	# admitted_failure → reformist officer surfaced
+	var effects2: Dictionary = scene.call("_compute_bias_effects", ["admitted_failure"])
+	check(effects2.get("recommended", {}).has("first_lieutenant_lenient"),
+		"admitted_failure surfaces lenient lieutenant as recommended")
+
+	scene.free()
+
+
+func _test_admiralty_letter_text() -> void:
+	print("-- PreparationScene._build_letter_text --")
+	var PrepClass: GDScript = load("res://src/ui/PreparationScene.gd")
+	var scene: Node = PrepClass.new()
+
+	var text: String = scene.call("_build_letter_text", ["blamed_crew"])
+	check(text.length() > 10, "letter text non-empty for blamed_crew bias")
+	check(text.contains("crew") or text.contains("men"), "blamed_crew letter mentions crew")
+
+	var empty_text: String = scene.call("_build_letter_text", [])
+	check(empty_text == "", "no bias produces empty letter text")
+	scene.free()

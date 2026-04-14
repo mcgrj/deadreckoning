@@ -22,6 +22,92 @@ var _objective_buttons: Dictionary = {}  # objective_id -> Button
 var _officer_buttons: Dictionary = {}          # officer_id -> Button
 var _officer_buttons_by_role: Dictionary = {}  # role -> Array[Button] (for deselection)
 
+var _admiralty_bias: Array[String] = []
+var _scandal_flags: Array[String] = []
+var _unavailable_ids: Array[String] = []   # content ids greyed out this prep
+var _recommended: Dictionary = {}          # content_id -> { reward_text, type, trait? }
+var _free_upgrade_id: String = ""          # recommended upgrade that doesn't use a slot
+var _allocation_panel: VBoxContainer = null
+
+
+# Returns { "unavailable_ids": Array[String], "recommended": Dictionary }
+# recommended maps content_id -> { "reward_text": String, "type": String, "trait": String }
+func _compute_bias_effects(bias: Array[String]) -> Dictionary:
+	var unavailable: Array[String] = []
+	var recommended: Dictionary = {}
+
+	for b: String in bias:
+		match b:
+			"blamed_crew":
+				unavailable.append("first_lieutenant_lenient")
+				recommended["iron_discipline"] = {
+					"reward_text": "+%d Command at run start" % GameConstants.RECOMMENDATION_COMMAND_BONUS,
+					"type": "doctrine",
+				}
+			"suppressed_mutiny":
+				recommended["iron_discipline"] = {
+					"reward_text": "+%d Command at run start" % GameConstants.RECOMMENDATION_COMMAND_BONUS,
+					"type": "doctrine",
+				}
+			"admitted_failure":
+				recommended["first_lieutenant_lenient"] = {
+					"reward_text": "First Lieutenant starts Loyal",
+					"type": "officer",
+					"trait": "loyal",
+				}
+			"sacrifice_on_record":
+				recommended["medical_stores"] = {
+					"reward_text": "Medical Stores free — no slot used",
+					"type": "upgrade",
+				}
+			"discipline_on_record":
+				recommended["iron_discipline"] = {
+					"reward_text": "+%d Command at run start" % GameConstants.RECOMMENDATION_COMMAND_BONUS,
+					"type": "doctrine",
+				}
+			"weather_blamed":
+				# No specific content recommendation — letter handles explanation
+				pass
+			"officer_accused":
+				unavailable.append("first_lieutenant_lenient")
+				unavailable.append("first_lieutenant_stern")
+
+	return {"unavailable_ids": unavailable, "recommended": recommended}
+
+
+func _build_letter_text(bias: Array[String]) -> String:
+	if bias.is_empty():
+		return ""
+	var sentences: Array[String] = []
+	for b: String in bias:
+		match b:
+			"blamed_crew":
+				sentences.append("Your account of the crew's insubordination during the previous commission was noted. The Board expects firmer authority on this voyage. Officers of a lenient temperament have not been made available to you.")
+			"suppressed_mutiny":
+				sentences.append("The Board has reviewed your disciplinary report. Iron Discipline doctrine is commended for this commission. They will be watching for further irregularities.")
+			"admitted_failure":
+				sentences.append("Your candour regarding the previous commission was noted. A reformist first lieutenant has been assigned to this voyage — an officer who believes authority is earned, not assumed.")
+			"sacrifice_on_record":
+				sentences.append("The Board commends the effort of the previous expedition. Medical stores have been allocated without charge in recognition of the hardship endured.")
+			"discipline_on_record":
+				sentences.append("The Board notes the disciplined conduct of the previous commission. Iron Discipline doctrine is commended for this voyage.")
+			"weather_blamed":
+				sentences.append("Your account of the conditions encountered during the previous commission was received. The Board has assigned a more demanding route for this voyage.")
+			"officer_accused":
+				sentences.append("The Board is investigating the officer conduct you reported. The accused officer's role has not been filled through the usual channels for this commission.")
+			"concealed_misconduct":
+				sentences.append("The Board accepted your previous account. They will be paying closer attention to the ship log on your next commission.")
+			"compliant":
+				sentences.append("Full compliance with the Board's recommendations has been noted. Expectations for the next commission will reflect this record.")
+	# Deduplicate while preserving order (same bias string can appear multiple times)
+	var seen: Array[String] = []
+	var unique: Array[String] = []
+	for s: String in sentences:
+		if s not in seen:
+			seen.append(s)
+			unique.append(s)
+	return "\n\n".join(unique)
+
 
 func _ready() -> void:
 	_build_ui()
