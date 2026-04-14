@@ -23,8 +23,14 @@ const OBJECTIVE_SHORTLIST_SIZE: int = 3
 const SAVE_DIR: String = "user://saves/"
 
 # Incident system
-const INCIDENT_BASE_TRIGGER_CHANCE: float = 0.25  # Chance per tick that any incident fires at all
-const INCIDENT_COOLDOWN_TICKS: int = 5             # Ticks before the same incident can re-trigger
+const INCIDENT_BASE_TRIGGER_CHANCE: float = 0.25  # Baseline chance per tick with a healthy crew
+const INCIDENT_COOLDOWN_TICKS: int = 5            # Ticks before the same incident can re-trigger
+const INCIDENT_MAX_TRIGGER_CHANCE: float = 0.85   # Ceiling — never guaranteed even at max stress
+# Per-stat contributions to trigger chance (added at full stat value)
+const INCIDENT_BURDEN_BONUS: float = 0.30         # High burden = volatile crew
+const INCIDENT_COMMAND_BONUS: float = 0.20        # Low command = weak authority
+const INCIDENT_FATIGUE_BONUS: float = 0.15        # High fatigue = short tempers
+const INCIDENT_SICKNESS_BONUS: float = 0.10       # High sickness = fear and resentment
 
 # Supply exhaustion penalties (burden spikes when a supply hits zero)
 const BURDEN_ON_FOOD_EXHAUSTED: int = 6
