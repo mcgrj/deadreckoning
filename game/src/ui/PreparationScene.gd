@@ -160,7 +160,6 @@ func _build_ui() -> void:
 		letter_vbox.add_child(letter_body)
 
 		vbox.add_child(letter_panel)
-		vbox.add_child(HSeparator.new())
 
 	vbox.add_child(HSeparator.new())
 
@@ -303,10 +302,10 @@ func _build_officer_slots(parent: VBoxContainer) -> void:
 			var is_recommended: bool = def.id in _recommended
 			var reward_text: String = _recommended.get(def.id, {}).get("reward_text", "")
 			var extra := ""
-			if is_recommended:
-				extra = "\n▲ " + reward_text
 			if unavailable:
 				extra = "\n— Not available this commission"
+			elif is_recommended:
+				extra = "\n▲ " + reward_text
 			btn.text = "%s\n%s%s" % [def.display_name, _format_effects(def.starting_effects), extra]
 			btn.disabled = unavailable
 			btn.modulate.a = 0.4 if unavailable else 1.0
