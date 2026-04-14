@@ -5,6 +5,8 @@
 # Spec: docs/superpowers/specs/2026-04-13-stage-6a-admiralty-preparation-design.md
 extends Node
 
+const OfficerGenerator := preload("res://src/expedition/OfficerGenerator.gd")
+
 const SLOT_DEFAULT := "default"
 
 ## Pending run config passed from PreparationScene to RunScene across scene changes.
@@ -60,6 +62,51 @@ func record_report_framing(bias_string: String, scandal_flag: String, slot_id: S
 	if scandal_flag != "":
 		progression.scandal_flags.append(scandal_flag)
 	save_progression(progression, slot_id)
+
+
+## Write provisional officer scars back to the pool and apply stat drift.
+## Call this from RunEndScene before saving progression.
+func commit_officer_scars(run_state: ExpeditionState, progression: ProgressionState) -> void:
+	var SCAR_LOYALTY_DOWN := ["publicly_overruled", "complicit_in_concealment", "witnessed_broken_promise"]
+	var SCAR_LOYALTY_UP := ["respects_hard_authority", "ration_crisis_veteran"]
+	var SCAR_COMPETENCE_UP := ["ration_crisis_veteran", "survivor_of_high_losses", "endured_extreme_hardship"]
+
+	for def: OfficerDef in run_state.officer_defs:
+		var pool_def := progression.find_officer_by_id(def.id)
+		if pool_def == null:
+			continue
+
+		# Merge provisional scars into persistent scar_traits
+		var role_scars: Array = run_state.officer_scars.get(def.role, [])
+		for scar: String in role_scars:
+			if scar not in pool_def.scar_traits:
+				pool_def.scar_traits.append(scar)
+				pool_def.notable_events.append(scar.replace("_", " ").capitalize())
+
+		# Stat drift based on scars earned this run
+		var loyalty_delta := 0
+		var competence_delta := 0
+		for scar: String in role_scars:
+			if scar in SCAR_LOYALTY_DOWN:
+				loyalty_delta -= 1
+			if scar in SCAR_LOYALTY_UP:
+				loyalty_delta += 1
+			if scar in SCAR_COMPETENCE_UP:
+				competence_delta += 1
+		pool_def.loyalty = clampi(pool_def.loyalty + loyalty_delta, 1, 5)
+		pool_def.competence = clampi(pool_def.competence + competence_delta, 1, 5)
+
+		pool_def.runs_survived += 1
+
+
+## Ensure each role has at least 2 candidates. Generate to fill gaps.
+func replenish_pool(progression: ProgressionState) -> void:
+	var required_roles := ["first_lieutenant", "master", "gunner", "purser", "surgeon", "chaplain"]
+	for role: String in required_roles:
+		var count := progression.get_candidates_for_role(role).size()
+		while count < 2:
+			progression.officer_pool.append(OfficerGenerator.generate(role))
+			count += 1
 
 
 func save_run_state(state: ExpeditionState, slot_id: String = SLOT_DEFAULT) -> void:

@@ -67,10 +67,14 @@ static func generate(role: String) -> OfficerDef:
 	# Traits
 	var role_traits: Array = traits_pool.get(role, [])
 	var picked := _pick_traits(role_traits)
-	def.disclosed_traits = picked.disclosed
-	def.rumoured_traits = picked.rumoured_ids
-	def.rumoured_hints = picked.rumoured_hints
-	def.hidden_traits = picked.hidden
+	for t: String in picked.disclosed:
+		def.disclosed_traits.append(t)
+	for t: String in picked.rumoured_ids:
+		def.rumoured_traits.append(t)
+	for t: String in picked.rumoured_hints:
+		def.rumoured_hints.append(t)
+	for t: String in picked.hidden:
+		def.hidden_traits.append(t)
 
 	# Stance (optional — 50% chance)
 	var role_stances: Array = stances.get(role, [])
@@ -140,7 +144,7 @@ static func _pool(name: String) -> Dictionary:
 		return {}
 	var text := file.get_as_text()
 	file.close()
-	var parsed := JSON.parse_string(text)
+	var parsed: Variant = JSON.parse_string(text)
 	if parsed == null or not parsed is Dictionary:
 		push_error("OfficerGenerator: failed to parse pool file: " + path)
 		_cache[name] = {}
