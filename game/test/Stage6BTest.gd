@@ -83,3 +83,4 @@ func _test_record_report_framing() -> void:
 
 	# Clean up
 	DirAccess.remove_absolute(GameConstants.SAVE_DIR + slot + "/progression.tres")
+	DirAccess.remove_absolute(GameConstants.SAVE_DIR + slot + "/")
