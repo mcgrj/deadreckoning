@@ -129,6 +129,8 @@ Every decision must earn its place. There is no room for filler in a 30-minute r
 
 The Admiralty layer carries run-to-run debt — reputation, political consequences, exposure from filed reports. The within-run arc must be complete and satisfying on its own.
 
+**Run-to-run debt is formally implemented as Admiralty bias strings and scandal flags** (specified in `2026-04-14-stage-6b-admiralty-reporting-design.md`). After each run, the player submits a report framing that writes bias strings to `ProgressionState.admiralty_bias` and scandal flags to `ProgressionState.scandal_flags`. These persist across runs and manifest as: greyed prep options, Admiralty-recommended content in PreparationScene, and modified incident trigger weights in future runs. Exposure debt that is never collected within a run surfaces as a scandal flag — it does not disappear, it defers to the institutional layer.
+
 ---
 
 ## 6. Layer-by-Layer Application
@@ -212,6 +214,8 @@ Admiralty prep is where value collision operates at the meta-level. The player i
 
 ## 7. Officer Selection Mechanics
 
+> **Implementation note:** Officers are procedurally generated, not hand-authored. Every officer in the Admiralty pool is assembled from role-constrained authored content pools (names, background fragments, traits). The generation system and pool structure are fully specified in `2026-04-14-emergent-officers-scars-design.md`. This section defines the choice design principles; that spec defines how officers are produced and how their history persists.
+
 ### Quality-vs-Debt Spectrum
 
 Every crew always has a full complement of officer roles. The decision is not whether to have a Master but **which Master**. Each officer slot presents a quality-vs-debt tradeoff:
@@ -245,9 +249,9 @@ Officer flaws are not always fully disclosed at hire time. Every officer has a t
 
 **Hidden:** No indication at hire time. The trait surfaces only under specific in-voyage conditions — typically when a relevant incident fires or when the voyage reaches a threshold state.
 
-**The known-devil dynamic:** An officer sailed with on a previous expedition has a fully revealed record — their hidden trait is now disclosed. A new officer is a gamble. This creates a meta-progression tension: take familiar officers with known debts, or try new ones with unknown risks and potentially better upside. Experienced players learn the officer pool across runs, which is the knowledge accumulation that drives long-term replayability.
+**The known-devil dynamic:** An officer sailed with on a previous expedition has accumulated **expedition scars** — trait tags, stat drift, and cross-run memory flags written back to their persistent record at run end. A returning officer's hidden traits are fully revealed through this history. A new officer is a gamble. This creates a meta-progression tension: take familiar officers with known debts, or try new ones with unknown risks and potentially better upside. The expedition scars system (specified in `2026-04-14-emergent-officers-scars-design.md`) is the mechanical implementation of this dynamic.
 
-**Accuracy vs volume:** A lower-quality officer may show *fewer* details in their domain. A compromised or flawed officer — particularly one whose debt has been triggered mid-voyage — may show details that are *wrong*. The alcoholic Master's charts are not always inaccurate, but if a drunkenness incident fires and is not resolved, his reliability in a subsequent navigation incident degrades. His flaw is dormant until the debt is called.
+**Accuracy vs volume:** A lower-quality officer may show *fewer* details in their domain. A compromised or flawed officer — particularly one whose debt has been triggered mid-voyage — may show details that are *wrong*. The alcoholic Master's charts are not always inaccurate, but if a drunkenness incident fires and is not resolved, his reliability in a subsequent navigation incident degrades. His flaw is dormant until the debt is called. Scars from previous runs (e.g. `ration_crisis_veteran`, `publicly_overruled`) can modify this behaviour — a scarred officer may read their domain more accurately in conditions they have survived before, or less accurately in conditions that broke them.
 
 ### Pre-Voyage Promises to Officers
 
@@ -321,7 +325,21 @@ Pre-departure stances are not mandatory guidance — they are information signal
 
 ---
 
-## 9. Sources and Research Grounding
+## 9. Related Specs
+
+The following specs implement or extend mechanics described in this document. When this framework references a system, the authoritative technical detail lives in the relevant spec.
+
+| Spec | What it implements |
+|---|---|
+| `2026-04-12-dead-reckoning-refined-design.md` | Core game design — Burden, Command, supplies, route map, incident system, Admiralty layer |
+| `2026-04-13-stage-4-5-standing-orders-incidents-design.md` | Standing orders data model, incident resolution UI, officer council implementation |
+| `2026-04-13-stage-6a-admiralty-preparation-design.md` | PreparationScene, RunEndScene, ProgressionState, SaveManager |
+| `2026-04-14-stage-6b-admiralty-reporting-design.md` | Report framing, Admiralty bias strings, scandal flags, run-to-run debt layer |
+| `2026-04-14-emergent-officers-scars-design.md` | Procedural officer generation, Admiralty pool structure, expedition scars, known/rumoured/hidden trait tiers, known-devil dynamic |
+
+---
+
+## 10. Sources and Research Grounding
 
 The framework synthesises findings from the following:
 
