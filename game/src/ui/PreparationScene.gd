@@ -29,6 +29,7 @@ var _recommended: Dictionary = {}          # content_id -> { reward_text, type, 
 var _free_upgrade_id: String = ""          # recommended upgrade that doesn't use a slot
 var _allocation_panel: VBoxContainer = null  # wired up in _build_ui (Task 10)
 var _officer_pool_defs: Array = []  # OfficerDef records loaded from ProgressionState
+var _stances_container: VBoxContainer = null
 
 
 # Returns { "unavailable_ids": Array[String], "recommended": Dictionary }
@@ -190,6 +191,10 @@ func _build_ui() -> void:
 
 	# Allocation panel
 	_build_section(vbox, "", func(p): p.add_child(_build_allocation_panel()))
+	vbox.add_child(HSeparator.new())
+
+	# Before You Sail — officer stances
+	_build_section(vbox, "", func(p): _build_departure_stances_section(p))
 	vbox.add_child(HSeparator.new())
 
 	# Status + Set Sail
@@ -494,6 +499,7 @@ func _on_officer_selected(role: String, officer_id: String, btn: Button) -> void
 	_selected_officers[role] = officer_id
 	btn.button_pressed = true
 	_update_allocation_panel()
+	_update_stances()
 
 
 func _on_upgrade_toggled(upgrade_id: String, btn: Button) -> void:
@@ -517,6 +523,35 @@ func _can_sail() -> bool:
 		if not _selected_officers.has(role):
 			return false
 	return _selected_objective != ""
+
+
+func _update_stances() -> void:
+	if _stances_container == null:
+		return
+	for child in _stances_container.get_children():
+		child.queue_free()
+	for role: String in _selected_officers:
+		var oid: String = _selected_officers[role]
+		for def: OfficerDef in _officer_pool_defs:
+			if def.id == oid and def.pre_departure_stance != "":
+				var label := Label.new()
+				label.text = "%s: \"%s\"" % [
+					role.replace("_", " ").capitalize(),
+					def.pre_departure_stance
+				]
+				label.autowrap_mode = TextServer.AUTOWRAP_WORD
+				_stances_container.add_child(label)
+				break
+
+
+func _build_departure_stances_section(parent: VBoxContainer) -> void:
+	var heading := Label.new()
+	heading.text = "Before You Sail"
+	heading.add_theme_font_size_override("font_size", 16)
+	parent.add_child(heading)
+	_stances_container = VBoxContainer.new()
+	parent.add_child(_stances_container)
+	_update_stances()
 
 
 func _on_set_sail() -> void:
