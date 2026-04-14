@@ -25,6 +25,9 @@ var _state_pane: Control = null
 var _route_map_node: RouteMapNode = null
 var _log_table: VBoxContainer = null
 
+# Re-entrancy guards for async refresh functions (keyed by pane name)
+var _pane_refreshing: Dictionary = {}
+
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -205,11 +208,13 @@ func _refresh_active_tab() -> void:
 # ── State pane ─────────────────────────────────────────────────────────────────
 
 func _refresh_state_pane() -> void:
-	if _state_pane == null:
+	if _state_pane == null or _pane_refreshing.get("state", false):
 		return
+	_pane_refreshing["state"] = true
 	for child in _state_pane.get_children():
 		child.queue_free()
 	await get_tree().process_frame  # let queue_free flush
+	_pane_refreshing["state"] = false
 
 	if _state == null:
 		var placeholder := Label.new()
@@ -290,6 +295,8 @@ func _state_block_core() -> PanelContainer:
 	_mini_bar(vbox, float(_state.command) / 100.0, Color.html("#88ccff"))
 	_state_row(vbox, "Ship condition", "%d%%" % _state.ship_condition, Color.html("#ffdd88"))
 	_state_row(vbox, "Tick",           str(_state.tick_count),     Color(0.7, 0.7, 0.7))
+	if _state.pending_incident_id != "":
+		_state_row(vbox, "pending incident", _state.pending_incident_id, Color.html("#ff9966"))
 	return panel
 
 
@@ -418,11 +425,13 @@ func _tag_row(tags: Array, fg: Color, bg: Color) -> HBoxContainer:
 # ── Log pane ───────────────────────────────────────────────────────────────────
 
 func _refresh_log_pane() -> void:
-	if _log_table == null:
+	if _log_table == null or _pane_refreshing.get("log", false):
 		return
+	_pane_refreshing["log"] = true
 	for child in _log_table.get_children():
 		child.queue_free()
 	await get_tree().process_frame
+	_pane_refreshing["log"] = false
 
 	if _log == null:
 		return
@@ -476,15 +485,19 @@ func _log_row(tick: String, source: String, message: String, is_header: bool) ->
 # ── Validate pane ──────────────────────────────────────────────────────────────
 
 func _refresh_validate_pane() -> void:
+	if _pane_refreshing.get("validate", false):
+		return
 	var pane_scroll := _tab_panes.get("validate") as ScrollContainer
 	if pane_scroll == null:
 		return
 	var inner := pane_scroll.get_child(0) as VBoxContainer
 	if inner == null:
 		return
+	_pane_refreshing["validate"] = true
 	for child in inner.get_children():
 		child.queue_free()
 	await get_tree().process_frame
+	_pane_refreshing["validate"] = false
 
 	var errors := ContentRegistry.get_validation_errors()
 	var summary := Label.new()
@@ -518,15 +531,19 @@ func _refresh_validate_pane() -> void:
 # ── Content family pane ────────────────────────────────────────────────────────
 
 func _refresh_content_pane(family: String) -> void:
+	if _pane_refreshing.get(family, false):
+		return
 	var pane_scroll := _tab_panes.get(family) as ScrollContainer
 	if pane_scroll == null:
 		return
 	var inner := pane_scroll.get_child(0) as VBoxContainer
 	if inner == null:
 		return
+	_pane_refreshing[family] = true
 	for child in inner.get_children():
 		child.queue_free()
 	await get_tree().process_frame
+	_pane_refreshing[family] = false
 
 	var items := ContentRegistry.get_all(family)
 
