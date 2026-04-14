@@ -120,7 +120,8 @@ static func create_from_config(config: Dictionary) -> ExpeditionState:
 	if supply_bonus > 0:
 		state.supplies["food"] = state.supplies.get("food", 0) + supply_bonus
 
-	# Command bonus from accepted doctrine recommendation
+	# Command bonus from accepted doctrine recommendation.
+	# Also updates min_command so the stress indicator reflects the boosted starting value.
 	var command_bonus: int = config.get("starting_command_bonus", 0)
 	if command_bonus > 0:
 		state.command = clampi(state.command + command_bonus, GameConstants.COMMAND_MIN, GameConstants.COMMAND_MAX)

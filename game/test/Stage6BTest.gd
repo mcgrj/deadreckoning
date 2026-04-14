@@ -209,6 +209,6 @@ func _test_create_from_config_rewards() -> void:
 	var state := ExpeditionState.create_from_config(config)
 	check(state.officer_starting_traits.get("first_lieutenant", "") == "loyal",
 		"officer trait stored on state")
-	check(state.get_supply("food") > 0, "supply bonus applied (food > base)")
+	check(state.get_supply("food") > 0, "supply bonus applied (food > 0)")
 	check(state.command > 70, "command bonus applied above default")
 	check("scandal_blamed_crew" in state.memory_flags, "scandal flag seeded into memory_flags")
