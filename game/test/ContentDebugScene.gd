@@ -369,16 +369,24 @@ func _state_row(parent: VBoxContainer, key: String, value: String, val_color: Co
 
 
 func _mini_bar(parent: VBoxContainer, fill: float, color: Color) -> void:
-	var bg := ColorRect.new()
-	bg.custom_minimum_size = Vector2(0, 3)
-	bg.color = Color(0.07, 0.1, 0.16)
-	bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	parent.add_child(bg)
+	var container := HBoxContainer.new()
+	container.add_theme_constant_override("separation", 0)
+	container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	parent.add_child(container)
+	# Filled portion
 	var fg := ColorRect.new()
 	fg.color = color
-	fg.set_anchors_preset(Control.PRESET_LEFT_WIDE)
-	fg.size.x = clampf(fill, 0.0, 1.0)  # will be relative in final layout — best-effort here
-	bg.add_child(fg)
+	fg.custom_minimum_size = Vector2(0, 3)
+	fg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	fg.size_flags_stretch_ratio = clampf(fill, 0.0, 1.0)
+	container.add_child(fg)
+	# Empty portion
+	var bg := ColorRect.new()
+	bg.color = Color(0.07, 0.1, 0.16)
+	bg.custom_minimum_size = Vector2(0, 3)
+	bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bg.size_flags_stretch_ratio = clampf(1.0 - fill, 0.0, 1.0)
+	container.add_child(bg)
 
 
 func _tag_row(tags: Array, fg: Color, bg: Color) -> HBoxContainer:
