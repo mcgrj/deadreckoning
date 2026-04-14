@@ -320,8 +320,8 @@ func _build_report_section(parent: VBoxContainer) -> void:
 		var card := _build_framing_card(id, opt, return_btn)
 		parent.add_child(card)
 
-	parent.add_child(return_btn)
 	return_btn.pressed.connect(_on_return)
+	parent.add_child(return_btn)
 
 
 func _build_framing_card(framing_id: String, opt: Dictionary, return_btn: Button) -> PanelContainer:
@@ -352,6 +352,7 @@ func _build_framing_card(framing_id: String, opt: Dictionary, return_btn: Button
 	return panel
 
 
+# btn: reserved for future visual selection state (highlight chosen card)
 func _on_framing_selected(framing_id: String, btn: Button, return_btn: Button) -> void:
 	_selected_framing = framing_id
 	return_btn.disabled = false
