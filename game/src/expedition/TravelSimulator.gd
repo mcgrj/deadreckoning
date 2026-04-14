@@ -26,7 +26,7 @@ static func _check_run_end(state: ExpeditionState, log: SimulationLog) -> bool:
 	if state.command <= GameConstants.MUTINY_COMMAND_THRESHOLD:
 		var mutiny_chance: float = (float(state.burden) / 100.0) * GameConstants.MUTINY_BASE_RATE
 		if state.has_standing_order("suppress_dissent"):
-			mutiny_chance *= 0.5
+			mutiny_chance *= GameConstants.SUPPRESS_DISSENT_MUTINY_MULTIPLIER
 		if randf() < mutiny_chance:
 			state.run_end_reason = "mutiny"
 			log.log_event(state.tick_count, "RunEnd",
@@ -55,7 +55,7 @@ static func process_tick(state: ExpeditionState, zone: ZoneTypeDef, log: Simulat
 		if food_before > 0 and state.get_supply(food_def.id) == 0:
 			var b = EffectDef.new()
 			b.type = "burden_change"
-			b.delta = 6
+			b.delta = GameConstants.BURDEN_ON_FOOD_EXHAUSTED
 			EffectProcessor.apply(state, b, log)
 			var f = EffectDef.new()
 			f.type = "set_memory_flag"
@@ -74,7 +74,7 @@ static func process_tick(state: ExpeditionState, zone: ZoneTypeDef, log: Simulat
 		if water_before > 0 and state.get_supply(water_def.id) == 0:
 			var b = EffectDef.new()
 			b.type = "burden_change"
-			b.delta = 8
+			b.delta = GameConstants.BURDEN_ON_WATER_EXHAUSTED
 			EffectProcessor.apply(state, b, log)
 			var f = EffectDef.new()
 			f.type = "set_memory_flag"
@@ -82,7 +82,7 @@ static func process_tick(state: ExpeditionState, zone: ZoneTypeDef, log: Simulat
 			EffectProcessor.apply(state, f, log)
 
 	# Step 3: Ship wear
-	var wear_delta := mini(floori(-1.0 * zone.ship_wear_modifier), -1)
+	var wear_delta := mini(floori(-1.0 * zone.ship_wear_modifier), -GameConstants.SHIP_WEAR_MIN_PER_TICK)
 	var wear_effect = EffectDef.new()
 	wear_effect.type = "ship_condition_change"
 	wear_effect.delta = wear_delta
@@ -96,7 +96,7 @@ static func process_tick(state: ExpeditionState, zone: ZoneTypeDef, log: Simulat
 		EffectProcessor.apply(state, zone_burden, log)
 
 	# Step 5: Travel fatigue
-	state.travel_fatigue = clampi(state.travel_fatigue + 1, 0, 100)
+	state.travel_fatigue = clampi(state.travel_fatigue + GameConstants.TRAVEL_FATIGUE_PER_TICK, 0, 100)
 	log.log_event(state.tick_count, "TravelSimulator",
 		"Travel fatigue: %d" % state.travel_fatigue,
 		{"travel_fatigue": state.travel_fatigue})
@@ -107,9 +107,9 @@ static func process_tick(state: ExpeditionState, zone: ZoneTypeDef, log: Simulat
 	var food_critical: int = food_def.critical_threshold if food_def != null else 0
 	var water_critical: int = water_def.critical_threshold if water_def != null else 0
 	if food_amount < food_critical or water_amount < water_critical:
-		state.sickness_risk = clampi(state.sickness_risk + 3, 0, 100)
+		state.sickness_risk = clampi(state.sickness_risk + GameConstants.SICKNESS_RISK_RISE_PER_TICK, 0, 100)
 	else:
-		state.sickness_risk = clampi(state.sickness_risk - 1, 0, 100)
+		state.sickness_risk = clampi(state.sickness_risk - GameConstants.SICKNESS_RISK_FALL_PER_TICK, 0, 100)
 	log.log_event(state.tick_count, "TravelSimulator",
 		"Sickness risk: %d" % state.sickness_risk,
 		{"sickness_risk": state.sickness_risk})
@@ -139,7 +139,7 @@ static func process_tick(state: ExpeditionState, zone: ZoneTypeDef, log: Simulat
 			weights.append(w)
 			total_weight += w
 
-		if not eligible.is_empty():
+		if not eligible.is_empty() and randf() < GameConstants.INCIDENT_BASE_TRIGGER_CHANCE:
 			var roll := randf() * total_weight
 			var cumulative: float = 0.0
 			for i: int in range(eligible.size()):
