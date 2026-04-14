@@ -40,6 +40,7 @@ var stress_indicators: Dictionary = {
 var run_end_reason: String = ""        # "completed" | "mutiny" | "breakdown" | ""
 var command_culture: String = ""       # Set from doctrine's command_culture_modifier
 var active_objective_id: String = ""   # The objective selected at preparation
+var officer_starting_traits: Dictionary = {}  # role -> trait e.g. {"first_lieutenant": "loyal"}
 
 
 static func create_default() -> ExpeditionState:
@@ -110,6 +111,25 @@ static func create_from_config(config: Dictionary) -> ExpeditionState:
 	# Baseline stress indicators
 	state.stress_indicators.peak_burden = state.burden
 	state.stress_indicators.min_command = state.command
+
+	# Officer starting traits (from Admiralty recommendations)
+	state.officer_starting_traits = config.get("officer_starting_traits", {})
+
+	# Supply bonus from accepted objective recommendation
+	var supply_bonus: int = config.get("starting_supply_bonus", 0)
+	if supply_bonus > 0:
+		state.supplies["food"] = state.supplies.get("food", 0) + supply_bonus
+
+	# Command bonus from accepted doctrine recommendation
+	var command_bonus: int = config.get("starting_command_bonus", 0)
+	if command_bonus > 0:
+		state.command = clampi(state.command + command_bonus, GameConstants.COMMAND_MIN, GameConstants.COMMAND_MAX)
+		state.stress_indicators.min_command = state.command
+
+	# Seed scandal flags from ProgressionState into memory_flags
+	# so existing has_memory_flag conditions can gate on them
+	for flag: String in config.get("scandal_flags", []):
+		state.add_memory_flag(flag)
 
 	return state
 

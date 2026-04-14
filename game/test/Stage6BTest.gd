@@ -25,6 +25,8 @@ func _ready() -> void:
 	_test_framing_gate_breakdown()
 	_test_framing_gate_losses()
 	_test_log_narrative_text()
+	_test_expedition_state_officer_traits()
+	_test_create_from_config_rewards()
 	_finish()
 
 
@@ -183,3 +185,30 @@ func _test_log_narrative_text() -> void:
 	check(not text2.contains("refused"), "no mutiny sentence on breakdown")
 	scene.free()
 	scene2.free()
+
+
+func _test_expedition_state_officer_traits() -> void:
+	print("-- ExpeditionState officer_starting_traits --")
+	var state := ExpeditionState.new()
+	check(state.officer_starting_traits is Dictionary, "officer_starting_traits is Dictionary")
+	check(state.officer_starting_traits.is_empty(), "officer_starting_traits defaults empty")
+
+
+func _test_create_from_config_rewards() -> void:
+	print("-- create_from_config reward application --")
+	var config := {
+		"objective_id": "survey_strange_shore",
+		"doctrine_id": "",
+		"officer_ids": [],
+		"upgrade_ids": [],
+		"officer_starting_traits": {"first_lieutenant": "loyal"},
+		"starting_supply_bonus": 10,
+		"starting_command_bonus": 5,
+		"scandal_flags": ["scandal_blamed_crew"],
+	}
+	var state := ExpeditionState.create_from_config(config)
+	check(state.officer_starting_traits.get("first_lieutenant", "") == "loyal",
+		"officer trait stored on state")
+	check(state.get_supply("food") > 0, "supply bonus applied (food > base)")
+	check(state.command > 70, "command bonus applied above default")
+	check("scandal_blamed_crew" in state.memory_flags, "scandal flag seeded into memory_flags")
