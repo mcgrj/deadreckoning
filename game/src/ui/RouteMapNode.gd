@@ -99,7 +99,12 @@ func _gui_input(event: InputEvent) -> void:
 	var mb := event as InputEventMouseButton
 	if not mb.pressed or mb.button_index != MOUSE_BUTTON_LEFT:
 		return
-	if _route == null or _route.is_travelling():
+	if _route == null:
+		return
+	# While travelling, any click advances the tick (null signals "just advance").
+	if _route.is_travelling():
+		node_selected.emit(null)
+		get_viewport().set_input_as_handled()
 		return
 	# mb.position is local to this Control; subtract _offset for canvas-local coords
 	var canvas_mouse := mb.position - _offset

@@ -33,14 +33,14 @@ func _ready() -> void:
 
 	var title_lbl := Label.new()
 	title_lbl.text = "SHIP'S LOG"
-	title_lbl.add_theme_font_size_override("font_size", 9)
-	title_lbl.add_theme_color_override("font_color", Color(0.29, 0.48, 0.67))
+	title_lbl.add_theme_font_size_override("font_size", 11)
+	title_lbl.add_theme_color_override("font_color", Color(0.5, 0.7, 0.85))
 	header.add_child(title_lbl)
 
 	var live_lbl := Label.new()
 	live_lbl.text = "● LIVE"
-	live_lbl.add_theme_font_size_override("font_size", 9)
-	live_lbl.add_theme_color_override("font_color", Color(0.25, 0.6, 0.25))
+	live_lbl.add_theme_font_size_override("font_size", 11)
+	live_lbl.add_theme_color_override("font_color", Color(0.35, 0.75, 0.35))
 	header.add_child(live_lbl)
 
 	_scroll = ScrollContainer.new()
@@ -87,8 +87,8 @@ func _add_entry_node(entry: Dictionary) -> void:
 	tick_lbl.text = str(entry.get("tick", 0))
 	tick_lbl.custom_minimum_size.x = 28
 	tick_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	tick_lbl.add_theme_font_size_override("font_size", 10)
-	tick_lbl.add_theme_color_override("font_color", Color(0.2, 0.3, 0.45))
+	tick_lbl.add_theme_font_size_override("font_size", 11)
+	tick_lbl.add_theme_color_override("font_color", Color(0.35, 0.48, 0.62))
 	hbox.add_child(tick_lbl)
 
 	var content_vbox := VBoxContainer.new()
@@ -101,14 +101,14 @@ func _add_entry_node(entry: Dictionary) -> void:
 
 	var src_lbl := Label.new()
 	src_lbl.text = source.to_upper()
-	src_lbl.add_theme_font_size_override("font_size", 9)
+	src_lbl.add_theme_font_size_override("font_size", 10)
 	src_lbl.add_theme_color_override("font_color", colors[0])
 	content_vbox.add_child(src_lbl)
 
 	var msg_lbl := Label.new()
 	msg_lbl.text = entry.get("message", "")
 	msg_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
-	msg_lbl.add_theme_font_size_override("font_size", 11)
+	msg_lbl.add_theme_font_size_override("font_size", 13)
 	msg_lbl.add_theme_color_override("font_color", colors[1])
 	content_vbox.add_child(msg_lbl)
 
@@ -139,11 +139,11 @@ func _auto_scroll() -> void:
 static func _entry_colors(source: String) -> Array[Color]:
 	var s := source.to_upper()
 	if s.contains("RESOLUTION") or s.contains("RESOLVED"):
-		return [Color.html("#3a6040"), Color.html("#66aa66")]  # resolved
+		return [Color.html("#55aa66"), Color.html("#88dd88")]  # resolved
 	if s.contains("INCIDENT"):
-		return [Color.html("#804020"), Color.html("#ffaa66")]  # incident
+		return [Color.html("#cc6622"), Color.html("#ffcc88")]  # incident
 	if s.contains("RUM") or s.contains("SUPPLY"):
-		return [Color.html("#806040"), Color.html("#cc9944")]  # warn
+		return [Color.html("#aa8833"), Color.html("#eebb55")]  # warn
 	if s.contains("EFFECT"):
-		return [Color.html("#2a3a4a"), Color.html("#4a7080")]  # effect
-	return [Color.html("#4a6a8a"), Color.html("#7a9aaa")]      # event
+		return [Color.html("#5580a0"), Color.html("#88bbcc")]  # effect
+	return [Color.html("#6090b0"), Color.html("#a0c8dc")]      # event

@@ -61,6 +61,8 @@ func _build_ui() -> void:
 	_log_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body.add_child(_log_panel)
 
+	body.add_child(VSeparator.new())
+
 	# Right: header strip + right slot
 	var right_vbox := VBoxContainer.new()
 	right_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -74,14 +76,14 @@ func _build_ui() -> void:
 	right_vbox.add_child(header_strip)
 
 	_breadcrumb = Label.new()
-	_breadcrumb.add_theme_font_size_override("font_size", 10)
-	_breadcrumb.add_theme_color_override("font_color", Color(0.4, 0.6, 0.7))
+	_breadcrumb.add_theme_font_size_override("font_size", 13)
+	_breadcrumb.add_theme_color_override("font_color", Color(0.55, 0.75, 0.85))
 	_breadcrumb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header_strip.add_child(_breadcrumb)
 
 	_status_label = Label.new()
-	_status_label.add_theme_font_size_override("font_size", 10)
-	_status_label.add_theme_color_override("font_color", Color(0.7, 0.5, 0.3))
+	_status_label.add_theme_font_size_override("font_size", 13)
+	_status_label.add_theme_color_override("font_color", Color(0.85, 0.6, 0.3))
 	header_strip.add_child(_status_label)
 
 	# Right slot container
@@ -115,7 +117,9 @@ func _refresh_breadcrumb() -> void:
 
 
 func _on_node_selected(node: RouteNode) -> void:
-	_route.select_node(node)
+	# node is null when RouteMapNode emits an advance-while-travelling click
+	if node != null:
+		_route.select_node(node)
 	_status_label.text = ""
 	_refresh_breadcrumb()
 	_route_map.refresh()
