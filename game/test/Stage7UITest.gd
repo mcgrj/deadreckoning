@@ -21,6 +21,7 @@ func _ready() -> void:
 	print("=== Stage7UITest ===\n")
 	_test_stats_bar_clock()
 	_test_log_panel_colors()
+	_test_route_map_node_geometry()
 	_finish()
 
 
@@ -67,3 +68,40 @@ func _test_log_panel_colors() -> void:
 	var c4 := LogPanel._entry_colors("EffectProcessor")
 	# "effect" type → both colors are dark blue
 	check(c4[0].b >= c4[0].r, "effect source color has blue >= red")
+
+
+# ── RouteMapNode ─────────────────────────────────────────────────────────────
+
+func _test_route_map_node_geometry() -> void:
+	print("-- RouteMapNode geometry --")
+
+	# _stage_y: with 4 stages, step = 410/5 = 82 → stage 0 = 408, stage 3 = 162
+	var step4 := 410.0 / 5.0
+	check(is_equal_approx(RouteMapNode._stage_y(0, 4), 490.0 - step4 * 1), "stage_y(0,4)")
+	check(is_equal_approx(RouteMapNode._stage_y(3, 4), 490.0 - step4 * 4), "stage_y(3,4)")
+
+	# _stage_y: with 1 stage, step = 410/2 = 205 → y = 285
+	check(is_equal_approx(RouteMapNode._stage_y(0, 1), 285.0), "stage_y(0,1)")
+
+	# _node_x: 1 node → centred at 150
+	check(is_equal_approx(RouteMapNode._node_x(0, 1), 150.0), "node_x single centred")
+
+	# _node_x: 2 nodes → 65, 235
+	check(is_equal_approx(RouteMapNode._node_x(0, 2), 65.0),  "node_x 2-node left")
+	check(is_equal_approx(RouteMapNode._node_x(1, 2), 235.0), "node_x 2-node right")
+
+	# _node_x: 3 nodes → 65, 150, 235
+	check(is_equal_approx(RouteMapNode._node_x(0, 3), 65.0),  "node_x 3-node left")
+	check(is_equal_approx(RouteMapNode._node_x(1, 3), 150.0), "node_x 3-node centre")
+	check(is_equal_approx(RouteMapNode._node_x(2, 3), 235.0), "node_x 3-node right")
+
+	# _bezier_point: t=0 → p0, t=1 → p3
+	var p0 := Vector2(0, 0)
+	var p1 := Vector2(0, 50)
+	var p2 := Vector2(100, 50)
+	var p3 := Vector2(100, 100)
+	check(RouteMapNode._bezier_point(p0, p1, p2, p3, 0.0).is_equal_approx(p0), "bezier t=0 → p0")
+	check(RouteMapNode._bezier_point(p0, p1, p2, p3, 1.0).is_equal_approx(p3), "bezier t=1 → p3")
+	var mid := RouteMapNode._bezier_point(p0, p1, p2, p3, 0.5)
+	check(mid.x > 0.0 and mid.x < 100.0, "bezier midpoint x in (0,100)")
+	check(mid.y > 0.0 and mid.y < 100.0, "bezier midpoint y in (0,100)")
