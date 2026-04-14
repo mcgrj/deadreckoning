@@ -20,7 +20,7 @@ func check(condition: bool, label: String) -> void:
 func _ready() -> void:
 	print("=== Stage7UITest ===\n")
 	_test_stats_bar_clock()
-	# LogPanel and RouteMapNode tests added in later tasks
+	_test_log_panel_colors()
 	_finish()
 
 
@@ -45,3 +45,25 @@ func _test_stats_bar_clock() -> void:
 	check(StatsBar._period_from_tick(1) == "DUSK", "tick 1 → DUSK")
 	check(StatsBar._period_from_tick(2) == "DAWN", "tick 2 → DAWN")
 	check(StatsBar._period_from_tick(7) == "DUSK", "tick 7 → DUSK")
+
+
+# ── LogPanel ─────────────────────────────────────────────────────────────────
+
+func _test_log_panel_colors() -> void:
+	print("-- LogPanel entry colors --")
+	var c := LogPanel._entry_colors("IncidentResolution")
+	check(c.size() == 2, "entry_colors returns 2 elements")
+	# "resolved" type → source color is greenish (#3a6040)
+	check(c[0].g > c[0].r, "resolved source color is green-dominant")
+
+	var c2 := LogPanel._entry_colors("RumRules")
+	# "warn" type → message color is yellowish (#cc9944)
+	check(c2[1].r > c2[1].b, "warn message color is warm")
+
+	var c3 := LogPanel._entry_colors("TravelSimulator")
+	# "event" type → source color is blue-grey (#4a6a8a)
+	check(c3[0].b > c3[0].r, "event source color is blue-dominant")
+
+	var c4 := LogPanel._entry_colors("EffectProcessor")
+	# "effect" type → both colors are dark blue
+	check(c4[0].b >= c4[0].r, "effect source color has blue >= red")
