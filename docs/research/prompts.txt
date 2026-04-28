@@ -1,0 +1,11 @@
+Research This War of Mine for game design inspiration. 
+I'm designing a simulation-driven narrative roguelike about a maritime expedition and want to This War Of Mine's narrative system, survival mechanics, atmosphere, and roguelike structure and systems were designed, received, and what I can learn from them.
+Save output to /home/joe/repos/deadreckoning/docs/research
+
+Research Frostpunk for game design inspiration. 
+I'm designing a simulation-driven narrative roguelike about a maritime expedition and want to understand Frostpunk's narrative system, survival mechanics, law system, hope vs discontent, delayed consequences and systems were designed, received, and what I can learn from them.
+Save output to /home/joe/repos/deadreckoning/docs/research
+
+Research Help Will Come Tomorrow for game design inspiration. 
+I'm designing a simulation-driven narrative roguelike about a maritime expedition and want to understand Help Will Come Tomorrow's narrative system, survival mechanics, Relationship system affects survival, group conflict, historical survival framing and systems were designed, received, and what I can learn from them.
+Save output to /home/joe/repos/deadreckoning/docs/research

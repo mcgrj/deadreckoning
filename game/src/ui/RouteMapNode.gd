@@ -241,13 +241,13 @@ func _draw_tick_dots() -> void:
 	for i in range(tick_dist):
 		var t := (float(i) + 0.5) / float(tick_dist)
 		var p := _bezier_point(from_pos, from_pos + Vector2(0, -ctrl),
-		                       to_pos + Vector2(0, ctrl), to_pos, t)
+							   to_pos + Vector2(0, ctrl), to_pos, t)
 		var is_done: bool = i < ticks_done
 		if is_done:
 			draw_circle(p, TICK_DOT_RADIUS, Color(stroke.r, stroke.g, stroke.b, 0.9))
 		else:
 			draw_arc(p, TICK_DOT_RADIUS, 0.0, TAU, 16,
-			         Color(stroke.r, stroke.g, stroke.b, 0.5), 1.5)
+					 Color(stroke.r, stroke.g, stroke.b, 0.5), 1.5)
 
 
 func _draw_boat() -> void:
@@ -258,18 +258,18 @@ func _draw_boat() -> void:
 	if tick_dist <= 0:
 		return
 	var ticks_done: int = tick_dist - _route.ticks_remaining
-	var t := clampf((float(ticks_done) - 0.5) / float(tick_dist), 0.0, 1.0)
+	var t := clampf((float(ticks_done) + 0.5) / float(tick_dist), 0.0, 1.0)
 	var ctrl := size.y * 0.12
 
 	var from_pos := _active_leg_from_pos()
 	var to_pos := _node_canvas_pos(node)
 	var boat_pos := _bezier_point(from_pos, from_pos + Vector2(0, -ctrl),
-	                              to_pos + Vector2(0, ctrl), to_pos, t)
+								  to_pos + Vector2(0, ctrl), to_pos, t)
 
 	var glow_a := 0.35 + 0.15 * sin(_glow_phase)
 	draw_arc(boat_pos, 9.0, 0.0, TAU, 24, Color(0.67, 0.83, 1.0, glow_a), 1.5)
 	draw_string(ThemeDB.fallback_font, boat_pos + Vector2(-8, 6), "⛵",
-	            HORIZONTAL_ALIGNMENT_LEFT, -1, 16)
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 16)
 
 
 func _draw_nodes() -> void:
@@ -308,25 +308,25 @@ func _draw_node(node: RouteNode) -> void:
 		draw_circle(pos, NODE_RADIUS + 5.0, Color(stroke.r, stroke.g, stroke.b, ga))
 	elif node == _hovered_node and state != "locked":
 		draw_arc(pos, NODE_RADIUS + 2.0, 0.0, TAU, 32,
-		         Color(stroke.r, stroke.g, stroke.b, 0.6), 1.0)
+				 Color(stroke.r, stroke.g, stroke.b, 0.6), 1.0)
 
 	draw_circle(pos, NODE_RADIUS, Color(bg.r, bg.g, bg.b, opacity))
 	draw_arc(pos, NODE_RADIUS, 0.0, TAU, 32,
-	         Color(stroke.r, stroke.g, stroke.b, opacity), stroke_w)
+			 Color(stroke.r, stroke.g, stroke.b, opacity), stroke_w)
 	draw_string(ThemeDB.fallback_font, pos + Vector2(-10, 4),
-	            node.category.substr(0, 3).to_upper(),
-	            HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
-	            Color(stroke.r, stroke.g, stroke.b, opacity * 0.9))
+				node.category.substr(0, 3).to_upper(),
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 10,
+				Color(stroke.r, stroke.g, stroke.b, opacity * 0.9))
 
 
 func _draw_stage_labels() -> void:
 	for si in range(_route.stages.size()):
 		var y := _draw_stage_y(si, _route.stages.size())
 		draw_string(ThemeDB.fallback_font,
-		            Vector2(size.x - 4.0, y + 4.0),
-		            "S%d" % (si + 1),
-		            HORIZONTAL_ALIGNMENT_RIGHT, -1, 10,
-		            Color(0.25, 0.4, 0.55))
+					Vector2(size.x - 4.0, y + 4.0),
+					"S%d" % (si + 1),
+					HORIZONTAL_ALIGNMENT_RIGHT, -1, 10,
+					Color(0.25, 0.4, 0.55))
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -372,7 +372,7 @@ func _stroke_color(category: String) -> Color:
 
 
 func _draw_bezier(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2,
-                  color: Color, width: float) -> void:
+				  color: Color, width: float) -> void:
 	var prev := p0
 	for i in range(1, BEZIER_SEGMENTS + 1):
 		var t := float(i) / float(BEZIER_SEGMENTS)
@@ -397,6 +397,6 @@ static func _node_x(node_index: int, node_count: int) -> float:
 
 
 static func _bezier_point(p0: Vector2, p1: Vector2,
-                           p2: Vector2, p3: Vector2, t: float) -> Vector2:
+						   p2: Vector2, p3: Vector2, t: float) -> Vector2:
 	var mt := 1.0 - t
 	return mt*mt*mt*p0 + 3.0*mt*mt*t*p1 + 3.0*mt*t*t*p2 + t*t*t*p3
